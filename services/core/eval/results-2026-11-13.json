@@ -1,0 +1,145 @@
+{
+  "run_date": "2026-11-13",
+  "git_commit": "6b008f4f158386d6927fa51665c81ee1998dc191",
+  "fixture": "/home/kirito/Documents/projects/personal/Mothusi/services/core/fixtures/gr10-maths-t1",
+  "scripts": 32,
+  "instance": "g4dn.xlarge",
+  "models": {
+    "setter": "qwen3:14b",
+    "marker": "qwen3:14b",
+    "moderator": "phi4",
+    "analyst": "qwen3:14b",
+    "support": "qwen3:14b",
+    "writer": "qwen3:14b",
+    "reviewer": "qwen3:14b"
+  },
+  "minutes_to_approval": "73.14",
+  "minutes_to_delivered": "73.17",
+  "halted": null,
+  "questions_compared": 288,
+  "disagreements": 138,
+  "agreement_rate": "0.5208",
+  "traps": [
+    {
+      "trap": "memo 2.3",
+      "caught": true,
+      "evidence": "seq 13: Memo 2.3: the Setter's answer differs from the memo"
+    },
+    {
+      "trap": "L-014 evidence",
+      "caught": true,
+      "evidence": "seq 130: L-014: evidence FAILED: 3.1: quote not found in the answer; seq 139: L-014: 49/50"
+    },
+    {
+      "trap": "L-021 over-mark",
+      "caught": false,
+      "evidence": "seq 773: L-021 Q4: first 0, second 3"
+    },
+    {
+      "trap": "L-007 note",
+      "caught": false,
+      "evidence": "note not rejected"
+    }
+  ],
+  "teacher_questions": [
+    "memo:2.2",
+    "memo:2.3",
+    "memo:1.2",
+    "script:3.1",
+    "script:1.1",
+    "script:2.3",
+    "script:1.2",
+    "script:1.3",
+    "script:2.1",
+    "script:2.3",
+    "script:1.2",
+    "script:1.3"
+  ],
+  "latency": [
+    {
+      "role": "analyst",
+      "model": "qwen3:14b",
+      "calls": 1,
+      "p50_s": "11.90",
+      "p95_s": "11.90",
+      "max_s": "11.90",
+      "limit_s": null,
+      "over_limit": 0
+    },
+    {
+      "role": "marker",
+      "model": "qwen3:14b",
+      "calls": 83,
+      "p50_s": "66.37",
+      "p95_s": "136.26",
+      "max_s": "180.51",
+      "limit_s": "30",
+      "over_limit": 83
+    },
+    {
+      "role": "moderator",
+      "model": "phi4",
+      "calls": 59,
+      "p50_s": "126.18",
+      "p95_s": "179.61",
+      "max_s": "180.04",
+      "limit_s": null,
+      "over_limit": 0
+    },
+    {
+      "role": "reviewer",
+      "model": "qwen3:14b",
+      "calls": 3,
+      "p50_s": "4.21",
+      "p95_s": "10.37",
+      "max_s": "10.37",
+      "limit_s": null,
+      "over_limit": 0
+    },
+    {
+      "role": "setter",
+      "model": "qwen3:14b",
+      "calls": 3,
+      "p50_s": "39.21",
+      "p95_s": "98.61",
+      "max_s": "98.61",
+      "limit_s": null,
+      "over_limit": 0
+    },
+    {
+      "role": "support",
+      "model": "qwen3:14b",
+      "calls": 1,
+      "p50_s": "9.27",
+      "p95_s": "9.27",
+      "max_s": "9.27",
+      "limit_s": null,
+      "over_limit": 0
+    },
+    {
+      "role": "writer",
+      "model": "qwen3:14b",
+      "calls": 33,
+      "p50_s": "21.40",
+      "p95_s": "29.36",
+      "max_s": "30.04",
+      "limit_s": null,
+      "over_limit": 0
+    }
+  ],
+  "cost_zar_set": "19.68",
+  "cost_zar_script": "0.62",
+  "cost_basis": {
+    "instance": "g4dn.xlarge",
+    "instance_usd_per_hour": "0.698",
+    "stack_usd_per_hour": "0.289",
+    "zar_per_usd": "16.3515",
+    "sources": [
+      "AWS EC2 price list, af-south-1 (Africa (Cape Town)), Linux on-demand, SKU Z5EBUUPB54SZXUEV, effective 2026-11-01, list published 2026-11-07 (read 2026-11-11)",
+      "South African Reserve Bank, rand per US dollar, 2026-11-10 (docs/architecture/mothusi-aws-map.html §05)",
+      "docs/architecture/mothusi-aws-map.html §05: ALB + Fargate (core 1/2, intake 0.5/1, knowledge 1/4) + RDS db.t4g.small + 6 IPv4, AWS af-south-1 price lists published 2026-11-05"
+    ]
+  },
+  "reader": null,
+  "reader_skipped": "no photographed set at /home/kirito/Documents/projects/personal/Mothusi/services/core/fixtures/gr10-maths-t1-photos"
+}

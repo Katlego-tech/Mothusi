@@ -20,7 +20,7 @@ from mothusi_contracts import (
     Script,
     SubjectPack,
 )
-from mothusi_core.agents.marker import Attempt, MarkingOutcome, mark_script
+from mothusi_core.agents.marker import REPLY_BUDGET_TOKENS, Attempt, MarkingOutcome, mark_script
 from mothusi_llm import Provider
 from mothusi_rules import check_brief_blind, disagreements, moderation_sample, should_widen
 
@@ -45,7 +45,7 @@ async def moderate_script(
     *,
     assessment_id: str,
     max_attempts: int = 3,
-    budget_tokens: int | None = None,
+    budget_tokens: int | None = REPLY_BUDGET_TOKENS,
     on_brief: Callable[[Brief], None] | None = None,
     on_attempt: Callable[[Attempt], None] | None = None,
 ) -> MarkingOutcome:
