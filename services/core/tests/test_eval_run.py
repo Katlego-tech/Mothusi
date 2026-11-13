@@ -18,7 +18,7 @@ from mothusi_core.eval import run
 from mothusi_core.eval.results import CallTiming, EvalResult
 from mothusi_core.eval.timed import Timed
 from mothusi_core.graph.planner import Planner
-from mothusi_core.smoke import PLANTED
+from mothusi_core.smoke import FIXTURE, PLANTED
 from mothusi_intake import load_scripts
 from mothusi_llm import ProviderError, Usage
 
@@ -101,7 +101,7 @@ def args(out: Path, instance: str = "g4dn.xlarge") -> list[str]:
 
 
 def test_fixture_memo_truth_lists_only_the_planted_error() -> None:
-    with (run.FIXTURE / "memo-truth.toml").open("rb") as stream:
+    with (FIXTURE / "memo-truth.toml").open("rb") as stream:
         assert tomllib.load(stream) == {
             "errors": [{"question_id": "2.3", "correct_answer": "x = -4"}]
         }
@@ -127,12 +127,12 @@ def test_memo_question_uses_the_selected_fixtures_truth(
     question_id: str,
     decision: str,
 ) -> None:
-    fixture = run.FIXTURE
+    fixture = FIXTURE
     if truth != "fixture":
         fixture = tmp_path / "fixture"
         fixture.mkdir()
         for name in ("memo.toml", "scripts.csv", "atp-weeks.toml"):
-            shutil.copyfile(run.FIXTURE / name, fixture / name)
+            shutil.copyfile(FIXTURE / name, fixture / name)
         if truth == "empty":
             (fixture / "memo-truth.toml").write_text("errors = []\n")
         elif truth == "other":
