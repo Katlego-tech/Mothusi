@@ -1,0 +1,19 @@
+[project]
+name = "mothusi-outputs"
+version = "0.1.0"
+description = "Mothusi's finished paperwork: learner notes, the approved bundle on disk, the mark sheet as a spreadsheet. Deterministic renderers over computed data; no model calls."
+requires-python = ">=3.14"
+dependencies = [
+    "mothusi-contracts",
+    "mothusi-rules",
+    "openpyxl==3.1.5",
+    "reportlab==5.1.0",
+    "segno==1.6.6",
+]
+
+[build-system]
+requires = ["uv_build>=0.11,<0.12"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "mothusi_outputs"

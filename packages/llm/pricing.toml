@@ -1,0 +1,40 @@
+# Mothusi's prices (ADR 0001: open models on a self-hosted GPU, so a run is priced by GPU time, not
+# by tokens). Every figure carries its source and date; update them only from a dated source
+# (docs/resources-to-fetch.md row 4). Read by the meter and the eval (eval.md §6).
+
+[rates]
+zar_per_usd = 16.3515
+source = "South African Reserve Bank, rand per US dollar, 2026-11-10 (docs/architecture/mothusi-aws-map.html §05)"
+
+# The models run on the model host and cost nothing per token; their cost is the host's GPU time.
+[[model]]
+name = "qwen3-vl:8b-instruct"
+usd_per_million_input = 0
+usd_per_million_output = 0
+source = "self-hosted; billed as GPU time"
+
+[[model]]
+name = "qwen3:14b"
+usd_per_million_input = 0
+usd_per_million_output = 0
+source = "self-hosted; billed as GPU time"
+
+[[model]]
+name = "phi4"
+usd_per_million_input = 0
+usd_per_million_output = 0
+source = "self-hosted; billed as GPU time"
+
+[[instance]]
+name = "g4dn.xlarge"
+usd_per_hour = 0.698
+source = "AWS EC2 price list, af-south-1 (Africa (Cape Town)), Linux on-demand, SKU Z5EBUUPB54SZXUEV, effective 2026-11-01, list published 2026-11-07 (read 2026-11-11)"
+
+[[instance]]
+name = "laptop"
+usd_per_hour = 0
+source = "the team's own machine"
+
+[stack]
+usd_per_hour = 0.289
+source = "docs/architecture/mothusi-aws-map.html §05: ALB + Fargate (core 1/2, intake 0.5/1, knowledge 1/4) + RDS db.t4g.small + 6 IPv4, AWS af-south-1 price lists published 2026-11-05"

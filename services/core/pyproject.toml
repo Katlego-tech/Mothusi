@@ -1,0 +1,29 @@
+[project]
+name = "mothusi-core"
+version = "0.1.0"
+description = "Mothusi's core service: the Planner graph and the agents it briefs (marker, moderator, setter, analyst, support, writer, reviewer, executor)."
+requires-python = ">=3.14"
+dependencies = [
+    "mothusi-contracts",
+    "mothusi-rules",
+    "mothusi-llm",
+    "mothusi-intake",
+    "mothusi-outputs",
+    "mothusi-delivery",
+    "mothusi-events",
+    "fastapi==0.162.2",
+    "uvicorn==0.54.0",
+    "langgraph==1.2.20",
+    "langgraph-checkpoint-postgres==3.2.0",
+    "psycopg[binary,pool]==3.3.8",
+    "python-multipart==0.0.33",
+    "pyjwt[crypto]==2.15.1",
+    "httpx==0.28.1",
+]
+
+[build-system]
+requires = ["uv_build>=0.11,<0.12"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "mothusi_core"

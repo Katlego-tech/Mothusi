@@ -1,0 +1,53 @@
+/* Tailwind with the console's tokens (console-ui.md §2), then the component classes. */
+@import "tailwindcss";
+@import "./console.css";
+@import "./motion.css";
+@import "./agent.css";
+
+@theme {
+  --color-ground: #fbf9f5;
+  --color-surface: #ffffff;
+  --color-raised: #f3efea;
+  --color-active: #ebe6df;
+  --color-border: #e5e0d8;
+  --color-rule: #eee9e1;
+  --color-control: #d5cfc5;
+  --color-text: #272f2d;
+  --color-muted: #5f6866;
+  --color-teal: #0f3e36;
+  --color-teal-soft: #e6f0ed;
+  --color-teal-edge: #b8d5cd;
+  --color-marker: #b8262f;
+  --color-marker-soft: #fbe9e9;
+  --color-moderator: #1e7a4b;
+  --color-moderator-soft: #e3f2e9;
+  --color-code: #5a6360;
+  --color-code-soft: #efece7;
+  --font-sans: "Public Sans", system-ui, sans-serif;
+  --font-ink: "Kalam", "Comic Neue", cursive;
+  --radius-card: 8px;
+  --radius-control: 4px;
+}
+
+/* Tailwind's preflight resets lists and headings; the console's own rules (console.css) restyle
+   them, and these keep the few browser defaults the mockups relied on. */
+.next ol { list-style: decimal; }
+.doc-md h1, .doc-md h2, .doc-md h3 { margin: 16px 0 8px; }
+.doc-md p, .doc-md ul, .doc-md table { margin: 0 0 12px; }
+.doc-md ul { list-style: disc; padding-left: 20px; }
+
+/* Radix tab triggers are buttons with data-state, not the mockups' links: same look as .tabs a. */
+.tabs .tab { display: inline-flex; align-items: baseline; gap: 8px; padding: 12px; margin-bottom: -1px; color: var(--muted); white-space: nowrap; font: inherit; }
+.tabs .tab .small { color: var(--muted); }
+.tabs .tab[data-state="active"] { color: var(--text); font-weight: 600; border-bottom-color: var(--teal); }
+.error { color: var(--marker); font-size: 13px; line-height: 18px; }
+.file input[type="file"] { font-size: 13px; color: var(--muted); }
+.notice { padding: 10px var(--card-pad); background: var(--teal-soft); border-radius: var(--radius-control); font-size: 13px; }
+.notice.warn { background: var(--marker-soft); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* The log scrolls inside its panel and keeps the newest row in view (console-ui.md §7). */
+.log-body { max-height: calc(100vh - 220px); min-height: 320px; overflow-y: auto; overscroll-behavior: contain; }
+.log-body .ev:first-child { border-top: 0; }
+@media (max-width: 720px) { .log-body { max-height: 70vh; } }
+/* Flex trims the spaces in console.css's " · " separator on the phone's two-line rows. */
+@media (max-width: 720px) { table.rows td.sub + td.sub::before { content: "·"; margin: 0 6px; } }

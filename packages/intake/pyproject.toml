@@ -1,0 +1,19 @@
+[project]
+name = "mothusi-intake"
+version = "0.1.0"
+description = "Mothusi's deterministic intake: memo and script file parsers and the pseudonymiser. No model calls."
+requires-python = ">=3.14"
+dependencies = [
+    "opencv-python-headless==5.0.0.93",
+    "pypdf==7.0.1",
+    "pypdfium2==5.15.2",
+    "python-docx==1.2.0",
+    "mothusi-contracts",
+]
+
+[build-system]
+requires = ["uv_build>=0.11,<0.12"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "mothusi_intake"

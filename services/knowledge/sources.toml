@@ -1,0 +1,64 @@
+# The curriculum sources the knowledge service indexes (knowledge.md §6.3). Paths only: the PDFs
+# are gitignored and held on the driver's laptop. Every path is relative to the repo root.
+
+[[source]]
+path = "preparation/docs/sources/dbe/curriculum/CAPS FET Mathematics.pdf"
+title = "CAPS FET Mathematics"
+kind = "caps"
+subject = "Mathematics"
+
+[[source]]
+path = "preparation/docs/sources/dbe/curriculum/CAPS FET Accounting.pdf"
+title = "CAPS FET Accounting"
+kind = "caps"
+subject = "Accounting"
+
+[[source]]
+path = "preparation/docs/sources/dbe/curriculum/ATP 2023-24 Gr 10 Mathematics (DBE).pdf"
+title = "ATP 2023-24 Gr 10 Mathematics (DBE)"
+kind = "atp"
+subject = "Mathematics"
+grade = 10
+
+[[source]]
+path = "preparation/docs/sources/dbe/curriculum/ATP 2023-24 Gr 10 Accounting (DBE).pdf"
+title = "ATP 2023-24 Gr 10 Accounting (DBE)"
+kind = "atp"
+subject = "Accounting"
+grade = 10
+
+[[source]]
+path = "preparation/RATP Mathematics Grade 10 - 2024.pdf"
+title = "RATP Mathematics Grade 10 (2024)"
+kind = "atp"
+subject = "Mathematics"
+grade = 10
+
+[[source]]
+path = "preparation/docs/sources/dbe/circulars/Circular S8 of 2023 Annexure.pdf"
+title = "Circular S8 of 2023 Annexure (PoA weightings)"
+kind = "poa"
+
+[[source]]
+path = "preparation/docs/sources/dbe/circulars/Circular S19 of 2025 Retention of 2023-24 ATPs with exclusions.pdf"
+title = "Circular S19 of 2025 (retention of the 2023-24 ATPs)"
+kind = "circular"
+
+[[source]]
+path = "preparation/docs/sources/dbe/assessment-policy/National Protocol for Assessment Gr R-12.pdf"
+title = "National Protocol for Assessment Gr R-12"
+kind = "policy"
+
+[[source]]
+path = "packs/dbe-caps/mathematics-gr10.toml"
+title = "Mothusi pack: DBE CAPS Mathematics Grade 10"
+kind = "pack"
+subject = "Mathematics"
+grade = 10
+
+[[source]]
+path = "packs/dbe-caps/accounting-gr10.toml"
+title = "Mothusi pack: DBE CAPS Accounting Grade 10"
+kind = "pack"
+subject = "Accounting"
+grade = 10

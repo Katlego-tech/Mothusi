@@ -1,0 +1,73 @@
+# Mothusi's local dependencies: Postgres 17 with pgvector, RabbitMQ and Ollama.
+# Design: docs/architecture-defaults.md §4.
+#
+#   ./hack env                      # writes .env from .env.example, with generated passwords
+#   docker compose up -d --wait     # starts all three and waits until each is healthy
+#   docker compose down             # stops them; add -v to delete the data as well
+#
+# Images are pinned to exact versions (architecture-defaults.md §5), checked on Docker Hub on
+# 2026-11-08. Every port binds to 127.0.0.1 only, and each host port can be moved with a MOTHUSI_*_PORT
+# variable in .env if another project already holds it.
+
+name: mothusi
+
+services:
+  db:
+    image: pgvector/pgvector:0.8.7-pg17-trixie
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?run ./hack env first}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run ./hack env first}
+      POSTGRES_DB: ${POSTGRES_DB:?run ./hack env first}
+    ports:
+      - "127.0.0.1:${MOTHUSI_DB_PORT:-5432}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    configs:
+      - source: enable-pgvector
+        target: /docker-entrypoint-initdb.d/01-vector.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  broker:
+    image: rabbitmq:4.3.7-management
+    hostname: broker # RabbitMQ keys its data by node name; a fixed hostname keeps it across restarts
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:?run ./hack env first}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?run ./hack env first}
+    ports:
+      - "127.0.0.1:${MOTHUSI_AMQP_PORT:-5672}:5672"
+      - "127.0.0.1:${MOTHUSI_RABBIT_UI_PORT:-15672}:15672"
+    volumes:
+      - broker-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  ollama:
+    image: ollama/ollama:0.40.15
+    ports:
+      - "127.0.0.1:${MOTHUSI_OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+configs:
+  enable-pgvector:
+    # Runs once, when the db volume is first initialised, in the POSTGRES_DB database.
+    content: |
+      CREATE EXTENSION IF NOT EXISTS vector;
+
+volumes:
+  db-data:
+  broker-data:
+  ollama-models:

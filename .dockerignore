@@ -1,0 +1,12 @@
+# Only the workspace sources go into images (services/core/Dockerfile).
+**/.venv
+**/node_modules
+**/__pycache__
+**/.pytest_cache
+.git
+.mothusi
+apps
+preparation
+infra
+mocks
+docs

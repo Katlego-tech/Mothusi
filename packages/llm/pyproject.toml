@@ -1,0 +1,13 @@
+[project]
+name = "mothusi-llm"
+version = "0.1.0"
+description = "Mothusi's provider seam: one Protocol for structured model calls (Anthropic, Ollama, replay), with a usage meter in rand."
+requires-python = ">=3.14"
+dependencies = ["mothusi-contracts", "anthropic==2.6.0", "httpx==0.28.1"]
+
+[build-system]
+requires = ["uv_build>=0.11,<0.12"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "mothusi_llm"

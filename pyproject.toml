@@ -1,0 +1,83 @@
+[project]
+name = "mothusi"
+version = "0.1.0"
+description = "Mothusi: a digital colleague for South African teachers that runs the assessment cycle (mark, moderate, check, report) and hands the teacher finished paperwork to approve."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = []
+
+[tool.uv]
+package = false
+# Copy files into .venv instead of hardlinking them from uv's cache. With hardlinks, every checkout
+# (the main one and each Codex worktree) shares one cached build of the editable packages, and the
+# .pth that says where mothusi_contracts and mothusi_rules live was rewritten under all of them at once,
+# pointing every venv at whichever checkout synced last (2026-11-07). Copies cannot be rewritten
+# from outside. scripts/codex-task.sh also clears the cached editables before it syncs a worktree.
+link-mode = "copy"
+
+[tool.uv.workspace]
+members = ["packages/*", "services/*"]
+# infra/ is its own uv project (aws-cdk-lib is large and only the CDK app needs it): ADR 0001.
+exclude = ["infra"]
+
+[tool.uv.sources]
+mothusi-contracts = { workspace = true }
+mothusi-rules = { workspace = true }
+mothusi-llm = { workspace = true }
+mothusi-intake = { workspace = true }
+mothusi-delivery = { workspace = true }
+mothusi-outputs = { workspace = true }
+mothusi-events = { workspace = true }
+mothusi-core = { workspace = true }
+mothusi-knowledge = { workspace = true }
+torch = { index = "pytorch-cpu" }
+
+[dependency-groups]
+dev = [
+  "pyright==1.1.414",
+  "pytest==9.2.0",
+  "ruff==0.17.4",
+  "mothusi-contracts",
+  "mothusi-rules",
+  "mothusi-llm",
+  "mothusi-intake",
+  "mothusi-delivery",
+  "mothusi-outputs",
+  "mothusi-events",
+  "mothusi-core",
+  "mothusi-knowledge",
+  "types-openpyxl==3.1.5.20261017",
+  "pypdf==7.0.1",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+src = ["packages/contracts/src", "packages/rules/src", "packages/llm/src", "packages/intake/src", "packages/delivery/src", "packages/outputs/src", "packages/events/src", "services/core/src", "services/knowledge/src"]
+extend-exclude = [".hack", "preparation", "mocks"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "SIM", "RUF"]
+
+[tool.pyright]
+pythonVersion = "3.14"
+typeCheckingMode = "strict"
+include = ["packages", "services"]
+exclude = ["**/.venv", "**/__pycache__", "preparation", ".hack"]
+reportMissingImports = true
+extraPaths = ["services/core/fixtures"]  # scripted_model.py, imported by the graph tests
+
+[tool.pytest.ini_options]
+testpaths = ["packages/contracts/tests", "packages/rules/tests", "packages/llm/tests", "packages/intake/tests", "packages/delivery/tests", "packages/outputs/tests", "packages/events/tests", "services/core/tests", "services/knowledge/tests"]
+addopts = "-q --import-mode=importlib"  # test files may share a basename across packages
+markers = [
+  "live: calls a real model API; skipped unless its credentials or URL are set",
+]
+
+# torch for the knowledge service's embedder (bge-m3 on CPU): the CPU-only wheels, not the default
+# Linux wheels that bundle several GB of CUDA libraries the service never uses (knowledge.md §6.4).
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+

@@ -1,0 +1,25 @@
+/* The motion table of console-ui.md §2, verbatim from the mockups' console.css. */
+/* ------------------------------------------------------------------ motion (console-ui.md §2 "Motion")
+   The judges watch agents work, so the screen must show work happening: the agent with an open Brief
+   pulses, the cell being marked pulses in red ink, a new log row arrives from below, the ring advances.
+   Transform and opacity only; everything stops under prefers-reduced-motion. */
+@keyframes pulse-dot { 0%, 100% { box-shadow: 0 0 0 0 var(--pulse); } 60% { box-shadow: 0 0 0 7px transparent; } }
+@keyframes pulse-cell { 0%, 100% { box-shadow: inset 0 0 0 1px var(--marker); } 50% { box-shadow: inset 0 0 0 1px var(--marker), 0 0 0 5px var(--marker-soft); } }
+@keyframes arrive { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+.who.live::before { --pulse: var(--control); animation: pulse-dot 1.6s ease-out infinite; }
+.who.live.marker::before { --pulse: var(--marker); }
+.who.live.moderator::before { --pulse: var(--moderator); }
+.who.live.planner::before, .who.live.teacher::before { --pulse: var(--teal); }
+.who.live.code::before { --pulse: var(--code); }
+.busy::after { content: ""; display: inline-block; width: 1.2em; text-align: left; animation: dots 1.2s steps(1, end) infinite; }
+.cell.working { animation: pulse-cell 1.4s ease-in-out infinite; }
+.cell.working .ink { animation: blink 1.4s ease-in-out infinite; }
+.ev.arrive, .ask.arrive { animation: arrive 0.35s ease-out both; }
+.progress-ring .fill { transition: stroke-dasharray 0.6s ease; }
+.chip.wait { animation: pulse-dot 2s ease-out infinite; --pulse: var(--teal-edge); }
+@media (prefers-reduced-motion: reduce) {
+  .who.live::before, .cell.working, .cell.working .ink, .busy::after, .chip.wait { animation: none !important; }
+  .busy::after { content: "…"; }
+}

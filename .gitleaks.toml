@@ -1,0 +1,12 @@
+# gitleaks: its own rules, plus one narrow allowlist.
+[extend]
+useDefault = true
+
+[[allowlists]]
+# False positive: a replay recording's "key" is the SHA-256 of the prompt it answers
+# (mothusi_llm.replay._key), which generic-api-key reads as a key. Only 64-hex values, only in the
+# replay files under services/core/fixtures/; any other shape in those files is still scanned.
+description = "replay recordings key each reply by the SHA-256 of its prompt"
+condition = "AND"
+paths = ['''^services/core/fixtures/.+\.jsonl$''']
+regexes = ['''^[0-9a-f]{64}$''']
