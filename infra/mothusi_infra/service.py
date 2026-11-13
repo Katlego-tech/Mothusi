@@ -1,5 +1,7 @@
 """Release-scoped Fargate services with SSM-only cross-stack wiring (§4, §6.4)."""
 
+from typing import cast
+
 from aws_cdk import ArnFormat, Fn, Stack
 from aws_cdk import aws_ecs as ecs
 from aws_cdk import aws_iam as iam
@@ -47,8 +49,12 @@ class MothusiService(Stack):
                 },
             },
         )
+        # CDK principal protocol uses different parameter names.
         execution = iam.Role(
-            self, "ExecutionRole", role_name=f"{stage.prefix}-task-execution", assumed_by=trust
+            self,
+            "ExecutionRole",
+            role_name=f"{stage.prefix}-task-execution",
+            assumed_by=cast(iam.IPrincipal, trust),
         )
         execution.add_to_policy(
             iam.PolicyStatement(actions=["ecr:GetAuthorizationToken"], resources=["*"])
@@ -87,7 +93,10 @@ class MothusiService(Stack):
                 )
             )
             role = iam.Role(
-                self, f"{name}TaskRole", role_name=f"{stage.prefix}-{name}-task", assumed_by=trust
+                self,
+                f"{name}TaskRole",
+                role_name=f"{stage.prefix}-{name}-task",
+                assumed_by=cast(iam.IPrincipal, trust),
             )
             env = {"AWS_REGION": self.region}
             secret_values = {}
@@ -332,7 +341,7 @@ class MothusiService(Stack):
             # IAM policies must exist before ECS starts tasks (role Ref alone is insufficient).
             service.node.add_dependency(execution, role)
             if name == "core":
-                service.node.add_dependency(note_lookup)
+                service.node.add_dependency(note_lookup)  # pyright: ignore[reportPossiblyUnboundVariable] -- The same name == "core" guard creates it above.
             service_names.append(name)
         for suffix, value in {
             "cluster-name": cluster.ref,

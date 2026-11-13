@@ -13,10 +13,19 @@ package = false
 
 [dependency-groups]
 dev = [
+    "pyright==1.1.414",
     "pytest==9.2.0",
+    "ruff==0.17.4",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 # This CDK app is intentionally not an installed Python package (tool.uv.package=false).
 pythonpath = ["."]
+
+[tool.pyright]
+typeCheckingMode = "standard"
+venvPath = "."
+venv = ".venv"
+include = ["app.py", "mothusi_infra", "tests"]
+executionEnvironments = [{ root = ".", extraPaths = [".", "tests"] }]
