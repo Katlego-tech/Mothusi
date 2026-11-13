@@ -1,4 +1,4 @@
-"""One stage's front door, authentication and upload CORS (deployment-aws.md §6)."""
+"""The front door, authentication and upload CORS (deployment-aws.md §6)."""
 
 from pathlib import Path
 
@@ -128,7 +128,7 @@ exports.handler = async (event) => {
         strip = cf.Function(
             self,
             "StripApiPrefix",
-            function_name=f"{stage.prefix}-strip-api-prefix",
+            function_name="strip-api-prefix",
             code=cf.FunctionCode.from_file(
                 file_path=str(Path(__file__).resolve().parents[1] / "functions/strip-api-prefix.js")
             ),
@@ -136,7 +136,7 @@ exports.handler = async (event) => {
         spa = cf.Function(
             self,
             "SpaRewrite",
-            function_name=f"{stage.prefix}-spa-rewrite",
+            function_name="spa-rewrite",
             code=cf.FunctionCode.from_inline("""function handler(event) {
     var request = event.request;
     if (request.uri.substring(request.uri.lastIndexOf('/') + 1).indexOf('.') === -1) {
@@ -149,7 +149,7 @@ exports.handler = async (event) => {
             self,
             "ConsoleOac",
             origin_access_control_config=cf.CfnOriginAccessControl.OriginAccessControlConfigProperty(
-                name=f"{stage.prefix}-console",
+                name=f"{stage.label}-console",
                 origin_access_control_origin_type="s3",
                 signing_behavior="always",
                 signing_protocol="sigv4",
@@ -315,7 +315,7 @@ exports.handler = async (event) => {
                     ]
                 },
             },
-            physical_resource_id=cr.PhysicalResourceId.of(f"{stage.prefix}-uploads-cors"),
+            physical_resource_id=cr.PhysicalResourceId.of(f"{stage.label}-uploads-cors"),
             output_paths=[],
         )
         cr.AwsCustomResource(
@@ -340,7 +340,7 @@ exports.handler = async (event) => {
         pool = cognito.CfnUserPool(
             self,
             "Teachers",
-            user_pool_name=f"{stage.prefix}-teachers",
+            user_pool_name=f"{stage.label}-teachers",
             admin_create_user_config=cognito.CfnUserPool.AdminCreateUserConfigProperty(
                 allow_admin_create_user_only=True
             ),

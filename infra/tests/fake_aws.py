@@ -55,7 +55,7 @@ if (service, action) == ("ssm", "get-parameter"):
     name = option("--name")
     if name in state.get("parameter_errors", {}):
         fail(state["parameter_errors"][name])
-    if name == "/mothusi/staging/service-names" and state.get("service_parameter_error"):
+    if name.endswith("/service-names") and state.get("service_parameter_error"):
         fail(state["service_parameter_error"])
     if name not in state["parameters"]:
         fail("ParameterNotFound")
@@ -101,16 +101,12 @@ if service == "ssm":
     if action == "get-command-invocation":
         if state.get("command_pending"):
             emit("InProgress\t-1")
-        if state["last_command"] == "/opt/mothusi/model-ready.sh" and state.get(
-            "readiness_failures", 0
-        ):
+        if state["last_command"].endswith("/model-ready.sh") and state.get("readiness_failures", 0):
             state["readiness_failures"] -= 1
             emit("Failed\t1")
         if "ollama run" in state["last_command"] and state.get("warm_fails"):
             emit("Failed\t1")
-        if state["last_command"] == "/opt/mothusi/model-ready.sh" and not state.get(
-            "model_ready", True
-        ):
+        if state["last_command"].endswith("/model-ready.sh") and not state.get("model_ready", True):
             emit("Failed\t1")
         emit("Success\t0")
 if service == "ecs":

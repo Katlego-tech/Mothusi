@@ -1,0 +1,117 @@
+name: release
+
+# A release is a tag: push vMAJOR.MINOR.PATCH on a commit that is on main, and this workflow runs
+# the full checks on it, then deploys it:
+#
+#   git tag -a v0.1.0 -m "v0.1.0" && git push origin v0.1.0
+#
+# Deploying means: the service images built and pushed tagged with the release, the service stack
+# redeployed with that tag, the console published, and a GitHub release written. Nothing else in
+# AWS is touched: the network, data, front door and GPU host stacks are deployed by hand, after a
+# cdk diff, and the GPU host only ever on purpose (any change to its boot script restarts it).
+#
+# AWS: the job assumes the release role (MothusiCi) through GitHub OIDC. The role trusts only the
+# production environment, which only v* tags may deploy to; that environment holds the variable
+# DEPLOY_ROLE_ARN. The repository variable MOTHUSI_SERVICES lists the Fargate services to run.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: af-south-1
+  AWS_DEFAULT_REGION: af-south-1
+  SERVICES: ${{ vars.MOTHUSI_SERVICES || 'core,knowledge' }}
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: The tag is a version, on a commit that is on main
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+            || { echo "::error::release tags look like v1.2.3, not $GITHUB_REF_NAME"; exit 1; }
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main \
+            || { echo "::error::$GITHUB_REF_NAME is not on main: tag a merged commit"; exit 1; }
+
+  checks:
+    needs: tag
+    uses: ./.github/workflows/checks.yml
+
+  deploy:
+    needs: [tag, checks]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment:
+      name: production
+      url: ${{ steps.publish.outputs.url }}
+    concurrency:
+      group: release
+      cancel-in-progress: false
+    permissions:
+      contents: write  # the GitHub release
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4  # v10.1.0
+        with:
+          version: '0.11.32'
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: '24.21.0'
+      - uses: ./.github/actions/aws-oidc
+        with:
+          role-arn: ${{ vars.DEPLOY_ROLE_ARN }}
+
+      - name: The environment's names (infra/mothusi_infra/stage.py)
+        id: names
+        working-directory: infra
+        run: |
+          echo "ssm=$(python3 -m mothusi_infra.stage ssm)" >> "$GITHUB_OUTPUT"
+          echo "service=$(python3 -m mothusi_infra.stage stack Service)" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push the service images (tagged with the release)
+        env:
+          SSM_PREFIX: ${{ steps.names.outputs.ssm }}
+        run: |
+          set -euo pipefail
+          registry="$(aws sts get-caller-identity --query Account --output text).dkr.ecr.$AWS_REGION.amazonaws.com"
+          aws ecr get-login-password | docker login --username AWS --password-stdin "$registry"
+          IFS=',' read -ra names <<<"$SERVICES"
+          for name in "${names[@]}"; do
+            repo="$(aws ssm get-parameter --name "$SSM_PREFIX/ecr/$name" --query Parameter.Value --output text)"
+            docker buildx build --platform linux/amd64 -f "services/$name/Dockerfile" \
+              -t "$repo:$GITHUB_REF_NAME" --push .
+          done
+
+      - name: Redeploy the service stack with the release's images
+        working-directory: infra
+        env:
+          JSII_RUNTIME_PACKAGE_CACHE: disabled
+          STACK: ${{ steps.names.outputs.service }}
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+          npx cdk deploy "$STACK" --exclusively \
+            -c "imageTag=$GITHUB_REF_NAME" -c "services=$SERVICES" --require-approval never
+
+      - id: publish
+        uses: ./.github/actions/publish-console
+        with:
+          ssm-prefix: ${{ steps.names.outputs.ssm }}
+
+      - name: Write the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --title "$GITHUB_REF_NAME"

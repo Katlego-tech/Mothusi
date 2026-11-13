@@ -1,11 +1,10 @@
-"""One stage's retained data (deployment-aws.md §6.1).
+"""Retained data and audit resources (deployment-aws.md §6.1); the budget is MothusiBudget."""
 
-The ECR repositories are shared by both stages and live in MothusiCi, so production runs the
-image staging tested. The CloudTrail trail records the whole account, so only production has it.
-"""
+import json
 
 from aws_cdk import Duration, Fn, RemovalPolicy, Stack
 from aws_cdk import aws_cloudtrail as cloudtrail
+from aws_cdk import aws_ecr as ecr
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_kms as kms
 from aws_cdk import aws_rds as rds
@@ -13,41 +12,35 @@ from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_secretsmanager as secrets
 from aws_cdk import aws_ssm as ssm
 from constructs import Construct
-from mothusi_infra.stage import Stage
+from mothusi_infra.stage import ECR_SERVICES, Stage
 
 
 class MothusiData(Stack):
     def __init__(self, scope: Construct, construct_id: str, *, stage: Stage, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
-        audit = stage.name == "production"
         key = kms.Key(
             self,
             "DataKey",
-            alias=f"{stage.prefix}-data",
+            alias=f"{stage.label}-data",
             enable_key_rotation=True,
             removal_policy=RemovalPolicy.RETAIN,
         )
         # CloudTrail must be allowed to generate data keys for its encrypted log bucket.
-        trail_arn = self.format_arn(service="cloudtrail", resource="trail", resource_name="mothusi")
-        if audit:
-            key.add_to_resource_policy(
-                iam.PolicyStatement(
-                    principals=[iam.ServicePrincipal("cloudtrail.amazonaws.com")],
-                    actions=["kms:GenerateDataKey*", "kms:DescribeKey"],
-                    resources=["*"],
-                    conditions={
-                        "StringEquals": {
-                            "aws:SourceArn": trail_arn,
-                            "aws:SourceAccount": self.account,
-                        }
-                    },
-                )
-            )
-        buckets = {}
-        names = ("uploads", "bundles", "console", "exhibits", "curriculum") + (
-            ("trail",) if audit else ()
+        trail_arn = self.format_arn(
+            service="cloudtrail", resource="trail", resource_name=stage.trail_name
         )
-        for name in names:
+        key.add_to_resource_policy(
+            iam.PolicyStatement(
+                principals=[iam.ServicePrincipal("cloudtrail.amazonaws.com")],
+                actions=["kms:GenerateDataKey*", "kms:DescribeKey"],
+                resources=["*"],
+                conditions={
+                    "StringEquals": {"aws:SourceArn": trail_arn, "aws:SourceAccount": self.account}
+                },
+            )
+        )
+        buckets = {}
+        for name in ("uploads", "bundles", "console", "exhibits", "curriculum", "trail"):
             buckets[name] = s3.Bucket(
                 self,
                 f"{name.title()}Bucket",
@@ -69,7 +62,9 @@ class MothusiData(Stack):
             secret_name=stage.secret("db"),
             encryption_key=key,
             generate_secret_string=secrets.SecretStringGenerator(
-                secret_string_template='{"username":"mothusi"}',
+                secret_string_template=json.dumps(
+                    {"username": stage.db_name}, separators=(",", ":")
+                ),
                 generate_string_key="password",
                 exclude_punctuation=True,
                 password_length=32,
@@ -96,7 +91,7 @@ class MothusiData(Stack):
         subnet_group = rds.CfnDBSubnetGroup(
             self,
             "DbSubnets",
-            db_subnet_group_description=f"Mothusi {stage.name} database subnets",
+            db_subnet_group_description="Mothusi database subnets",
             subnet_ids=Fn.split(",", subnet_ids),
         )
         db = rds.CfnDBInstance(
@@ -112,7 +107,7 @@ class MothusiData(Stack):
             publicly_accessible=False,
             storage_encrypted=True,
             kms_key_id=key.key_arn,
-            db_name="mothusi",
+            db_name=stage.db_name,
             port="5432",
             db_subnet_group_name=subnet_group.ref,
             vpc_security_groups=[
@@ -131,17 +126,26 @@ class MothusiData(Stack):
             target_id=db.ref,
             target_type="AWS::RDS::DBInstance",
         )
-        if audit:
-            cloudtrail.Trail(
+        repos = {
+            name: ecr.Repository(
                 self,
-                "Trail",
-                trail_name="mothusi",
-                bucket=buckets["trail"],
-                encryption_key=key,
-                management_events=cloudtrail.ReadWriteType.ALL,
-                enable_file_validation=True,
-                is_multi_region_trail=False,
+                f"{name.title()}Repository",
+                repository_name=f"{stage.prefix}-{name}",
+                lifecycle_rules=[ecr.LifecycleRule(max_image_count=10)],
+                removal_policy=RemovalPolicy.RETAIN,
             )
+            for name in ECR_SERVICES
+        }
+        cloudtrail.Trail(
+            self,
+            "Trail",
+            trail_name=stage.trail_name,
+            bucket=buckets["trail"],
+            encryption_key=key,
+            management_events=cloudtrail.ReadWriteType.ALL,
+            enable_file_validation=True,
+            is_multi_region_trail=False,
+        )
 
         values = {
             "kms-key-arn": key.key_arn,
@@ -152,6 +156,7 @@ class MothusiData(Stack):
             },
             "db/endpoint": db.attr_endpoint_address,
             "db/secret-arn": credentials.secret_arn,
+            **{f"ecr/{name}": repo.repository_uri for name, repo in repos.items()},
             "secret/elevenlabs-arn": elevenlabs.ref,
         }
         for suffix, value in values.items():
