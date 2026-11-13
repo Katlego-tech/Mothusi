@@ -159,6 +159,13 @@ bash infra/watchdog.sh              # until something goes wrong
 bash infra/watchdog.sh --gpu-busy   # also when the GPU idles (during an eval or a run)
 ```
 
+What it costs, from your machine:
+
+```bash
+bash infra/costs.sh           # what's running now and the burn per hour and per day
+bash infra/costs.sh --spend   # also this month's usage by service and the credits applied
+```
+
 ## Baseline and dependencies
 
 | Dependency | Used for | Licence |
