@@ -30,6 +30,8 @@ from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.store.base import BaseStore
+from langgraph.store.memory import InMemoryStore
 from pydantic import BaseModel, Field, ValidationError
 
 from mothusi_contracts import (
@@ -53,6 +55,7 @@ from mothusi_core.auth import (
 )
 from mothusi_core.delivery import store_from_environment
 from mothusi_core.events import follow, frame, with_pings
+from mothusi_core.graph import inbox
 from mothusi_core.graph.planner import (
     Planner,
     apply_readings,
@@ -125,6 +128,7 @@ class Runs:
         self.planner = planner
         self.tasks: dict[str, asyncio.Task[Any]] = {}
         self._locks: dict[str, asyncio.Lock] = {}
+        self._idle: set[str] = set()
 
     def lock(self, assessment_id: str) -> asyncio.Lock:
         """Held from reading the pending question until the resume is launched, so two answers
@@ -133,12 +137,29 @@ class Runs:
 
     def busy(self, assessment_id: str) -> bool:
         task = self.tasks.get(assessment_id)
-        return task is not None and not task.done()
+        return task is not None and not task.done() and assessment_id not in self._idle
 
     def launch(self, assessment_id: str, work: Any) -> None:
+        self._idle.discard(assessment_id)
+
         async def guarded() -> None:
             try:
                 await work
+                while True:
+                    # Serialize the final inbox check with POSTs: an answer arriving as the
+                    # interrupt opens either resumes here or sees an idle run in the endpoint.
+                    async with self.lock(assessment_id):
+                        state = await self.planner.snapshot(assessment_id)
+                        question = state.get("question") or {}
+                        entry = None
+                        if state.get("state") == "marking" and question.get("topic") == "script":
+                            entry = await self.planner.store.aget(
+                                ("inbox", assessment_id), question["script_id"]
+                            )
+                        if entry is None:
+                            self._idle.add(assessment_id)
+                            return
+                    await self.planner.resume(assessment_id, entry.value["answer"])
             except Exception as error:  # a crashed node is logged for the teacher, never hidden
                 log.exception("run %s stopped", assessment_id)
                 self.planner.sink(assessment_id).decision("halt", f"the run stopped: {error}")
@@ -149,7 +170,7 @@ class Runs:
         return (self.planner.data_dir / assessment_id / "events.jsonl").exists()
 
 
-def _planner_from_environment(checkpointer: Any) -> Planner:
+def _planner_from_environment(checkpointer: Any, store: BaseStore) -> Planner:
     providers = from_environment()
     return Planner(
         primary=providers.text,
@@ -159,6 +180,7 @@ def _planner_from_environment(checkpointer: Any) -> Planner:
         priced=providers.priced,
         data_dir=Path(os.environ.get("MOTHUSI_DATA") or ROOT / ".mothusi"),
         checkpointer=checkpointer,
+        store=store,
         teacher_email=teacher_email(),
         knowledge=knowledge_from_environment(),
     )
@@ -185,14 +207,19 @@ def create_app(
         url = os.environ.get("POSTGRES_URL")
         if url:
             from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+            from langgraph.store.postgres.aio import AsyncPostgresStore
 
-            async with AsyncPostgresSaver.from_conn_string(url) as saver:
+            async with (
+                AsyncPostgresSaver.from_conn_string(url) as saver,
+                AsyncPostgresStore.from_conn_string(url) as store,
+            ):
                 await saver.setup()
-                app.state.runs = Runs(_planner_from_environment(saver))
+                await store.setup()
+                app.state.runs = Runs(_planner_from_environment(saver, store))
                 yield
         else:
             log.warning("POSTGRES_URL not set: checkpoints are in memory and end with the process")
-            app.state.runs = Runs(_planner_from_environment(InMemorySaver()))
+            app.state.runs = Runs(_planner_from_environment(InMemorySaver(), InMemoryStore()))
             yield
 
     app = FastAPI(title="Mothusi", lifespan=lifespan)
@@ -1120,12 +1147,28 @@ def create_app(
     async def script_answer(  # pyright: ignore[reportUnusedFunction]
         request: Request, assessment_id: str, script_id: str, body: ScriptAnswer
     ) -> dict[str, str]:
-        async with pending(request, assessment_id) as (r, state):
+        r = runs(request)
+        if not r.known(assessment_id):
+            raise HTTPException(404, {"message": f"no assessment {assessment_id}"})
+        async with r.lock(assessment_id):
+            state = await r.planner.snapshot(assessment_id)
             question = state.get("question") or {}
-            if question.get("topic") != "script" or question.get("script_id") != script_id:
-                raise conflict(f"{script_id} is not pending a teacher decision")
+            marking = state["state"] == "marking"
+            open_script = (
+                question.get("topic") == "script" and question.get("script_id") == script_id
+            )
+            if marking:
+                if script_id not in state.get("pending", {}):
+                    raise conflict(f"{script_id} is not pending a teacher decision")
+                if await inbox.exists(r.planner.store, assessment_id, script_id):
+                    raise conflict(f"{script_id} already has an answer waiting to be applied")
+            else:
+                if r.busy(assessment_id):
+                    raise conflict("the run is working; wait for its question")
+                if not open_script:
+                    raise conflict(f"{script_id} is not pending a teacher decision")
             if body.decision == "use_attempt":
-                attempts = question["attempts"]
+                attempts = state.get("pending", {})[script_id] if marking else question["attempts"]
                 if body.attempt is None or not 1 <= body.attempt <= len(attempts):
                     raise unprocessable("attempt", f"choose an attempt from 1 to {len(attempts)}")
                 memo = Memo.model_validate(state["memo"])
@@ -1151,7 +1194,13 @@ def create_app(
                         raise unprocessable(
                             "marks", f"{m.question_id}: no answer to give marks for"
                         )
-            return answer(r, assessment_id, state, body.model_dump(exclude_none=True))
+            posted = body.model_dump(exclude_none=True)
+            if marking:
+                await inbox.put(r.planner.store, assessment_id, script_id, posted)
+                if open_script and not r.busy(assessment_id):
+                    return answer(r, assessment_id, state, posted)
+                return {"state": "marking"}
+            return answer(r, assessment_id, state, posted)
 
     @app.get("/assessments/{assessment_id}/bundle")
     async def bundle(request: Request, assessment_id: str) -> dict[str, Any]:  # pyright: ignore[reportUnusedFunction]
