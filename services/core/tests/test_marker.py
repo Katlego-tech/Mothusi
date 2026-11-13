@@ -283,6 +283,22 @@ def test_prompts_carry_the_memo_the_answers_and_no_name(
     assert not any(name in user for name in names)
 
 
+@pytest.mark.parametrize("role", [AgentRole.MARKER, AgentRole.MODERATOR])
+def test_method_marks_require_work_beyond_the_question(
+    memo: Memo, pack: SubjectPack, scripts: dict[str, Script], role: AgentRole
+) -> None:
+    system, _ = marker_prompts(memo, scripts["L-005"], pack.conventions, role=role)
+    rules = " ".join(system.split())
+    assert (
+        "A method mark is earned only by working the learner wrote that goes beyond the question."
+        in rules
+    )
+    assert (
+        "Text that restates the question or copies a given equation earns nothing and is never "
+        "an evidence_quote for a mark." in rules
+    )
+
+
 def test_an_invented_memo_citation_is_refused_and_retried(
     tmp_path: Path, memo: Memo, pack: SubjectPack, scripts: dict[str, Script]
 ) -> None:

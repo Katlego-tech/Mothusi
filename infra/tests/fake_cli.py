@@ -70,6 +70,7 @@ class Rig:
         finally:
             if process is not None:
                 process.terminate()
+                assert reaper is not None
                 reaper.join(timeout=5)
         self.state = json.loads(self.path.read_text())
         assert not self.state.get("errors"), self.state.get("errors")
@@ -101,7 +102,9 @@ def main():
             # gh applies the caller's --jq expression, including its start-time filter.
             import re
 
-            since = re.search(r'createdAt >= "([^"]+)"', option("--jq"))[1]
+            match = re.search(r'createdAt >= "([^"]+)"', option("--jq"))
+            assert match is not None, f"unsupported --jq expression: {option('--jq')}"
+            since = match[1]
             return "\n".join(
                 f"{run['name']} {run['conclusion']}: {run['url']}"
                 for run in state.get("runs", [])

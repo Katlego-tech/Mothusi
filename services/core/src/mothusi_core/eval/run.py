@@ -9,7 +9,8 @@ import subprocess
 import sys
 import tempfile
 import time
-from collections.abc import Sequence
+import tomllib
+from collections.abc import Mapping, Sequence
 from contextlib import ExitStack
 from datetime import UTC, datetime
 from decimal import ROUND_HALF_UP, Decimal
@@ -114,10 +115,16 @@ class _AgentTimed:
         return reply, usage
 
 
-def teacher_answer(question: dict[str, Any], memo: Memo) -> dict[str, Any]:
-    """Use the proposed memo answer or the first explicitly offered answer."""
+def teacher_answer(
+    question: dict[str, Any], memo: Memo, memo_truth: Mapping[str, str] | None = None
+) -> dict[str, Any]:
+    """Accept planted memo corrections, or all proposals when fixture truth is absent."""
     if question["topic"] == "memo":
-        return {"decision": "use_proposed", "question_id": question["question_id"]}
+        question_id = question["question_id"]
+        decision = (
+            "use_proposed" if memo_truth is None or question_id in memo_truth else "keep_memo"
+        )
+        return {"decision": decision, "question_id": question_id}
     if question["topic"] == "budget":
         return {"raise_to_zar": str(Decimal(question["spent_zar"]) + Decimal("40"))}
     if question["topic"] == "script":
@@ -298,6 +305,14 @@ async def evaluate(
                 r: _AgentTimed(p, r, calls, pricing) for r, p in providers.fallbacks.items()
             }
             memo = load_memo(fixture / "memo.toml")
+            memo_truth: dict[str, str] | None = None
+            truth_path = fixture / "memo-truth.toml"
+            if truth_path.exists():
+                with truth_path.open("rb") as stream:
+                    memo_truth = {
+                        error["question_id"]: error["correct_answer"]
+                        for error in tomllib.load(stream)["errors"]
+                    }
             scripts, by_name = load_scripts(fixture / "scripts.csv")
             names = {p: n for n, p in by_name.items() if p in {s.script_id for s in scripts}}
             commit = subprocess.check_output(
@@ -355,6 +370,7 @@ async def evaluate(
                         Memo.model_validate(state["memo"])
                         if question["topic"] == "script"
                         else memo,
+                        memo_truth,
                     )
                 elif state["state"] == "awaiting_approval":
                     answer = {"decision": "approve", "by": "the teacher"}
