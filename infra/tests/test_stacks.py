@@ -112,7 +112,7 @@ def test_data_encryption_retention_and_database(stacks):
     t.has_resource_properties(
         "AWS::RDS::DBInstance",
         {
-            "DBInstanceIdentifier": f"{A}-db",
+            "DBInstanceIdentifier": "mothusi-db",
             "Engine": "postgres",
             "EngineVersion": "17",
             "DBInstanceClass": "db.t4g.small",
@@ -492,7 +492,7 @@ def test_core_singleton_and_ssm_wiring():
     assert env["MOTHUSI_DATA"] == "/data" and env["MOTHUSI_NOTE_LINK_DAYS"] == "14"
     assert "KNOWLEDGE_URL" not in env and "POSTGRES_URL" not in env
     assert env["MOTHUSI_PUBLIC_URL"] == env["MOTHUSI_WEB_ORIGINS"]
-    assert env["POSTGRES_DB"] == A  # fixed by MothusiData; not a key of the RDS secret
+    assert env["POSTGRES_DB"] == "mothusi"  # fixed by MothusiData; not a key of the RDS secret
     assert env["MOTHUSI_OLLAMA_MODERATOR_MODEL"] == "phi4"
     assert env["MOTHUSI_OLLAMA_READER_MODEL"] == "qwen3-vl:8b-instruct"
     secrets = {s["Name"]: s["ValueFrom"] for s in container["Secrets"]}
@@ -945,6 +945,23 @@ def test_the_release_role_takes_githubs_immutable_subject():
     assert re.fullmatch(pattern, "Katlego-tech@115792195/Mothusi@1456381806")
     assert re.fullmatch(pattern, "owner/repo")
     assert not re.fullmatch(pattern, "owner/repo:ref:refs/heads/main")
+
+
+def test_the_database_is_mothusis_and_the_adopted_one_is_retained(stacks):
+    t = stacks["MothusiData"]
+    t.has_resource_properties(
+        "AWS::RDS::DBInstance", {"DBInstanceIdentifier": "mothusi-db", "DBName": "mothusi"}
+    )
+    secret = next(
+        r
+        for r in resources(t, "AWS::SecretsManager::Secret").values()
+        if r["Properties"]["Name"] == "mothusi/db"
+    )
+    template = secret["Properties"]["GenerateSecretString"]["SecretStringTemplate"]
+    assert json.loads(template) == {"username": "mothusi"}
+    # A new identifier replaces the instance: the old one must be kept, never deleted.
+    for r in [*resources(t, "AWS::RDS::DBInstance").values(), secret]:
+        assert r["DeletionPolicy"] == r["UpdateReplacePolicy"] == "Retain"
 
 
 # --------------------------------------------------------------------- the local watchdog

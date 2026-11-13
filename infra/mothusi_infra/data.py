@@ -59,7 +59,7 @@ class MothusiData(Stack):
         credentials = secrets.Secret(
             self,
             "DbCredentials",
-            secret_name=stage.secret("db"),
+            secret_name=stage.db_secret,
             encryption_key=key,
             generate_secret_string=secrets.SecretStringGenerator(
                 secret_string_template=json.dumps(
@@ -97,7 +97,7 @@ class MothusiData(Stack):
         db = rds.CfnDBInstance(
             self,
             "Database",
-            db_instance_identifier=f"{stage.prefix}-db",
+            db_instance_identifier=stage.db_identifier,
             engine="postgres",
             engine_version="17",
             db_instance_class="db.t4g.small",
