@@ -1,6 +1,7 @@
 """Retained data and audit resources (deployment-aws.md §6.1); the budget is MothusiBudget."""
 
 import json
+from typing import cast
 
 from aws_cdk import Duration, Fn, RemovalPolicy, Stack
 from aws_cdk import aws_cloudtrail as cloudtrail
@@ -31,7 +32,10 @@ class MothusiData(Stack):
         )
         key.add_to_resource_policy(
             iam.PolicyStatement(
-                principals=[iam.ServicePrincipal("cloudtrail.amazonaws.com")],
+                principals=[
+                    # CDK principal protocol uses different parameter names.
+                    cast(iam.IPrincipal, iam.ServicePrincipal("cloudtrail.amazonaws.com"))
+                ],
                 actions=["kms:GenerateDataKey*", "kms:DescribeKey"],
                 resources=["*"],
                 conditions={
@@ -39,6 +43,7 @@ class MothusiData(Stack):
                 },
             )
         )
+        # CDK Key implements IKey, but its add_alias parameter has a different name.
         buckets = {}
         for name in ("uploads", "bundles", "console", "exhibits", "curriculum", "trail"):
             buckets[name] = s3.Bucket(
@@ -49,7 +54,7 @@ class MothusiData(Stack):
                 encryption=(
                     s3.BucketEncryption.S3_MANAGED if name == "console" else s3.BucketEncryption.KMS
                 ),
-                encryption_key=None if name == "console" else key,
+                encryption_key=None if name == "console" else cast(kms.IKey, key),
                 enforce_ssl=True,
                 removal_policy=RemovalPolicy.RETAIN,
                 lifecycle_rules=[s3.LifecycleRule(expiration=Duration.days(30))]
@@ -60,7 +65,7 @@ class MothusiData(Stack):
             self,
             "DbCredentials",
             secret_name=stage.db_secret,
-            encryption_key=key,
+            encryption_key=cast(kms.IKey, key),
             generate_secret_string=secrets.SecretStringGenerator(
                 secret_string_template=json.dumps(
                     {"username": stage.db_name}, separators=(",", ":")
@@ -80,7 +85,7 @@ class MothusiData(Stack):
             self,
             "NoteKey",
             secret_name=stage.secret("note-key"),
-            encryption_key=key,
+            encryption_key=cast(kms.IKey, key),
             generate_secret_string=secrets.SecretStringGenerator(
                 password_length=48,
                 exclude_punctuation=True,
@@ -141,7 +146,7 @@ class MothusiData(Stack):
             "Trail",
             trail_name=stage.trail_name,
             bucket=buckets["trail"],
-            encryption_key=key,
+            encryption_key=cast(kms.IKey, key),
             management_events=cloudtrail.ReadWriteType.ALL,
             enable_file_validation=True,
             is_multi_region_trail=False,

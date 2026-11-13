@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+import shutil
+import tomllib
 from collections.abc import Sequence
 from decimal import Decimal
 from pathlib import Path
@@ -16,7 +18,7 @@ from mothusi_core.eval import run
 from mothusi_core.eval.results import CallTiming, EvalResult
 from mothusi_core.eval.timed import Timed
 from mothusi_core.graph.planner import Planner
-from mothusi_core.smoke import PLANTED
+from mothusi_core.smoke import FIXTURE, PLANTED
 from mothusi_intake import load_scripts
 from mothusi_llm import ProviderError, Usage
 
@@ -96,6 +98,65 @@ def replay(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def args(out: Path, instance: str = "g4dn.xlarge") -> list[str]:
     return ["--pricing", str(PRICING), "--instance", instance, "--out", str(out)]
+
+
+def test_fixture_memo_truth_lists_only_the_planted_error() -> None:
+    with (FIXTURE / "memo-truth.toml").open("rb") as stream:
+        assert tomllib.load(stream) == {
+            "errors": [{"question_id": "2.3", "correct_answer": "x = -4"}]
+        }
+
+
+@pytest.mark.parametrize(
+    "truth, question_id, decision",
+    [
+        ("fixture", "1.2", "keep_memo"),
+        ("fixture", "2.3", "use_proposed"),
+        ("missing", "1.2", "use_proposed"),
+        ("missing", "2.3", "use_proposed"),
+        ("empty", "2.3", "keep_memo"),
+        ("other", "1.2", "use_proposed"),
+        ("other", "2.3", "keep_memo"),
+    ],
+)
+def test_memo_question_uses_the_selected_fixtures_truth(
+    replay: None,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    truth: str,
+    question_id: str,
+    decision: str,
+) -> None:
+    fixture = FIXTURE
+    if truth != "fixture":
+        fixture = tmp_path / "fixture"
+        fixture.mkdir()
+        for name in ("memo.toml", "scripts.csv", "atp-weeks.toml"):
+            shutil.copyfile(FIXTURE / name, fixture / name)
+        if truth == "empty":
+            (fixture / "memo-truth.toml").write_text("errors = []\n")
+        elif truth == "other":
+            (fixture / "memo-truth.toml").write_text(
+                '[[errors]]\nquestion_id = "1.2"\ncorrect_answer = "5a^2 - 4a + 4"\n'
+            )
+
+    async def start(self: Planner, initial: Any) -> Any:
+        return {
+            **initial,
+            "question": {"topic": "memo", "question_id": question_id},
+        }
+
+    async def resume(self: Planner, aid: str, answer: Any) -> Any:
+        assert answer == {"decision": decision, "question_id": question_id}
+        return {"assessment_id": aid, "state": "delivered"}
+
+    monkeypatch.setattr(Planner, "start", start)
+    monkeypatch.setattr(Planner, "resume", resume)
+    output = tmp_path / "results"
+    assert run.main([*args(output), "--fixture", str(fixture)]) == 0
+    result = EvalResult.model_validate_json(next(output.glob("results-*.json")).read_text())
+    assert result.teacher_questions == (f"memo:{question_id}",)
+    assert result.halted is None
 
 
 def test_replay_result_and_summary(
