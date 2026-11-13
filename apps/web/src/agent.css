@@ -94,3 +94,19 @@
   .loop .packet { transition: none; }
   .station.live .tile, .now.live .tile { animation: none; }
 }
+
+/* The Needs-you queue: flagged scripts answered while marking runs (09-needs-you-queue.png). */
+.sidecol { display: flex; flex-direction: column; gap: var(--gap); min-width: 0; }
+.needs-you .panel-head h2 { font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.needs-you .count { background: var(--marker); color: #fff; border-radius: 10px; padding: 1px 8px; font-size: 12px; font-weight: 600; }
+.needs-you-hint, .needs-you-foot { font-size: 12px; margin: 6px var(--card-pad); }
+.needs-you-list { list-style: none; margin: 0; padding: 0; }
+.needs-you-item { border-top: 1px solid var(--rule); }
+.needs-you-item.open { background: var(--raised); box-shadow: inset 3px 0 0 var(--teal); }
+.needs-you-row { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; gap: 2px; width: 100%; padding: 10px var(--card-pad); }
+.needs-you-row:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+.needs-you-row .sid { font-weight: 700; }
+.needs-you-row .why { font-size: 12px; color: var(--marker); }
+.needs-you-item .ask, .needs-you-item form { margin: 0 var(--card-pad) 12px; }
+.needs-you-error { margin: 0 var(--card-pad) 10px; font-size: 12px; color: var(--marker); }
+@media (max-width: 1100px) { .sidecol { order: -1; } }

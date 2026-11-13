@@ -36,6 +36,14 @@ export interface AgentCard {
   lastSummary: string;
 }
 
+export interface NeedsYouItem {
+  scriptId: string;
+  question: NeedsTeacher;
+  flaggedSeq: number;
+  status: "open" | "sending" | "error";
+  error?: string;
+}
+
 export interface RunView {
   assessmentId: string;
   lastSeq: number;
@@ -55,6 +63,7 @@ export interface RunView {
   settled: number;
   finding: string;
   pending: NeedsTeacher | null;
+  needsYou: NeedsYouItem[];
   disagreements: DisagreementPayload[];
   delivered: DeliveredPayload | null;
   halted: string | null;
@@ -81,12 +90,37 @@ export const emptyRun = (assessmentId: string): RunView => ({
   settled: 0,
   finding: "",
   pending: null,
+  needsYou: [],
   disagreements: [],
   delivered: null,
   halted: null,
   startedAt: null,
   lastAt: null,
 });
+
+export function needsYouSending(run: RunView, scriptId: string): RunView {
+  return {
+    ...run,
+    needsYou: run.needsYou.map((item) =>
+      item.scriptId === scriptId
+        ? { scriptId: item.scriptId, question: item.question, flaggedSeq: item.flaggedSeq, status: "sending" }
+        : item,
+    ),
+  };
+}
+
+export function needsYouAnswered(run: RunView, scriptId: string): RunView {
+  return { ...run, needsYou: run.needsYou.filter((item) => item.scriptId !== scriptId) };
+}
+
+export function needsYouFailed(run: RunView, scriptId: string, message: string): RunView {
+  return {
+    ...run,
+    needsYou: run.needsYou.map((item) =>
+      item.scriptId === scriptId ? { ...item, status: "error", error: message } : item,
+    ),
+  };
+}
 
 const MARKING_AGENTS = new Set<AgentRole>(["marker", "moderator"]);
 
@@ -155,7 +189,12 @@ export function apply(view: RunView, event: MothusiEvent): RunView {
 
     case "state": {
       const to = event.payload.to;
-      return { ...base, state: to, pending: to === "awaiting_approval" ? null : base.pending };
+      return {
+        ...base,
+        state: to,
+        pending: to === "awaiting_approval" ? null : base.pending,
+        needsYou: to === "marking" ? base.needsYou : [],
+      };
     }
 
     case "brief": {
@@ -241,11 +280,19 @@ export function apply(view: RunView, event: MothusiEvent): RunView {
 
     case "needs_teacher": {
       const p = event.payload;
+      let needsYou = base.needsYou;
+      if (p.topic === "script" && p.stage === "marking") {
+        const cell = base.cells.get(p.script_id);
+        const settled = cell?.status === "marked" || (cell?.status === "teacher" && cell.total !== null);
+        if (!settled && !needsYou.some((item) => item.scriptId === p.script_id)) {
+          needsYou = [...needsYou, { scriptId: p.script_id, question: p, flaggedSeq: event.seq, status: "open" }];
+        }
+      }
       // A marking question puts the cell with the teacher; a moderation question leaves the first
       // marking's cell as it is (the teacher is settling the second marking).
       const cells =
         p.topic === "script" && p.stage !== "moderation" ? withCell(base, p.script_id, { status: "teacher" }) : base.cells;
-      return { ...base, pending: p, cells, finding: p.title };
+      return { ...base, pending: p, cells, finding: p.title, needsYou };
     }
 
     case "teacher": {
@@ -277,6 +324,9 @@ export function apply(view: RunView, event: MothusiEvent): RunView {
         ...base,
         scripts,
         pending: null,
+        needsYou: p.topic === "script" && p.script_id
+          ? base.needsYou.filter((item) => item.scriptId !== p.script_id)
+          : base.needsYou,
         cells,
         settled: settledCount(cells),
         checks: { ...base.checks, open: openRetries(cells) },
