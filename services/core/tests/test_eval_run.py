@@ -11,7 +11,7 @@ from typing import Any
 import httpx
 import pytest
 
-from mothusi_contracts import Contract, Memo
+from mothusi_contracts import Contract, Event, EventKind, Memo
 from mothusi_core.eval import run
 from mothusi_core.eval.results import CallTiming, EvalResult
 from mothusi_core.eval.timed import Timed
@@ -124,7 +124,14 @@ def test_replay_result_and_summary(
     assert all(x.model == "scripted" for x in result.latency)
     assert next(x for x in result.latency if x.role == "marker").limit_s == 30
     lines = capsys.readouterr().out.splitlines()
-    assert len(lines) == 4
+    assert len(lines) == 5
+    # The run's whole event log is kept beside its result, so disagreements can be read after.
+    log = files[0].with_name(files[0].name.replace("results-", "events-")).with_suffix(".jsonl")
+    assert lines[0] == f"events: {log}"
+    kept = [Event.model_validate_json(line) for line in log.read_text().splitlines()]
+    assert kept and kept[-1].kind is EventKind.DELIVERED
+    assert any(e.kind is EventKind.DISAGREEMENT for e in kept)
+    lines = lines[1:]
     assert lines[0] == "agreement 0.9815 on 54 compared questions"
     assert lines[1].startswith("minutes ") and "to delivered" in lines[1]
     assert lines[2].endswith("per script (g4dn.xlarge)")
