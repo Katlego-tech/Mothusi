@@ -2,6 +2,7 @@
 // moving between stations, then who is working now, the feed, and the class set once marking has
 // begun. The screen follows the stream and is assembled from the run's state; it decides nothing.
 import { useQuery } from "@tanstack/react-query";
+import { NeedsYouQueue } from "../components/needs-you";
 import { lazy, Suspense, useState } from "react";
 
 import { api } from "../api/client";
@@ -71,9 +72,12 @@ export function RunScreen({ run, connection }: { run: RunView; connection: Conne
             <EventLog events={run.events} start={run.startedAt} priced={run.priced} title="The feed" />
           </div>
           {withSet && (
-            <Suspense fallback={<aside className="panel set compose muted">Opening the class set…</aside>}>
-              <ClassSet run={run} selected={selected} onSelect={(id) => setSelected(id === selected ? null : id)} />
-            </Suspense>
+            <div className="sidecol">
+              <NeedsYouQueue run={run} />
+              <Suspense fallback={<aside className="panel set compose muted">Opening the class set…</aside>}>
+                <ClassSet run={run} selected={selected} onSelect={(id) => setSelected(id === selected ? null : id)} />
+              </Suspense>
+            </div>
           )}
         </div>
       </div>

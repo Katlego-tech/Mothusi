@@ -130,13 +130,33 @@ function MemoDecisionForm({ id, q }: { id: string; q: MemoQuestion }) {
   );
 }
 
-function ScriptDecisionForm({ id, q, questions }: { id: string; q: ScriptQuestion; questions: Question[] }) {
+/** The answer's outcome, for a caller that tracks it (the Needs-you queue). */
+export type ScriptResult = { ok: true } | { ok: false; message: string };
+
+export function ScriptDecisionForm({
+  id,
+  q,
+  questions,
+  onSend,
+  onResult,
+}: {
+  id: string;
+  q: ScriptQuestion;
+  questions: Question[];
+  onSend?: () => void;
+  onResult?: (result: ScriptResult) => void;
+}) {
   const lastWithMarks = [...q.attempts].reverse().find((a) => a.marks.length > 0);
   const start = Object.fromEntries(
     questions.map((x) => [x.question_id, lastWithMarks?.marks.find((m) => m.question_id === x.question_id)?.awarded ?? 0]),
   );
   const [marks, setMarks] = useState<Record<string, number>>(start);
-  const send = useMutation({ mutationFn: (body: Parameters<typeof api.script>[2]) => api.script(id, q.script_id, body) });
+  const send = useMutation({
+    mutationFn: (body: Parameters<typeof api.script>[2]) => api.script(id, q.script_id, body),
+    onMutate: () => onSend?.(),
+    onSuccess: () => onResult?.({ ok: true }),
+    onError: (error) => onResult?.({ ok: false, message: error instanceof Error ? error.message : String(error) }),
+  });
   const total = Object.values(marks).reduce((s, n) => s + (Number.isFinite(n) ? n : 0), 0);
   const outOf = questions.reduce((s, x) => s + x.max_marks, 0);
   const complete = (n: number) => q.attempts[n - 1]?.marks.length === questions.length;
