@@ -1,6 +1,7 @@
 """Deployment design §4, §6.1, §6.9 and the foundation portion of §9."""
 
 import json
+from typing import Any
 
 import pytest
 from aws_cdk import App, Environment
@@ -661,7 +662,7 @@ vm.runInNewContext(code, sandbox);
 
 
 def test_upload_cors_exact_rule_and_front_outputs(front):
-    def resolved(value):
+    def resolved(value: Any) -> Any:
         if isinstance(value, dict):
             if "Fn::Join" in value:
                 delimiter, parts = value["Fn::Join"]
