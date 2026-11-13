@@ -1,4 +1,5 @@
-"""Mothusi's HTTP API: the eight endpoints of docs/architecture/design/console-ui.md §6, over the Planner graph.
+"""Mothusi's HTTP API: the eight endpoints of docs/architecture/design/console-ui.md §6, over the
+Planner graph.
 
     uv run --frozen uvicorn mothusi_core.main:app --port 8000
 

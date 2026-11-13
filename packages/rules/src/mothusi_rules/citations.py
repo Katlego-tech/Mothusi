@@ -1,6 +1,7 @@
 """Every mark above zero cites a memo line that is really in the memo.
 
-Design: docs/architecture/design/rules-engine.md §3 citations.py. The sibling of check_evidence: that one grounds
+Design: docs/architecture/design/rules-engine.md §3 citations.py. The sibling of check_evidence:
+that one grounds
 the mark in the learner's words, this one grounds it in the teacher's memo. Pure.
 """
 

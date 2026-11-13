@@ -1,6 +1,7 @@
 """US4 scenarios 1 and 3: Analyst, Support and Writer on the synthetic class set (replay).
 
-Design: docs/architecture/design/marking-pipeline.md §6.1; the `analyst`, `support` and `writer` contracts.
+Design: docs/architecture/design/marking-pipeline.md §6.1; the `analyst`, `support` and `writer`
+contracts.
 """
 
 from __future__ import annotations

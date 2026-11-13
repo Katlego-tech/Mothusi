@@ -1,6 +1,7 @@
 """The Marker: marks one script against the memo, quoting the learner's own words for every mark.
 
-Design: docs/architecture/design/marking-pipeline.md §4 steps 9-12 and §6; the `marker` contract. Two entry
+Design: docs/architecture/design/marking-pipeline.md §4 steps 9-12 and §6; the `marker` contract.
+Two entry
 points: `mark(brief, provider)` does one attempt and returns a Result; `mark_script(...)` is the
 retry loop the Planner runs around it: the rules check every attempt, a failed check is fed back
 into the next Brief, and after `max_attempts` the script goes to the teacher, never silently in.

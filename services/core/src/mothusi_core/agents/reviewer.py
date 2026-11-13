@@ -1,6 +1,7 @@
 """The Reviewer: refuses any learner note that is not grounded, then reviews tone.
 
-Design: docs/architecture/design/marking-pipeline.md §4 steps 25-26 and §6.1; the `reviewer` contract. Grounding
+Design: docs/architecture/design/marking-pipeline.md §4 steps 25-26 and §6.1; the `reviewer`
+contract. Grounding
 is code's job: `check_note_grounding` (rules) refuses a quote not in the script, a mark not in the
 marked script, a label or a comparison, and praise without a quote; `check_note_weeks` refuses an
 ATP week that is not in the checked catch-up plan. Only notes that pass go to the

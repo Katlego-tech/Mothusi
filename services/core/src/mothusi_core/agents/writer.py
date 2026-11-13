@@ -1,6 +1,7 @@
 """The Writer: drafts the teacher's paperwork around numbers the rules have already computed.
 
-Design: docs/architecture/design/marking-pipeline.md §4 steps 23-24 and §6.1; the `writer` contract. The model
+Design: docs/architecture/design/marking-pipeline.md §4 steps 23-24 and §6.1; the `writer` contract.
+The model
 writes one three-part note per learner and the worked corrections for the three weakest questions.
 Every number comes from code: the class sheet wraps `class_feedback_md`, the moderation report is
 `moderation_report_md` verbatim, the catch-up plan is a table of the checked plan, and the memo

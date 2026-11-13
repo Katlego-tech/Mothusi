@@ -1,6 +1,7 @@
 """The Planner's side of the provider seam: fallback, metering and recording.
 
-Design: docs/architecture/design/llm-seam.md §4 (the fallback order is the Planner's: primary, then fallback,
+Design: docs/architecture/design/llm-seam.md §4 (the fallback order is the Planner's: primary, then
+fallback,
 then the agent's own retry/needs_teacher) and marking-pipeline.md §6.2. Agents see one `Provider`;
 these wrappers are composed per run by the Planner and the API.
 """

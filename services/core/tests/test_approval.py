@@ -1,7 +1,8 @@
 """US5: nothing reaches a learner before the teacher approves.
 
 Design: docs/architecture/design/marking-pipeline.md §5, §6.1; the `executor` contract;
-docs/architecture/design/outputs-and-delivery.md §4. The router-level proof (no Executor Brief before
+docs/architecture/design/outputs-and-delivery.md §4. The router-level proof (no Executor Brief
+before
 `approved` in a whole run) is the graph test's job; here the gate and the Executor are tested alone.
 """
 

@@ -1,6 +1,7 @@
 """The domain model: curriculum packs, assessments, memos, scripts, marks and checks.
 
-Design: docs/architecture/design/domain-model.md. Every field here is one the design names; a field that is
+Design: docs/architecture/design/domain-model.md. Every field here is one the design names; a field
+that is
 not here must not be invented downstream. Models are frozen and reject unknown fields so that an
 agent's structured output either fits the contract or fails loudly.
 """
