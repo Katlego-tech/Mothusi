@@ -1,0 +1,14 @@
+# Synthetic test prices only. These are not real model prices or exchange rates.
+[rates]
+zar_per_usd = 20.0
+source = "Synthetic unit-test exchange rate"
+[[model]]
+name = "test-model"
+usd_per_million_input = 1.25
+usd_per_million_output = 5.0
+source = "Synthetic unit-test token prices"
+[[model]]
+name = "half-up-test"
+usd_per_million_input = 2.5
+usd_per_million_output = 0
+source = "Synthetic rounding-boundary prices"

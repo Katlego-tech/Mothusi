@@ -1,0 +1,92 @@
+# Curriculum pack: DBE CAPS, Mathematics, Grade 10.
+# Programme of assessment from DBE Circular S8 of 2023, Annexure §26 (pp 76-78), retained for 2026 by
+# Circular S19 of 2025. Cognitive levels from CAPS FET Mathematics §4. Both PDFs are in
+# preparation/docs/sources/dbe/; the research note is preparation/docs/research/dbe-teachers-site.md §1.
+# Weights are shares of the SBA component (they add up to 100). SBA : exam = 40 : 60.
+
+pack_id = "dbe-caps"
+subject = "Mathematics"
+grade = 10
+sba_percent = 40
+exam_percent = 60
+sources = [
+  "DBE Circular S8 of 2023, Annexure §26, pp 76-78 (programme of assessment)",
+  "DBE Circular S19 of 2025 (2023/24 ATPs and weightings retained for 2026)",
+  "CAPS FET Mathematics §4 (cognitive levels 20/35/30/15)",
+]
+conventions = [
+  "Consistent-accuracy (CA) marking: a follow-through error is penalised once; later marks follow the learner's own earlier answer.",
+  "Method and accuracy marks are separate; a correct answer with no working earns the answer mark only where the memo says so.",
+  "Marks are whole numbers; no half marks.",
+]
+
+[[poa]]
+term = 1
+name = "Investigation/Project"
+kind = "project"
+max_marks = 50
+weight_percent = 15
+
+[[poa]]
+term = 1
+name = "Test"
+kind = "test"
+max_marks = 50
+weight_percent = 14
+
+[[poa]]
+term = 2
+name = "Assignment"
+kind = "assignment"
+max_marks = 50
+weight_percent = 15
+
+[[poa]]
+term = 2
+name = "Mid-year examination"
+kind = "exam"
+max_marks = 100
+weight_percent = 14
+
+[[poa]]
+term = 3
+name = "Test 1"
+kind = "test"
+max_marks = 50
+weight_percent = 14
+
+[[poa]]
+term = 3
+name = "Test 2"
+kind = "test"
+max_marks = 50
+weight_percent = 14
+
+[[poa]]
+term = 3
+name = "Test 3"
+kind = "test"
+max_marks = 50
+weight_percent = 14
+
+[exam]
+papers = 2
+marks_each = 100
+hours_each = 2
+
+[cognitive]
+tolerance_points = 5          # Mothusi's own tolerance when checking a paper's grid; CAPS gives the targets, not a tolerance
+[cognitive.levels]
+knowledge = 20
+routine_procedures = 35
+complex_procedures = 30
+problem_solving = 15
+
+[moderation]
+# Mothusi's working rule until the province's moderation instruction is confirmed (an open decision):
+# re-mark 10% of scripts blind, at least 6, spread over the top, middle and bottom of the class, and widen to
+# every script when more than 10% of re-marked questions disagree.
+sample_percent = 10
+min_scripts = 6
+spread = "top-middle-bottom"
+widen_above_gap_percent = 10

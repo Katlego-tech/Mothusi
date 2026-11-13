@@ -1,0 +1,687 @@
+learner,question_id,answer
+Amogelang Khumalo,1.1,"x^2 - x - 6 = 0
+(x - 3)(x + 2) = 0
+x = 3 ; x = -2"
+Amogelang Khumalo,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Amogelang Khumalo,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= 1"
+Amogelang Khumalo,2.1,"4x^6 y^2 * 3x^-2
+= 12x^4 y^2"
+Amogelang Khumalo,2.2,"3^(2n+2) * 3^(3n-3) / 3^(4n)
+= 3^(n+1)"
+Amogelang Khumalo,3.1,"3x + 2(2x - 1) = 12
+7x - 2 = 12
+7x = 14
+x = 2
+y = 2(2) - 1 = 3
+x = 2 and y = 3"
+Amogelang Khumalo,3.2,"3 - 2x >= 5x - 11
+-7x >= -14
+x >= 2"
+Amogelang Khumalo,4,"width = w, length = 2w + 3
+2(w + 2w + 3) = 48
+6w + 6 = 48
+w = 7
+length = 17
+width 7 cm and length 17 cm"
+Bokang Mokoena,1.1,"x^2 - x - 6 = 0
+(x - 3)(x + 2) = 0
+x = 3 ; x = -2"
+Bokang Mokoena,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 + 4
+= 5a^2 + 4"
+Bokang Mokoena,1.3,"(x^2-9)(x-2) / (x^2+x-6)(x-3)
+= -9/-6 = 3/2"
+Bokang Mokoena,2.1,"4x^6 y^2 * 3x^-2
+= 12x^4 y^2"
+Bokang Mokoena,2.2,"3^(2n+2) * 3^(3n-3) / 3^(4n)
+= 3^(n+1)"
+Bokang Mokoena,3.1,"3x + 2y = 12
+5xy = 12
+x = 12/5"
+Bokang Mokoena,3.2,"3 - 2x >= 5x - 1 - 6
+-7x >= -10
+x = 10/7"
+Bokang Mokoena,4,"48 / 4 = 12
+width 12 cm, length 15 cm"
+Busisiwe Nkosi,1.1,"x^2 - x - 6 = 0
+(x - 3)(x + 2) = 0
+x = 3 ; x = -2"
+Busisiwe Nkosi,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Busisiwe Nkosi,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= (x+3)/(x+3) = 0"
+Busisiwe Nkosi,2.1,"4x^6 y^2 * 3x^-2
+= 12x^4 y^2"
+Busisiwe Nkosi,2.2,9^(n+1) * 27^(n-1) / 81^n = 243^(2n) / 81^n = 3^n
+Busisiwe Nkosi,2.3,"x + 1 = 1/8
+x = -7/8"
+Busisiwe Nkosi,3.1,"3x + 2y = 12
+5xy = 12
+x = 12/5"
+Busisiwe Nkosi,3.2,"3 - 2x >= 5x - 1 - 6
+-7x >= -10
+x = 10/7"
+Busisiwe Nkosi,4,"48 / 4 = 12
+width 12 cm, length 15 cm"
+Dineo Sithole,1.1,"(x-3)(x+2)=0
+x=3 or x=-2"
+Dineo Sithole,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 + 4
+= 5a^2 + 4"
+Dineo Sithole,1.3,"(x^2-9)(x-2) / (x^2+x-6)(x-3)
+= -9/-6 = 3/2"
+Dineo Sithole,2.1,6x^4 y
+Dineo Sithole,2.2,"3^(2n+2) * 3^(3n-3) / 3^(4n)
+= 3^(n+1)"
+Dineo Sithole,2.3,"2^(x+1) = 2^3
+x = 2"
+Dineo Sithole,3.1,"3x + 4x - 2 = 12
+x = 2"
+Dineo Sithole,3.2,"3 - 2x >= 5x - 1 - 6
+-7x >= -10
+x = 10/7"
+Dineo Sithole,4,"l = 2w + 3
+2(w + 2w + 3) = 48
+6w = 42
+w = 7 and l = 17"
+Kagiso Tau,1.1,x = 6
+Kagiso Tau,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Kagiso Tau,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= 1"
+Kagiso Tau,2.1,"4x^6 y^2 * 3x^-2
+= 12x^4 y^2"
+Kagiso Tau,2.2,"3^(2n+2) * 3^(3n-3) / 3^(4n)
+= 3^(n+1)"
+Kagiso Tau,2.3,"2^(x+1) = 2^-2
+x + 1 = -2
+x = -3"
+Kagiso Tau,3.1,"3x + 2y = 12
+5xy = 12
+x = 12/5"
+Kagiso Tau,3.2,"3 - 2x >= 5x - 11
+-7x >= -14
+x >= 2"
+Kagiso Tau,4,"48 / 4 = 12
+width 12 cm, length 15 cm"
+Karabo Phiri,1.1,"(x-3)(x+2)=0
+x=3 or x=-2"
+Karabo Phiri,1.2,"6a - 4 - 2a + 6a + a - 2
+= 11a - 6"
+Karabo Phiri,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= (x+3)/(x+3) = 0"
+Karabo Phiri,2.1,6x^4 y
+Karabo Phiri,2.2,"3^(2n+2) * 3^(3n-3) / 3^(4n)
+= 3^(n+1)"
+Karabo Phiri,2.3,"2^(x+1) = 2^-2
+x + 1 = -2
+x = -3"
+Karabo Phiri,3.1,"3x + 2y = 12
+5xy = 12
+x = 12/5"
+Karabo Phiri,3.2,"3 - 2x >= 5x - 1 - 6
+-7x >= -10
+x = 10/7"
+Katlego Radebe,1.1,"(x-3)(x+2)=0
+x=3 or x=-2"
+Katlego Radebe,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Katlego Radebe,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= 1"
+Katlego Radebe,2.1,4x^9 y * 3x^-2 = 12x^7 y
+Katlego Radebe,2.2,9^(n+1) * 27^(n-1) / 81^n = 243^(2n) / 81^n = 3^n
+Katlego Radebe,2.3,"x + 1 = 1/8
+x = -7/8"
+Katlego Radebe,3.1,"3x + 2(2x - 1) = 12
+7x - 2 = 12
+7x = 14
+x = 2
+y = 2(2) - 1 = 3
+x = 2 and y = 3"
+Katlego Radebe,3.2,"3 - 2x >= 5x - 5 - 6
+-7x >= -14
+x <= 2
+number line: closed dot at 2, shaded left"
+Katlego Radebe,4,"width = w, length = 2w + 3
+2(w + 2w + 3) = 48
+6w + 6 = 48
+w = 7
+length = 17
+width 7 cm and length 17 cm"
+Kgomotso Dlamini,1.1,"(x-3)(x+2)=0
+x=3 or x=-2"
+Kgomotso Dlamini,1.2,"6a - 4 - 2a + 6a + a - 2
+= 11a - 6"
+Kgomotso Dlamini,1.3,"(x^2-9)(x-2) / (x^2+x-6)(x-3)
+= -9/-6 = 3/2"
+Kgomotso Dlamini,2.1,"4x^6 y^2 * 3x^-2
+= 12x^4 y^2"
+Kgomotso Dlamini,2.2,3^(2n+1) * 3^(3n-1) / 3^(4n) = 3^n
+Kgomotso Dlamini,2.3,"2^(x+1) = 2^-2
+x + 1 = -2
+x = -3"
+Kgomotso Dlamini,3.1,"3x + 2y = 12
+5xy = 12
+x = 12/5"
+Kgomotso Dlamini,3.2,"3 - 2x >= 5x - 5 - 6
+-7x >= -14
+x <= 2
+number line: closed dot at 2, shaded left"
+Lebogang Fourie,1.1,"x^2 - x - 6 = 0
+(x - 3)(x + 2) = 0
+x = 3 ; x = -2"
+Lebogang Fourie,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Lebogang Fourie,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= (x+3)/(x+3) = 0"
+Lebogang Fourie,2.1,4x^5 y^2 * 3x^-2 = 12x^3 y^2
+Lebogang Fourie,2.2,9^(n+1) * 27^(n-1) / 81^n = 243^(2n) / 81^n = 3^n
+Lebogang Fourie,2.3,"2^(x+1) = 2^-2
+x + 1 = -2
+x = -3"
+Lebogang Fourie,3.1,"3x + 4x - 2 = 12
+x = 2"
+Lebogang Fourie,3.2,"3 - 2x >= 5x - 1 - 6
+-7x >= -10
+x = 10/7"
+Lebogang Fourie,4,"2w + 2(2w+3) = 48
+w = 7"
+Lerato Molefe,1.1,"x^2 - x - 6 = 0
+(x - 3)(x + 2) = 0
+x = 3 ; x = -2"
+Lerato Molefe,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Lerato Molefe,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= 1"
+Lerato Molefe,2.1,"4x^6 y^2 * 3x^-2
+= 12x^4 y^2"
+Lerato Molefe,2.2,"3^(2n+2) * 3^(3n-3) / 3^(4n)
+= 3^(n+1)"
+Lerato Molefe,2.3,"x + 1 = 1/8
+x = -7/8"
+Lerato Molefe,3.1,"3x + 2(2x - 1) = 12
+7x - 2 = 12
+7x = 14
+x = 2
+y = 2(2) - 1 = 3
+x = 2 and y = 3"
+Lerato Molefe,3.2,"3 - 2x >= 5x - 5 - 6
+-7x >= -14
+x <= 2
+number line: closed dot at 2, shaded left"
+Lerato Molefe,4,"2w + 2(2w+3) = 48
+w = 7"
+Lesedi Baloyi,1.1,x = 6
+Lesedi Baloyi,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Lesedi Baloyi,1.3,"(x^2-9)(x-2) / (x^2+x-6)(x-3)
+= -9/-6 = 3/2"
+Lesedi Baloyi,2.1,4x^9 y * 3x^-2 = 12x^7 y
+Lesedi Baloyi,2.2,9^(n+1) * 27^(n-1) / 81^n = 243^(2n) / 81^n = 3^n
+Lesedi Baloyi,2.3,"x + 1 = 1/8
+x = -7/8"
+Lesedi Baloyi,3.1,"3x + 4x - 2 = 12
+x = 2"
+Lesedi Baloyi,3.2,"3 - 2x >= 5x - 11
+-7x >= -14
+x >= 2"
+Lesedi Baloyi,4,"l = 2w + 3
+2(w + 2w + 3) = 48
+6w = 42
+w = 7 and l = 17"
+Mpho Zulu,1.1,"x^2 - x - 6 = 0
+(x - 3)(x + 2) = 0
+x = 3 ; x = -2"
+Mpho Zulu,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Mpho Zulu,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= (x+3)/(x+3) = 0"
+Mpho Zulu,2.1,4x^5 y^2 * 3x^-2 = 12x^3 y^2
+Mpho Zulu,2.2,3^(2n+1) * 3^(3n-1) / 3^(4n) = 3^n
+Mpho Zulu,2.3,"x + 1 = 1/8
+x = -7/8"
+Mpho Zulu,3.1,"3x + 2(2x - 1) = 12
+3x + 4x - 1 = 12
+7x = 13
+x = 13/7"
+Mpho Zulu,3.2,"3 - 2x >= 5x - 1 - 6
+-7x >= -10
+x = 10/7"
+Mpho Zulu,4,"48 / 4 = 12
+width 12 cm, length 15 cm"
+Naledi Hlongwane,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Naledi Hlongwane,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= 1"
+Naledi Hlongwane,2.1,"4x^6 y^2 * 3x^-2
+= 12x^4 y^2"
+Naledi Hlongwane,2.3,"2^(x+1) = 2^3
+x = 2"
+Naledi Hlongwane,3.1,"3x + 2y = 12
+5xy = 12
+x = 12/5"
+Naledi Hlongwane,3.2,"3 - 2x >= 5x - 1 - 6
+-7x >= -10
+x = 10/7"
+Naledi Hlongwane,4,"48 / 4 = 12
+width 12 cm, length 15 cm"
+Neo Cele,1.1,"(x-3)(x+2)=0
+x=3 or x=-2"
+Neo Cele,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Neo Cele,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= 1"
+Neo Cele,2.1,"4x^6 y^2 * 3x^-2
+= 12x^4 y^2"
+Neo Cele,2.2,"3^(2n+2) * 3^(3n-3) / 3^(4n)
+= 3^(2n+2+3n-3-4n)
+= 3^(n-1)"
+Neo Cele,2.3,"2^(x+1) = 2^-3
+x + 1 = -3
+x = -4"
+Neo Cele,3.1,"y = 2x - 1 goes into 3x + 2y = 12
+3x + 4x - 2 = 12
+7x = 14 so x = 2
+then y = 2(2) - 1 which is 3"
+Neo Cele,3.2,"3 - 2x >= 5x - 5 - 6
+-7x >= -14
+x <= 2
+number line: closed dot at 2, shaded left"
+Neo Cele,4,"width = w, length = 2w + 3
+2(w + 2w + 3) = 48
+6w + 6 = 48
+w = 7
+length = 17
+width 7 cm and length 17 cm"
+Nthabiseng Vilakazi,1.1,"x^2 - x - 6 = 0
+(x - 3)(x + 2) = 0
+x = 3 ; x = -2"
+Nthabiseng Vilakazi,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Nthabiseng Vilakazi,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= 1"
+Nthabiseng Vilakazi,2.1,"2x^6 y^2 * 3x^-2
+= 6x^4 y^2"
+Nthabiseng Vilakazi,2.2,"3^(2n+2) * 3^(3n-3) / 3^(4n)
+= 3^(n+1)"
+Nthabiseng Vilakazi,3.1,"3x + 2y = 12
+5xy = 12
+x = 12/5"
+Nthabiseng Vilakazi,3.2,"3 - 2x >= 5x - 1 - 6
+-7x >= -10
+x = 10/7"
+Nthabiseng Vilakazi,4,"l = 2w + 3
+2(w + 2w + 3) = 48
+6w = 42
+w = 7 and l = 17"
+Ofentse Gumede,1.1,"x^2 - x - 6 = 0
+(x - 3)(x + 2) = 0
+x = 3 ; x = -2"
+Ofentse Gumede,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Ofentse Gumede,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= 1"
+Ofentse Gumede,2.1,"4x^6 y^2 * 3x^-2
+= 12x^4 y^2"
+Ofentse Gumede,2.2,"3^(2n+2) * 3^(3n-3) / 3^(4n)
+= 3^(2n+2+3n-3-4n)
+= 3^(n-1)"
+Ofentse Gumede,2.3,"2^(x+1) = 2^3
+x = 2"
+Ofentse Gumede,3.1,"3x + 2y = 12
+5xy = 12
+x = 12/5"
+Ofentse Gumede,3.2,"3 - 2x >= 5x - 5 - 6
+-7x >= -14
+x <= 2
+number line: closed dot at 2, shaded left"
+Ofentse Gumede,4,"48 / 4 = 12
+width 12 cm, length 15 cm"
+Omphile Jacobs,1.1,"(x-3)(x+2)=0
+x=3 or x=-2"
+Omphile Jacobs,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Omphile Jacobs,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= (x+3)/(x+3) = 0"
+Omphile Jacobs,2.1,"2x^6 y^2 * 3x^-2
+= 6x^4 y^2"
+Omphile Jacobs,2.2,"3^(2n+2) * 3^(3n-3) / 3^(4n)
+= 3^(2n+2+3n-3-4n)
+= 3^(n-1)"
+Omphile Jacobs,2.3,"1/8 = 2^(-3)
+so x+1 = -3
+x = -4"
+Omphile Jacobs,3.1,"3x + 2(2x - 1) = 12
+3x + 4x - 1 = 12
+7x = 13
+x = 13/7"
+Omphile Jacobs,3.2,"3 - 2x >= 5x - 11
+x <= 2"
+Omphile Jacobs,4,"48 / 4 = 12
+width 12 cm, length 15 cm"
+Palesa Wessels,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Palesa Wessels,1.3,"(x^2-9)(x-2) / (x^2+x-6)(x-3)
+= -9/-6 = 3/2"
+Palesa Wessels,2.1,"4x^6 y^2 * 3x^-2
+= 12x^4 y^2"
+Palesa Wessels,2.2,"3^(2n+2) * 3^(3n-3) / 3^(4n)
+= 3^(n+1)"
+Palesa Wessels,2.3,"2^(x+1) = 2^-2
+x + 1 = -2
+x = -3"
+Palesa Wessels,3.1,"3x + 2y = 12
+5xy = 12
+x = 12/5"
+Palesa Wessels,4,"l = 2w + 3
+2(w + 2w + 3) = 48
+6w = 42
+w = 7 and l = 17"
+Refilwe Abrahams,1.1,"(x-3)(x+2)=0
+x=3 or x=-2"
+Refilwe Abrahams,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Refilwe Abrahams,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= (x+3)/(x+3) = 0"
+Refilwe Abrahams,2.1,4x^5 y^2 * 3x^-2 = 12x^3 y^2
+Refilwe Abrahams,2.2,(9*27/81)^n = 3^n
+Refilwe Abrahams,2.3,"x + 1 = 1/8
+x = -7/8"
+Refilwe Abrahams,3.1,"3x + 2(2x - 1) = 12
+3x + 4x - 1 = 12
+7x = 13
+x = 13/7"
+Refilwe Abrahams,3.2,"3 - 2x >= 5x - 5 - 6
+-7x >= -14
+x <= 2
+number line: closed dot at 2, shaded left"
+Refilwe Abrahams,4,"width = w, length = 2w + 3
+2(w + 2w + 3) = 48
+6w + 6 = 48
+w = 7
+length = 17
+width 7 cm and length 17 cm"
+Rethabile Letsoalo,1.1,"(x-3)(x+2)=0
+x=3 or x=-2"
+Rethabile Letsoalo,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Rethabile Letsoalo,1.3,"(x^2-9)(x-2) / (x^2+x-6)(x-3)
+= -9/-6 = 3/2"
+Rethabile Letsoalo,2.1,4x^5 y^2 * 3x^-2 = 12x^3 y^2
+Rethabile Letsoalo,2.2,9^(n+1) * 27^(n-1) / 81^n = 243^(2n) / 81^n = 3^n
+Rethabile Letsoalo,2.3,"x + 1 = 1/8
+x = -7/8"
+Rethabile Letsoalo,3.1,"3x + 2y = 12
+5xy = 12
+x = 12/5"
+Rethabile Letsoalo,3.2,"3 - 2x >= 5x - 11
+-7x >= -14
+x >= 2"
+Rethabile Letsoalo,4,"48 / 4 = 12
+width 12 cm, length 15 cm"
+Sipho Qwabe,1.1,"(x-3)(x+2)=0
+x=3 or x=-2"
+Sipho Qwabe,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Sipho Qwabe,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= 1"
+Sipho Qwabe,2.1,"4x^6 y^2 * 3x^-2
+= 12x^4 y^2"
+Sipho Qwabe,2.2,9^(n+1) * 27^(n-1) / 81^n = 243^(2n) / 81^n = 3^n
+Sipho Qwabe,2.3,"1/8 = 2^(-3)
+so x+1 = -3
+x = -4"
+Sipho Qwabe,3.1,"3x + 2(2x - 1) = 12
+7x - 2 = 12
+7x = 14
+x = 2
+y = 2(2) - 1 = 3
+x = 2 and y = 3"
+Sipho Qwabe,3.2,"3 - 2x >= 5x - 5 - 6
+-7x >= -14
+x <= 2
+number line: closed dot at 2, shaded left"
+Sipho Qwabe,4,"l = 2w + 3
+w + 2w + 3 = 48
+3w = 45
+w = 15 cm and l = 33 cm"
+Tebogo Ebrahim,1.1,"x^2 - x - 6 = 0
+(x - 3)(x + 2) = 0
+x = 3 ; x = -2"
+Tebogo Ebrahim,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Tebogo Ebrahim,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= 1"
+Tebogo Ebrahim,2.1,6x^4 y
+Tebogo Ebrahim,2.2,(9*27/81)^n = 3^n
+Tebogo Ebrahim,2.3,"1/8 = 2^(-3)
+so x+1 = -3
+x = -4"
+Tebogo Ebrahim,3.1,"3x + 2(2x - 1) = 12
+7x - 2 = 12
+7x = 14
+x = 2
+y = 2(2) - 1 = 3
+x = 2 and y = 3"
+Tebogo Ebrahim,3.2,"3 - 2x >= 5x - 5 - 6
+-7x >= -14
+x <= 2
+number line: closed dot at 2, shaded left"
+Tebogo Ebrahim,4,"width = w, length = 2w + 3
+2(w + 2w + 3) = 48
+6w + 6 = 48
+w = 7
+length = 17
+width 7 cm and length 17 cm"
+Thabo Ismail,1.1,"(x-3)(x+2)=0
+x=3 or x=-2"
+Thabo Ismail,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 + 4
+= 5a^2 + 4"
+Thabo Ismail,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= (x+3)/(x+3) = 0"
+Thabo Ismail,2.1,"2x^6 y^2 * 3x^-2
+= 6x^4 y^2"
+Thabo Ismail,2.2,3^(2n+1) * 3^(3n-1) / 3^(4n) = 3^n
+Thabo Ismail,2.3,"2^(x+1) = 2^-2
+x + 1 = -2
+x = -3"
+Thabo Ismail,3.1,"3x + 2y = 12
+5xy = 12
+x = 12/5"
+Thabo Ismail,3.2,"3 - 2x >= 5x - 11
+-7x >= -14
+x >= 2"
+Thabo Ismail,4,"l = 2w + 3
+2(w + 2w + 3) = 48
+6w = 42
+w = 7 and l = 17"
+Thandeka Ojo,1.1,"(x+3)(x-2)=0
+x=-3 or x=2"
+Thandeka Ojo,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 + 4
+= 5a^2 + 4"
+Thandeka Ojo,1.3,"(x^2-9)(x-2) / (x^2+x-6)(x-3)
+= -9/-6 = 3/2"
+Thandeka Ojo,2.2,3^(2n+1) * 3^(3n-1) / 3^(4n) = 3^n
+Thandeka Ojo,2.3,"2^(x+1) = 2^3
+x = 2"
+Thandeka Ojo,3.1,"3x + 2y = 12
+5xy = 12
+x = 12/5"
+Thandeka Ojo,3.2,"3 - 2x >= 5x - 1 - 6
+-7x >= -10
+x = 10/7"
+Thandeka Ojo,4,"2w + 2(2w+3) = 48
+w = 7"
+Thato Ubisi,1.1,"x^2 - x - 6 = 0
+(x - 3)(x + 2) = 0
+x = 3 ; x = -2"
+Thato Ubisi,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Thato Ubisi,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= 1"
+Thato Ubisi,2.1,4x^5 y^2 * 3x^-2 = 12x^3 y^2
+Thato Ubisi,2.2,"3^(2n+2) * 3^(3n-3) / 3^(4n)
+= 3^(2n+2+3n-3-4n)
+= 3^(n-1)"
+Thato Ubisi,2.3,"2^(x+1) = 2^-3
+x + 1 = -3
+x = -4"
+Thato Ubisi,3.1,"3x + 2(2x - 1) = 12
+3x + 4x - 1 = 12
+7x = 13
+x = 13/7"
+Thato Ubisi,3.2,"3 - 2x >= 5x - 1 - 6
+-7x >= -10
+x = 10/7"
+Thato Ubisi,4,"l = 2w + 3
+2(w + 2w + 3) = 48
+6w = 42
+w = 7 and l = 17"
+Tshepiso Yende,1.1,"(x-3)(x+2)=0
+x=3 or x=-2"
+Tshepiso Yende,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Tshepiso Yende,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= 1"
+Tshepiso Yende,2.1,6x^4 y
+Tshepiso Yende,2.2,"3^(2n+2) * 3^(3n-3) / 3^(4n)
+= 3^(n+1)"
+Tshepiso Yende,2.3,"2^(x+1) = 2^-3
+x + 1 = -3
+x = -4"
+Tshepiso Yende,3.1,"3x + 4x - 2 = 12
+x = 2"
+Tshepiso Yende,3.2,"3 - 2x >= 5x - 5 - 6
+-7x >= -14
+x <= 2
+number line: closed dot at 2, shaded left"
+Tshepiso Yende,4,"48 / 4 = 12
+width 12 cm, length 15 cm"
+Tumelo Xaba,1.1,"(x-3)(x+2)=0
+x=3 or x=-2"
+Tumelo Xaba,1.2,"6a - 4 - 2a + 6a + a - 2
+= 11a - 6"
+Tumelo Xaba,1.3,"(x^2-9)(x-2) / (x^2+x-6)(x-3)
+= -9/-6 = 3/2"
+Tumelo Xaba,2.1,"4x^6 y^2 * 3x^-2
+= 12x^4 y^2"
+Tumelo Xaba,2.2,"3^(2n+2) * 3^(3n-3) / 3^(4n)
+= 3^(n+1)"
+Tumelo Xaba,2.3,"1/8 = 2^(-3)
+so x+1 = -3
+x = -4"
+Tumelo Xaba,3.1,"3x + 2(2x - 1) = 12
+3x + 4x - 1 = 12
+7x = 13
+x = 13/7"
+Tumelo Xaba,3.2,"3 - 2x >= 5x - 5 - 6
+-7x >= -14
+x <= 2
+number line: closed dot at 2, shaded left"
+Tumelo Xaba,4,"48 / 4 = 12
+width 12 cm, length 15 cm"
+Unathi Rikhotso,1.1,x = 6
+Unathi Rikhotso,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Unathi Rikhotso,1.3,"(x^2-9)(x-2) / (x^2+x-6)(x-3)
+= -9/-6 = 3/2"
+Unathi Rikhotso,2.1,4x^5 y^2 * 3x^-2 = 12x^3 y^2
+Unathi Rikhotso,2.2,(9*27/81)^n = 3^n
+Unathi Rikhotso,2.3,"1/8 = 2^(-3)
+so x+1 = -3
+x = -4"
+Unathi Rikhotso,3.1,"3x + 2(2x - 1) = 12
+7x - 2 = 12
+7x = 14
+x = 2
+y = 2(2) - 1 = 3
+x = 2 and y = 3"
+Unathi Rikhotso,3.2,"3 - 2x >= 5x - 1 - 6
+-7x >= -10
+x = 10/7"
+Unathi Rikhotso,4,"48 / 4 = 12
+width 12 cm, length 15 cm"
+Vuyo Ngcobo,1.1,"x^2 - x - 6 = 0
+(x - 3)(x + 2) = 0
+x = 3 ; x = -2"
+Vuyo Ngcobo,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Vuyo Ngcobo,1.3,"(x^2-9)(x-2) / (x^2+x-6)(x-3)
+= -9/-6 = 3/2"
+Vuyo Ngcobo,2.1,"2x^6 y^2 * 3x^-2
+= 6x^4 y^2"
+Vuyo Ngcobo,2.2,9^(n+1) * 27^(n-1) / 81^n = 243^(2n) / 81^n = 3^n
+Vuyo Ngcobo,2.3,"x + 1 = 1/8
+x = -7/8"
+Vuyo Ngcobo,3.1,"3x + 2y = 12
+5xy = 12
+x = 12/5"
+Vuyo Ngcobo,3.2,"3 - 2x >= 5x - 11
+-7x >= -14
+x >= 2"
+Vuyo Ngcobo,4,"l = 2w + 3
+2(w + 2w + 3) = 48
+6w = 42
+w = 7 and l = 17"
+Wandile Shabalala,1.1,"x^2 - x - 6 = 0
+(x - 3)(x + 2) = 0
+x = 3 ; x = -2"
+Wandile Shabalala,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Wandile Shabalala,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= 1"
+Wandile Shabalala,2.1,"4x^6 y^2 * 3x^-2
+= 12x^4 y^2"
+Wandile Shabalala,2.2,"3^(2n+2) * 3^(3n-3) / 3^(4n)
+= 3^(2n+2+3n-3-4n)
+= 3^(n-1)"
+Wandile Shabalala,2.3,"2^(x+1) = 2^-3
+x + 1 = -3
+x = -4"
+Wandile Shabalala,3.1,"3x + 4x - 2 = 12
+x = 2"
+Wandile Shabalala,3.2,"3 - 2x >= 5x - 5 - 6
+-7x >= -14
+x <= 2
+number line: closed dot at 2, shaded left"
+Wandile Shabalala,4,"2w + 2(2w+3) = 48
+w = 7"
+Zanele Kekana,1.1,"x^2 - x - 6 = 0
+(x - 3)(x + 2) = 0
+x = 3 ; x = -2"
+Zanele Kekana,1.2,"6a - 4 - 2a + 6a + a - 2
+= 11a - 6"
+Zanele Kekana,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= 1"
+Zanele Kekana,2.1,4x^9 y * 3x^-2 = 12x^7 y
+Zanele Kekana,2.2,(9*27/81)^n = 3^n
+Zanele Kekana,2.3,"x + 1 = 1/8
+x = -7/8"
+Zanele Kekana,3.1,"3x + 2(2x - 1) = 12
+3x + 4x - 1 = 12
+7x = 13
+x = 13/7"
+Zanele Kekana,3.2,"3 - 2x >= 5x - 11
+x <= 2"
+Zanele Kekana,4,"48 / 4 = 12
+width 12 cm, length 15 cm"
+Zinhle Tshabalala,1.1,"x^2 - x - 6 = 0
+(x - 3)(x + 2) = 0
+x = 3 ; x = -2"
+Zinhle Tshabalala,1.2,"6a^2 - 12a - 2a^2 + 12a + a^2 - 4a + 4
+= 5a^2 - 4a + 4"
+Zinhle Tshabalala,1.3,"(x-3)(x+3) / (x+3)(x-2) * (x-2)/(x-3)
+= (x+3)/(x+3) = 0"
+Zinhle Tshabalala,2.1,"2x^6 y^2 * 3x^-2
+= 6x^4 y^2"
+Zinhle Tshabalala,2.2,"3^(2n+2) * 3^(3n-3) / 3^(4n)
+= 3^(n+1)"
+Zinhle Tshabalala,2.3,"2^(x+1) = 2^-3
+x + 1 = -3
+x = -4"
+Zinhle Tshabalala,3.1,"3x + 4x - 2 = 12
+x = 2"
+Zinhle Tshabalala,3.2,"3 - 2x >= 5x - 11
+x <= 2"
+Zinhle Tshabalala,4,"48 / 4 = 12
+width 12 cm, length 15 cm"

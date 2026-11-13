@@ -1,0 +1,259 @@
+{
+ "assessment_id": "gr10-maths-t1-planted",
+ "title": "Grade 10 Mathematics \u00b7 Term 1 Test",
+ "state": "awaiting_approval",
+ "summary": {
+  "class_average_percent": "60.67",
+  "scripts": 6,
+  "moderated": 6,
+  "questions_compared": 54,
+  "questions_agreed": 53,
+  "re_marked": 1,
+  "cost_zar": "0.00",
+  "per_script_zar": "0.00",
+  "priced": true,
+  "elapsed_s": 286,
+  "teacher_steps": 1
+ },
+ "mark_sheet": [
+  {
+   "learner": "Amogelang Khumalo",
+   "raw": 30,
+   "out_of": 50,
+   "sba_points": "8.40",
+   "year_points": "3.36",
+   "moderated": true,
+   "re_marked": false
+  },
+  {
+   "learner": "Busisiwe Nkosi",
+   "raw": 22,
+   "out_of": 50,
+   "sba_points": "6.16",
+   "year_points": "2.46",
+   "moderated": true,
+   "re_marked": false
+  },
+  {
+   "learner": "Katlego Radebe",
+   "raw": 24,
+   "out_of": 50,
+   "sba_points": "6.72",
+   "year_points": "2.69",
+   "moderated": true,
+   "re_marked": false
+  },
+  {
+   "learner": "Lerato Molefe",
+   "raw": 30,
+   "out_of": 50,
+   "sba_points": "8.40",
+   "year_points": "3.36",
+   "moderated": true,
+   "re_marked": false
+  },
+  {
+   "learner": "Neo Cele",
+   "raw": 40,
+   "out_of": 50,
+   "sba_points": "11.20",
+   "year_points": "4.48",
+   "moderated": true,
+   "re_marked": false
+  },
+  {
+   "learner": "Sipho Qwabe",
+   "raw": 36,
+   "out_of": 50,
+   "sba_points": "10.08",
+   "year_points": "4.03",
+   "moderated": true,
+   "re_marked": true
+  }
+ ],
+ "mark_sheet_csv": "learner,raw,out_of,sba_points,year_points\r\nAmogelang Khumalo,30,50,8.40,3.36\r\nBusisiwe Nkosi,22,50,6.16,2.46\r\nKatlego Radebe,24,50,6.72,2.69\r\nLerato Molefe,30,50,8.40,3.36\r\nNeo Cele,40,50,11.20,4.48\r\nSipho Qwabe,36,50,10.08,4.03\r\nTOTAL,,,50.96,20.38\r\n",
+ "item_analysis": [
+  {
+   "question_id": "1.1",
+   "max_marks": 5,
+   "scripts": 6,
+   "mean_awarded": "5.00",
+   "facility_percent": "100.00",
+   "flag": "review-item"
+  },
+  {
+   "question_id": "1.2",
+   "max_marks": 6,
+   "scripts": 6,
+   "mean_awarded": "6.00",
+   "facility_percent": "100.00",
+   "flag": "review-item"
+  },
+  {
+   "question_id": "1.3",
+   "max_marks": 5,
+   "scripts": 6,
+   "mean_awarded": "5.00",
+   "facility_percent": "100.00",
+   "flag": "review-item"
+  },
+  {
+   "question_id": "2.1",
+   "max_marks": 6,
+   "scripts": 6,
+   "mean_awarded": "5.00",
+   "facility_percent": "83.33",
+   "flag": null
+  },
+  {
+   "question_id": "2.2",
+   "max_marks": 6,
+   "scripts": 6,
+   "mean_awarded": "1.00",
+   "facility_percent": "16.67",
+   "flag": "re-teach"
+  },
+  {
+   "question_id": "2.3",
+   "max_marks": 4,
+   "scripts": 6,
+   "mean_awarded": "1.33",
+   "facility_percent": "33.25",
+   "flag": "re-teach"
+  },
+  {
+   "question_id": "3.1",
+   "max_marks": 8,
+   "scripts": 6,
+   "mean_awarded": "6.67",
+   "facility_percent": "83.38",
+   "flag": null
+  },
+  {
+   "question_id": "3.2",
+   "max_marks": 4,
+   "scripts": 6,
+   "mean_awarded": "0.00",
+   "facility_percent": "0.00",
+   "flag": "re-teach"
+  },
+  {
+   "question_id": "4",
+   "max_marks": 6,
+   "scripts": 6,
+   "mean_awarded": "0.33",
+   "facility_percent": "5.50",
+   "flag": "re-teach"
+  }
+ ],
+ "misconceptions": [
+  {
+   "question_id": "2.2",
+   "pattern": "Bases are combined before each is written as a power of 3",
+   "evidence_quotes": [
+    "3^(2n+2) * 3^(3n-3) / 3^(4n)"
+   ],
+   "scripts": 2
+  },
+  {
+   "question_id": "2.3",
+   "pattern": "1/8 is not written as a power of 2 before the exponents are equated",
+   "evidence_quotes": [
+    "x + 1 = 1/8"
+   ],
+   "scripts": 3
+  },
+  {
+   "question_id": "3.2",
+   "pattern": "The inequality is solved as an equation, or the sign is not reversed",
+   "evidence_quotes": [
+    "3 - 2x >= 5x - 11"
+   ],
+   "scripts": 1
+  },
+  {
+   "question_id": "4",
+   "pattern": "The perimeter is written as w + l = 48 instead of 2(w + l) = 48",
+   "evidence_quotes": [
+    "width = w, length = 2w + 3"
+   ],
+   "scripts": 3
+  }
+ ],
+ "catch_up_plan_md": "# Catch-up plan\n\n| ATP week | topic | activity | ATP source |\n| --- | --- | --- | --- |\n| 10 | Re-teach question 2.2 beside Revision and Term 1 tests | Ten-minute starter on bases are combined before each is written as a power of 3, then two worked examples | RATP Mathematics Grade 10 2024, week 10 (18-20 March) |\n| 11 | Re-teach question 2.3 beside Trigonometry | Ten-minute starter on 1/8 is not written as a power of 2 before the exponents are equated, then two worked examples | RATP Mathematics Grade 10 2024, week 11 (03-05 April) |\n| 12 | Re-teach question 3.2 beside Trigonometry | Ten-minute starter on the inequality is solved as an equation, or the sign is not reversed, then two worked examples | RATP Mathematics Grade 10 2024, week 12 (08-12 April) |\n| 13 | Re-teach question 4 beside Euclidean geometry | Ten-minute starter on the perimeter is written as w + l = 48 instead of 2(w + l) = 48, then two worked examples | RATP Mathematics Grade 10 2024, week 13 (15-19 April) |\n",
+ "learner_notes": [
+  {
+   "learner": "Amogelang Khumalo",
+   "outcome": "Solving equations and working with exponents (Term 1 Test)",
+   "mark_with_quote": "5/5 on question 1.1: you wrote \"x^2 - x - 6 = 0\"",
+   "next_task": "Redo question 2.2, checking each line against the memo method",
+   "self_assessment_prompt": "Which step of question 2.2 would I check first, and why?",
+   "review": {
+    "passed": true,
+    "reason": ""
+   }
+  },
+  {
+   "learner": "Busisiwe Nkosi",
+   "outcome": "Solving equations and working with exponents (Term 1 Test)",
+   "mark_with_quote": "5/5 on question 1.1: you wrote \"x^2 - x - 6 = 0\"",
+   "next_task": "Redo question 2.2, checking each line against the memo method",
+   "self_assessment_prompt": "Which step of question 2.2 would I check first, and why?",
+   "review": {
+    "passed": true,
+    "reason": ""
+   }
+  },
+  {
+   "learner": "Katlego Radebe",
+   "outcome": "Solving equations and working with exponents (Term 1 Test)",
+   "mark_with_quote": "0/6 on question 2.1: you wrote \"4x^9 y * 3x^-2 = 12x^7 y\"",
+   "next_task": "Redo question 2.1, checking each line against the memo method",
+   "self_assessment_prompt": "Which step of question 2.1 would I check first, and why?",
+   "review": {
+    "passed": true,
+    "reason": ""
+   }
+  },
+  {
+   "learner": "Lerato Molefe",
+   "outcome": "Solving equations and working with exponents (Term 1 Test)",
+   "mark_with_quote": "5/5 on question 1.1: you wrote \"x^2 - x - 6 = 0\"",
+   "next_task": "Redo question 2.2, checking each line against the memo method",
+   "self_assessment_prompt": "Which step of question 2.2 would I check first, and why?",
+   "review": {
+    "passed": true,
+    "reason": ""
+   }
+  },
+  {
+   "learner": "Neo Cele",
+   "outcome": "Solving equations and working with exponents (Term 1 Test)",
+   "mark_with_quote": "5/5 on question 1.1: you wrote \"(x-3)(x+2)=0\"",
+   "next_task": "Redo question 3.2, checking each line against the memo method",
+   "self_assessment_prompt": "Which step of question 3.2 would I check first, and why?",
+   "review": {
+    "passed": true,
+    "reason": ""
+   }
+  },
+  {
+   "learner": "Sipho Qwabe",
+   "outcome": "Solving equations and working with exponents (Term 1 Test)",
+   "mark_with_quote": "5/5 on question 1.1: you wrote \"(x-3)(x+2)=0\"",
+   "next_task": "Redo question 2.2, checking each line against the memo method",
+   "self_assessment_prompt": "Which step of question 2.2 would I check first, and why?",
+   "review": {
+    "passed": true,
+    "reason": ""
+   }
+  }
+ ],
+ "moderation_report_md": "# Moderation report: Grade 10 Mathematics \u00b7 Term 1 Test\n\n## Sample\n\n| script | included |\n| --- | --- |\n| L-001 | yes |\n| L-003 | yes |\n| L-007 | yes |\n| L-010 | yes |\n| L-014 | yes |\n| L-021 | yes |\n\n## Disagreements\n\n| script | question | first mark | second mark | gap | resolution |\n| --- | --- | --- | --- | --- | --- |\n| L-021 | 4 | 5 | 2 | 3 | re-marked to 2: perimeter not doubled: only l = 2w + 3 and the units earn marks |\n\n## Agreement\n\nAgreement rate on the sample: 98.15% (53 of 54 questions).\n\n## Signatures\n\nMarker: ____________\nModerator (moderator): ____________\nHead of Department: ____________  Date: ____________\n",
+ "class_sheet_md": "# Class feedback\n\n## Weakest questions\n\n| question | facility % | flag |\n| --- | --- | --- |\n| 3.2 | 0.00 | re-teach |\n| 4 | 5.50 | re-teach |\n| 2.2 | 16.67 | re-teach |\n\n## Strongest\n\n| question | facility % | flag |\n| --- | --- | --- |\n| 1.1 | 100.00 | review-item |\n| 1.2 | 100.00 | review-item |\n| 1.3 | 100.00 | review-item |\n\n## What the scripts show\n\n- **2.2**: Bases are combined before each is written as a power of 3 (2 scripts: \"3^(2n+2) * 3^(3n-3) / 3^(4n)\")\n- **2.3**: 1/8 is not written as a power of 2 before the exponents are equated (3 scripts: \"x + 1 = 1/8\")\n- **3.2**: The inequality is solved as an equation, or the sign is not reversed (1 script: \"3 - 2x >= 5x - 11\")\n- **4**: The perimeter is written as w + l = 48 instead of 2(w + l) = 48 (3 scripts: \"width = w, length = 2w + 3\")\n\n## Worked corrections\n\n### Question 3.2 (facility 0.00%)\n\n**Memo answer:** x <= 2\n\n**Common error:** The inequality is solved as an equation, or the sign is not reversed\n\n**Worked correction:** Work it on the board in the memo's steps: 3 - 2x >= 5x - 11: 1 mark; 14 >= 7x: 1 mark; x <= 2: 1 mark; number line with a closed dot at 2, shaded to the left: 1 mark\n\n### Question 4 (facility 5.50%)\n\n**Memo answer:** width 7 cm, length 17 cm\n\n**Common error:** The perimeter is written as w + l = 48 instead of 2(w + l) = 48\n\n**Worked correction:** Work it on the board in the memo's steps: l = 2w + 3: 1 mark; 2(w + 2w + 3) = 48: 2 marks; w = 7: 1 mark; l = 17: 1 mark; units (cm): 1 mark\n\n### Question 2.2 (facility 16.67%)\n\n**Memo answer:** 3^(n-1)\n\n**Common error:** Bases are combined before each is written as a power of 3\n\n**Worked correction:** Work it on the board in the memo's steps: 3^(2n+2), 3^(3n-3), 3^(4n): 3 marks; adding and subtracting exponents: 2 marks; 3^(n-1): 1 mark\n",
+ "memo_unverified": [],
+ "class_sheet_review": {
+  "passed": true,
+  "reason": ""
+ }
+}

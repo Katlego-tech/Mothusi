@@ -1,0 +1,96 @@
+/* The live run as a colleague at work (console-ui.md §14): the goal band, the loop strip with the
+   brief moving between stations, the now panel and the feed's terminal register. Paper and the
+   inks of console.css; one new face, the mono, for what a machine writes: times, tags, initials. */
+
+:root { --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace; }
+
+/* ------------------------------------------------------------------ the goal */
+.goal { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--gap); align-items: center; padding: 14px var(--card-pad); }
+.goal .label { font: 500 11px/16px var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.goal q { display: block; font-size: 18px; line-height: 26px; font-weight: 500; quotes: "\201C" "\201D"; text-wrap: pretty; }
+.goal .meters { display: flex; gap: 24px; }
+.goal .meters div { display: flex; flex-direction: column; gap: 2px; min-width: 72px; }
+.goal .meters .kpi-label { font-size: var(--fs-small); line-height: 16px; color: var(--muted); }
+.goal .meters .kpi { font-size: 20px; line-height: 24px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ------------------------------------------------------------------ the loop */
+.loop { padding: 18px var(--card-pad) 12px; }
+.loop .stations { position: relative; display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 6px; }
+.loop .rule { position: absolute; left: calc(100% / 22); right: calc(100% / 22); top: 22px; height: 1px; background: var(--control); }
+.loop .packet {
+  position: absolute; top: 19px; width: 26px; height: 7px; margin-left: -13px; border-radius: 2px;
+  background: var(--teal); box-shadow: 0 1px 0 var(--teal-edge);
+  transition: left 0.6s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s;
+}
+.loop .packet.red { background: var(--marker); box-shadow: 0 1px 0 var(--marker-soft); }
+.station { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; min-width: 0; }
+.station .tile {
+  position: relative; z-index: 1; width: 44px; height: 44px; border-radius: var(--radius-card);
+  border: 1.5px solid var(--control); background: var(--surface); display: grid; place-items: center;
+  font: 500 12px var(--font-mono); letter-spacing: 0.04em; color: var(--muted);
+}
+.station.done .tile { border-color: var(--text); color: var(--text); }
+.station.live .tile { border-color: var(--teal); color: var(--teal); background: var(--teal-soft); --pulse: var(--teal-edge); animation: pulse-dot 1.6s ease-out infinite; }
+.station.live.marker .tile { border-color: var(--marker); color: var(--marker); background: var(--marker-soft); --pulse: #f0c4c6; }
+.station.live.moderator .tile { border-color: var(--moderator); color: var(--moderator); background: var(--moderator-soft); --pulse: #b9dcc8; }
+.station.live.code .tile { border-color: var(--code); color: var(--code); background: var(--code-soft); --pulse: var(--control); }
+.station .name { font-size: 12px; line-height: 16px; font-weight: 600; }
+.station.idle .name { color: var(--muted); font-weight: 500; }
+.station .status { font-size: 11px; line-height: 14px; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-width: 100%; }
+.station.live .status { color: var(--text); }
+.loop .correction {
+  margin-top: 4px; padding-top: 6px; border-top: 1.5px solid var(--marker);
+  font: 500 11px/16px var(--font-mono); color: var(--marker); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.loop .correction::before { content: "\25C0\00a0"; }
+.loop .counters { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--muted); }
+.loop .counters b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* ------------------------------------------------------------------ the three columns */
+.agentrun { display: grid; grid-template-columns: 300px minmax(0, 1fr) 392px; gap: var(--gap); align-items: start; }
+.agentrun.no-set { grid-template-columns: 300px minmax(0, 1fr); }
+
+/* ------------------------------------------------------------------ now */
+.now { display: flex; flex-direction: column; gap: 12px; padding: var(--card-pad); }
+.now .head { display: flex; align-items: center; gap: 12px; }
+.now .tile { width: 56px; height: 56px; border-radius: var(--radius-card); border: 1.5px solid var(--text); display: grid; place-items: center; font: 500 15px var(--font-mono); letter-spacing: 0.04em; flex: none; }
+.now.live .tile { border-color: var(--teal); color: var(--teal); background: var(--teal-soft); --pulse: var(--teal-edge); animation: pulse-dot 1.6s ease-out infinite; }
+.now.live.marker .tile { border-color: var(--marker); color: var(--marker); background: var(--marker-soft); --pulse: #f0c4c6; }
+.now.live.moderator .tile { border-color: var(--moderator); color: var(--moderator); background: var(--moderator-soft); --pulse: #b9dcc8; }
+.now .head .label { font: 500 11px/16px var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.now .head h2 { font-size: 18px; line-height: 24px; }
+.now .task { font-size: 15px; line-height: 22px; }
+.now .meta { font: 400 12px/18px var(--font-mono); color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
+.now .meta b { font-weight: 500; color: var(--text); }
+.now.ask { padding: 0; }
+.now.ask > .ask { border: 0; }
+/* A question needs the width of the screen (the attempts, the set-marks grid, the evidence pair):
+   the teacher's turn takes the whole row, and the feed and class set sit under it. */
+.agentrun .now.wide { grid-column: 1 / -1; }
+.agentrun.asking { grid-template-columns: minmax(0, 1fr) 392px; }
+.agentrun.asking.no-set { grid-template-columns: minmax(0, 1fr); }
+
+/* ------------------------------------------------------------------ the feed */
+@media (min-width: 721px) { .feed .ev { grid-template-columns: 52px 112px minmax(0, 1fr); } }
+.feed .ev time { font: 400 12px/20px var(--font-mono); }
+.feed .ev .who { font: 500 11px/20px var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; gap: 0; color: var(--text); }
+.feed .ev .who::before { content: "["; width: auto; height: auto; border-radius: 0; background: none; }
+.feed .ev .who::after { content: "]"; }
+.feed .ev .who.marker { color: var(--marker); }
+.feed .ev .who.moderator { color: var(--moderator); }
+.feed .ev .who.planner, .feed .ev .who.teacher { color: var(--teal); }
+.feed .ev .who.code { color: var(--code); }
+
+/* ------------------------------------------------------------------ phone */
+@media (max-width: 720px) {
+  .goal { grid-template-columns: 1fr; }
+  .goal .meters { gap: 16px; }
+  .loop .stations { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding-bottom: 4px; }
+  .station { flex: 0 0 92px; scroll-snap-align: start; }
+  .loop .rule, .loop .packet, .loop .correction { display: none; }
+  .agentrun, .agentrun.no-set { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loop .packet { transition: none; }
+  .station.live .tile, .now.live .tile { animation: none; }
+}

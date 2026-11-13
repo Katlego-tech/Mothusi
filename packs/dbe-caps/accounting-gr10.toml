@@ -1,0 +1,97 @@
+# Curriculum pack: DBE CAPS, Accounting, Grade 10.
+# Programme of assessment from DBE Circular S8 of 2023, Annexure §1.1 (p 3), retained for 2026 by
+# Circular S19 of 2025: preparation/docs/sources/dbe/circulars/Circular S8 of 2023 Annexure.pdf.
+# Weights are the annexure's "SBA weight %" column (shares of the SBA component; they add up to 100).
+# The annexure's "term weight %" column (25/75 within a term) is not used: the SBA weight already carries it.
+# Cognitive levels from CAPS FET Accounting §4.3, Table 1 (p 41), which applies to every formal assessment,
+# and §4.4.2 (p 44), the same split for examinations; the 2021 examination guideline (p 7) gives it as lower 30 /
+# middle 40 / higher 30. Both PDFs are in preparation/docs/sources/dbe/ (MANIFEST.tsv).
+# Marking conventions from the marking principles that open the DBE NSC November 2025 Accounting P1 and
+# P2 marking guidelines (p 1; identical in both). The cap on foreign-item penalties is set per question in
+# the memo body ("-1 foreign (max -1)", "max -2"), so it is a parameter of the check, not of this pack.
+
+pack_id = "dbe-caps"
+subject = "Accounting"
+grade = 10
+sba_percent = 40
+exam_percent = 60
+sources = [
+  "DBE Circular S8 of 2023, Annexure §1.1, p 3 (programme of assessment, Grade 10)",
+  "DBE Circular S19 of 2025 (2023/24 ATPs and weightings retained for 2026)",
+  "CAPS FET Accounting §4.3, Table 1, p 41, and §4.4.2, p 44 (cognitive levels 30/40/30)",
+  "DBE Accounting Examination Guidelines Grade 12, 2021, p 7 (lower 30 / middle 40 / higher 30)",
+  "DBE NSC November 2025 Accounting P1 and P2 marking guidelines, marking principles 1-15, p 1",
+]
+conventions = [
+  "Unless otherwise stated, give full marks for a correct answer; if the answer is incorrect, mark the workings (principle 3).",
+  "One part correct means the operation and one part are correct; the operation is +, -, x or ÷ as in the candidate's calculation (if valid) or the memo (principle 11).",
+  "In awarding method marks, a candidate never gets full marks for an item that is incorrect at least in part (principle 13).",
+  "Foreign items are penalised only if the candidate is not losing marks elsewhere in the question for that item; no double penalty, and no penalty for a misplaced item (principle 1).",
+  "Where a candidate gives more responses than required, inspect all of them to the candidate's benefit; foreign entries are penalised only if the question earns full marks, at most -2 per question (principle 7).",
+  "Where penalties are applied, the marks for that section cannot be a final negative (principle 9).",
+  "In calculations, award no marks for workings when the numerator and denominator are swapped; this applies to ratios too (principle 12).",
+  "Marks are whole numbers.",
+]
+
+[[poa]]
+term = 1
+name = "Presentation"
+kind = "presentation"
+max_marks = 50
+weight_percent = 10
+
+[[poa]]
+term = 1
+name = "Controlled Test 1"
+kind = "test"
+max_marks = 100
+weight_percent = 20
+
+[[poa]]
+term = 2
+name = "Project"
+kind = "project"
+max_marks = 50
+weight_percent = 20
+
+[[poa]]
+term = 2
+name = "June Examinations"
+kind = "exam"
+max_marks = 200
+weight_percent = 20
+
+[[poa]]
+term = 3
+name = "Case Study"
+kind = "case_study"
+max_marks = 50
+weight_percent = 10
+
+[[poa]]
+term = 3
+name = "Controlled Test 2"
+kind = "test"
+max_marks = 100
+weight_percent = 20
+
+[exam]
+papers = 2
+marks_each = 150
+hours_each = 2
+
+[cognitive]
+tolerance_points = 5          # Mothusi's own tolerance when checking a paper's grid; CAPS gives the targets, not a tolerance
+[cognitive.levels]
+# CAPS Table 1 names; the exam guideline calls them lower, middle and higher order. Problem-solving
+# (about 10% of an exam in CAPS §4.4.2; 10-15% in the 2021 guideline) sits inside these levels, not beside them.
+knowledge_comprehension = 30  # levels 1 and 2: factual recall, low-level comprehension and application
+application_analysis = 40     # levels 3 and 4: advanced application, interpretation, low-level analysis
+synthesis_evaluation = 30     # levels 5 and 6: advanced analysis, evaluation, creative problem-solving
+
+[moderation]
+# Mothusi's working rule, as for Mathematics, until the province's moderation instruction is confirmed.
+sample_percent = 10
+min_scripts = 6
+spread = "top-middle-bottom"
+widen_above_gap_percent = 10

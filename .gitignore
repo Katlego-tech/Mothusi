@@ -13,3 +13,11 @@ build/
 
 # Machine files
 .DS_Store
+.pytest_cache/
+.ruff_cache/
+*.tsbuildinfo
+
+# Local run data (bundles, Maildir, uploads) and CDK synth output
+.mothusi/
+infra/cdk.out/
+infra/cdk.context.json

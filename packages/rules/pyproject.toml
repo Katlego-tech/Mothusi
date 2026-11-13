@@ -1,0 +1,13 @@
+[project]
+name = "mothusi-rules"
+version = "0.1.0"
+description = "Mothusi's deterministic checks (Ledwaba level A): totals, bounds, evidence quotes, PoA conversion, cognitive grid, moderation sampling, item analysis. No model calls."
+requires-python = ">=3.14"
+dependencies = ["mothusi-contracts", "sympy==1.14.0"]
+
+[build-system]
+requires = ["uv_build>=0.11,<0.12"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "mothusi_rules"

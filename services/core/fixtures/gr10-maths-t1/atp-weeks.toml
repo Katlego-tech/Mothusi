@@ -1,0 +1,43 @@
+# The Grade 10 Mathematics ATP weeks still to come after the Term 1 Test (ATP week 9, 14 March).
+# Source: preparation/RATP Mathematics Grade 10 - 2024.pdf (DBE Revised Annual Teaching Plan, 2024).
+# The Support agent may place catch-up work only in these weeks (check_catch_up).
+
+[[week]]
+week = 10
+topic = "Revision and Term 1 tests"
+source = "RATP Mathematics Grade 10 2024, week 10 (18-20 March)"
+
+[[week]]
+week = 11
+topic = "Trigonometry: special-angle ratios; right-angled triangle problems"
+source = "RATP Mathematics Grade 10 2024, week 11 (03-05 April)"
+
+[[week]]
+week = 12
+topic = "Trigonometry: simple trigonometric equations; Euclidean geometry revision"
+source = "RATP Mathematics Grade 10 2024, week 12 (08-12 April)"
+
+[[week]]
+week = 13
+topic = "Euclidean geometry: special quadrilaterals"
+source = "RATP Mathematics Grade 10 2024, week 13 (15-19 April)"
+
+[[week]]
+week = 14
+topic = "Euclidean geometry: midpoint theorem and riders"
+source = "RATP Mathematics Grade 10 2024, week 14 (22-26 April)"
+
+[[week]]
+week = 15
+topic = "Analytical geometry: midpoint, distance and gradient"
+source = "RATP Mathematics Grade 10 2024, week 15 (29 April-03 May)"
+
+[[week]]
+week = 16
+topic = "Analytical geometry: collinear, parallel and perpendicular lines"
+source = "RATP Mathematics Grade 10 2024, week 16 (06-10 May)"
+
+[[week]]
+week = 17
+topic = "Algebraic functions and graphs"
+source = "RATP Mathematics Grade 10 2024, week 17 (13-17 May)"

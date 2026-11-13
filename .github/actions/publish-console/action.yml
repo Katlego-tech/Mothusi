@@ -1,0 +1,33 @@
+name: Build and publish the console
+description: >
+  Builds apps/web against one stage's Cognito client and front door (read from that stage's SSM
+  parameters), uploads it to the stage's console bucket and invalidates its CloudFront cache.
+inputs:
+  stage:
+    description: staging or production
+    required: true
+outputs:
+  url:
+    description: The stage's console URL
+    value: ${{ steps.publish.outputs.url }}
+runs:
+  using: composite
+  steps:
+    - id: publish
+      shell: bash
+      env:
+        STAGE: ${{ inputs.stage }}
+      run: |
+        set -euo pipefail
+        param() { aws ssm get-parameter --name "/mothusi/$STAGE/$1" --query Parameter.Value --output text; }
+        domain="$(param front/distribution-domain)"
+        VITE_COGNITO_DOMAIN="$(param cognito/domain)"
+        VITE_COGNITO_CLIENT_ID="$(param cognito/client-id)"
+        VITE_AUTH_REDIRECT="https://$domain/auth/callback"
+        export VITE_COGNITO_DOMAIN VITE_COGNITO_CLIENT_ID VITE_AUTH_REDIRECT
+        npm ci --prefix apps/web --no-audit --no-fund
+        npm run build --prefix apps/web
+        aws s3 sync apps/web/dist "s3://$(param bucket/console)" --delete
+        aws cloudfront create-invalidation --distribution-id "$(param front/distribution-id)" --paths "/*"
+        echo "url=https://$domain" >> "$GITHUB_OUTPUT"
+        echo "console: https://$domain" >> "$GITHUB_STEP_SUMMARY"

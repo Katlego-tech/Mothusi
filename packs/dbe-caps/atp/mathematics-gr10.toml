@@ -1,0 +1,222 @@
+# The 2023/24 Annual Teaching Plan for Mathematics Grade 10 as data, one row per teaching week.
+# In force for 2026: Circular S19 of 2025 (DBE, 11 Dec 2025, PDF p 2) keeps the 2023/24 ATPs applicable,
+# excluding only CAT, IT, Natural Sciences and Mathematics in Grades 4-5 and 8-9.
+# Read from the rendered pages of preparation/docs/sources/dbe/curriculum/ATP 2023-24 Gr 10 Mathematics (DBE).pdf
+# on 2026-11-11 (the week columns do not survive text extraction). Topics are as printed.
+# `week` counts through the year: Term 1 is weeks 1-11, Term 2 12-22, Term 3 23-33, Term 4 34-43; the
+# source names the term week as the ATP prints it. Calendar dates differ by year and are not given here.
+
+[[week]]
+week = 1
+topic = "Algebraic expressions"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 1 week 1"
+
+[[week]]
+week = 2
+topic = "Algebraic expressions"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 1 week 2"
+
+[[week]]
+week = 3
+topic = "Algebraic expressions"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 1 week 3"
+
+[[week]]
+week = 4
+topic = "Algebraic expressions"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 1 week 4"
+
+[[week]]
+week = 5
+topic = "Exponents, equations and inequalities"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 1 week 5"
+
+[[week]]
+week = 6
+topic = "Exponents, equations and inequalities"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 1 week 6"
+
+[[week]]
+week = 7
+topic = "Exponents, equations and inequalities"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 1 week 7"
+
+[[week]]
+week = 8
+topic = "Exponents, equations and inequalities"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 1 week 8"
+
+[[week]]
+week = 9
+topic = "Trigonometry"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 1 week 9"
+
+[[week]]
+week = 10
+topic = "Trigonometry"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 1 week 10"
+
+[[week]]
+week = 11
+topic = "Trigonometry"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 1 week 11"
+
+[[week]]
+week = 12
+topic = "Euclidean Geometry"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 2 week 1"
+
+[[week]]
+week = 13
+topic = "Euclidean Geometry"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 2 week 2"
+
+[[week]]
+week = 14
+topic = "Euclidean Geometry"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 2 week 3"
+
+[[week]]
+week = 15
+topic = "Euclidean Geometry"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 2 week 4"
+
+[[week]]
+week = 16
+topic = "Analytical Geometry"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 2 week 5"
+
+[[week]]
+week = 17
+topic = "Analytical Geometry"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 2 week 6"
+
+[[week]]
+week = 18
+topic = "Functions (including trigonometric functions)"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 2 week 7"
+
+[[week]]
+week = 19
+topic = "Functions (including trigonometric functions)"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 2 week 8"
+
+[[week]]
+week = 20
+topic = "Functions (including trigonometric functions)"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 2 week 9"
+
+[[week]]
+week = 21
+topic = "Functions (including trigonometric functions)"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 2 week 10"
+
+[[week]]
+week = 22
+topic = "Functions (including trigonometric functions)"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 2 week 11"
+
+[[week]]
+week = 23
+topic = "Trigonometry (2D)"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 3 week 1"
+
+[[week]]
+week = 24
+topic = "Trigonometry (2D)"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 3 week 2"
+
+[[week]]
+week = 25
+topic = "Statistics"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 3 week 3"
+
+[[week]]
+week = 26
+topic = "Statistics"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 3 week 4"
+
+[[week]]
+week = 27
+topic = "Statistics"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 3 week 5"
+
+[[week]]
+week = 28
+topic = "Probability"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 3 week 6"
+
+[[week]]
+week = 29
+topic = "Probability"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 3 week 7"
+
+[[week]]
+week = 30
+topic = "Probability"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 3 week 8"
+
+[[week]]
+week = 31
+topic = "Finance and growth"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 3 week 9"
+
+[[week]]
+week = 32
+topic = "Finance and growth"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 3 week 10"
+
+[[week]]
+week = 33
+topic = "Finance and growth"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 3 week 11"
+
+[[week]]
+week = 34
+topic = "Measurement"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 4 week 1"
+
+[[week]]
+week = 35
+topic = "Measurement"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 4 week 2"
+
+[[week]]
+week = 36
+topic = "Number patterns"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 4 week 3"
+
+[[week]]
+week = 37
+topic = "Revise Algebra"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 4 week 4"
+
+[[week]]
+week = 38
+topic = "Revise Trigonometry & Geometry"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 4 week 5"
+
+[[week]]
+week = 39
+topic = "Revise functions"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 4 week 6"
+
+[[week]]
+week = 40
+topic = "Examination"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 4 week 7"
+
+[[week]]
+week = 41
+topic = "Examination"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 4 week 8"
+
+[[week]]
+week = 42
+topic = "Examination"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 4 week 9"
+
+[[week]]
+week = 43
+topic = "Admin"
+source = "ATP 2023-24 Gr 10 Mathematics (DBE), PDF p 1, Term 4 week 10"

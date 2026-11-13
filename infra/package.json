@@ -1,0 +1,8 @@
+{
+  "name": "mothusi-infra",
+  "private": true,
+  "description": "The pinned AWS CDK CLI for infra/ (ADR 0001).",
+  "devDependencies": {
+    "aws-cdk": "2.1148.0"
+  }
+}

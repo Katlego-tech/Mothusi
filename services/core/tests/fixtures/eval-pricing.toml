@@ -1,0 +1,25 @@
+# Synthetic prices for runner tests; not a sourced deployment price list.
+[rates]
+zar_per_usd = "20"
+source = "Synthetic test FX"
+[[model]]
+name = "scripted"
+usd_per_million_input = "0"
+usd_per_million_output = "0"
+source = "Replay spends nothing"
+[[instance]]
+name = "g4dn.xlarge"
+usd_per_hour = "1"
+source = "Synthetic test GPU rate"
+[[instance]]
+name = "laptop"
+usd_per_hour = "0"
+source = "Own test machine"
+[stack]
+usd_per_hour = "0.5"
+source = "Synthetic test stack rate"
+[[model]]
+name = "actual-model"
+usd_per_million_input = "1.25"
+usd_per_million_output = "5"
+source = "Synthetic test paid-model rates"

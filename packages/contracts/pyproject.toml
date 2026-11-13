@@ -1,0 +1,15 @@
+[project]
+name = "mothusi-contracts"
+version = "0.1.0"
+description = "Mothusi's domain model and agent Brief/Result envelopes (pydantic v2). Every other package builds to these."
+requires-python = ">=3.14"
+dependencies = [
+    "pydantic==2.14.3",
+]
+
+[build-system]
+requires = ["uv_build>=0.11,<0.12"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "mothusi_contracts"

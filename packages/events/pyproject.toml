@@ -1,0 +1,13 @@
+[project]
+name = "mothusi-events"
+version = "0.1.0"
+description = "Mothusi's event log: one Event per Brief, Result, check and decision, appended to JSONL and read back for the console and the moderation record."
+requires-python = ">=3.14"
+dependencies = ["mothusi-contracts"]
+
+[build-system]
+requires = ["uv_build>=0.11,<0.12"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "mothusi_events"

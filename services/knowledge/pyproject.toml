@@ -1,0 +1,25 @@
+[project]
+name = "mothusi-knowledge"
+version = "0.1.0"
+description = "Mothusi's curriculum retrieval: page-exact passages from the held DBE documents, embedded with bge-m3 and searched with pgvector (docs/design/knowledge.md)."
+requires-python = ">=3.14"
+dependencies = [
+    "boto3==1.43.127",
+    "fastapi==0.162.2",
+    "numpy==2.5.4",
+    "pgvector==0.5.1",
+    "psycopg[binary]==3.3.8",
+    "sentence-transformers==6.2.0",
+    "mothusi-contracts",
+    "mothusi-rules",
+    "torch==2.14.1",
+    "transformers==5.21.0",
+    "uvicorn==0.54.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.11,<0.12"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "mothusi_knowledge"

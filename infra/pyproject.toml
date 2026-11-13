@@ -1,0 +1,22 @@
+[project]
+name = "mothusi-infra"
+version = "0.1.0"
+description = "Mothusi's AWS CDK app for af-south-1 (ADR 0001; docs/design/deployment-aws.md)."
+requires-python = ">=3.14"
+dependencies = [
+    "aws-cdk-lib==2.275.0",
+    "constructs==10.8.1",
+]
+
+[tool.uv]
+package = false
+
+[dependency-groups]
+dev = [
+    "pytest==9.2.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# This CDK app is intentionally not an installed Python package (tool.uv.package=false).
+pythonpath = ["."]
