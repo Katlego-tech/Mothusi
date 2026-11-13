@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from datetime import UTC, datetime
 from pathlib import Path
@@ -20,6 +21,20 @@ from mothusi_contracts import AgentRole, Brief, CheckResult, Event, EventKind, M
 from mothusi_events import EventLog
 
 type Clock = Callable[[], datetime]
+
+# The watchdog (infra/watchdog.sh) looks for these markers in the core's log group and alarms
+# within a minute: a halted run, or a run waiting for the teacher, leaves the GPU idle.
+RUN_HALTED = "WATCHDOG_RUN_HALTED"
+NEEDS_TEACHER = "WATCHDOG_NEEDS_TEACHER"
+watchdog_log = logging.getLogger("mothusi.watchdog")
+
+
+def signal_watchdog(event: Event) -> None:
+    """Log the events that leave the model host idle, each with its marker on one line."""
+    if event.kind is EventKind.NEEDS_TEACHER:
+        watchdog_log.warning("%s run %s: %s", NEEDS_TEACHER, event.assessment_id, event.summary)
+    elif event.kind is EventKind.DECISION and event.payload.get("action") == "halt":
+        watchdog_log.error("%s run %s: %s", RUN_HALTED, event.assessment_id, event.summary)
 
 
 def _one_line(text: str, limit: int = 200) -> str:
@@ -53,6 +68,7 @@ class EventSink:
             payload=_json(payload or {}),
         )
         self._log.append(event)
+        signal_watchdog(event)
         return event
 
     def read(self) -> tuple[Event, ...]:

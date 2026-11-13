@@ -112,6 +112,20 @@ class MothusiCi(Stack):
                 )
             ],
         )
+        # Read-only, for the diagnostics a failed release prints (.github/scripts/
+        # release-diagnostics.sh): the services' events, why tasks stopped, and their logs.
+        allow(["ecs:DescribeServices", "ecs:ListTasks", "ecs:DescribeTasks"], ["*"])
+        allow(
+            ["logs:FilterLogEvents", "logs:DescribeLogStreams", "logs:DescribeLogGroups"],
+            [
+                self.format_arn(
+                    service="logs",
+                    resource="log-group",
+                    resource_name=f"/{stage.label}/*",
+                    arn_format=ArnFormat.COLON_RESOURCE_NAME,
+                )
+            ],
+        )
         console = f"arn:{self.partition}:s3:::{stage.prefix}-console-{self.account}"
         allow(["s3:ListBucket"], [console])
         allow(["s3:PutObject", "s3:DeleteObject"], [f"{console}/*"])

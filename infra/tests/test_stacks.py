@@ -281,6 +281,11 @@ def test_ci_trust_and_permissions(stacks):
         "cloudfront:CreateInvalidation",
     ):
         assert action in policies
+    # A failed release prints its own diagnostics: read-only ECS and the services' log groups.
+    for action in ("ecs:DescribeServices", "ecs:DescribeTasks", "logs:FilterLogEvents"):
+        assert action in policies
+    assert "log-group:/mothusi/*" in policies
+    assert "ecs:UpdateService" not in policies and "logs:Delete" not in policies
     assert "iam:PassRole" not in policies
     assert "AdministratorAccess" not in policies
 
@@ -896,7 +901,10 @@ def test_the_app_names_the_adopted_stacks(tmp_path):
     }
     # CloudFormation can't rename a stack: adopted ones keep their names, new ones are Mothusi's.
     parts = ("Network", "Data", "Front", "ModelHost", "Service")
-    assert stacks == {PRODUCTION.stack(part) for part in parts} | {"MothusiCi", "MothusiBudget"}
+    assert stacks == {PRODUCTION.stack(part) for part in parts} | {
+        "MothusiCi",
+        "MothusiBudget",
+    }
 
 
 def test_renamable_names_are_mothusi(stacks, front):
@@ -954,3 +962,17 @@ def test_the_database_is_mothusis_and_the_adopted_one_is_retained(stacks):
     # A new identifier replaces the instance: the old one must be kept, never deleted.
     for r in [*resources(t, "AWS::RDS::DBInstance").values(), secret]:
         assert r["DeletionPolicy"] == r["UpdateReplacePolicy"] == "Retain"
+
+
+# --------------------------------------------------------------------- the local watchdog
+
+
+def test_the_local_watchdog_reads_the_cores_markers_and_only_reads():
+    from pathlib import Path
+
+    script = (Path(__file__).resolve().parents[1] / "watchdog.sh").read_text()
+    # mothusi_core.events writes these (the infra project can't import the core).
+    assert "WATCHDOG_RUN_HALTED" in script and "WATCHDOG_NEEDS_TEACHER" in script
+    for verb in ("stop-", "start-", "update-", "delete-", "put-", "create-", "ops.sh"):
+        assert f"aws_ ecs {verb}" not in script and f"aws_ ec2 {verb}" not in script
+        assert f"aws_ rds {verb}" not in script
