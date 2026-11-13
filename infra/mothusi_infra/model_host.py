@@ -7,6 +7,7 @@ no SSH port.
 """
 
 from pathlib import Path
+from typing import cast
 
 from aws_cdk import CfnParameter, Fn, Stack
 from aws_cdk import aws_ec2 as ec2
@@ -50,11 +51,12 @@ class MothusiModelHost(Stack):
             default=DLAMI_PARAMETER,
             description="Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 22.04), latest",
         )
+        # CDK principal protocol uses different parameter names.
         role = iam.Role(
             self,
             "Role",
             role_name=f"{stage.prefix}-model-host",
-            assumed_by=iam.ServicePrincipal("ec2.amazonaws.com"),
+            assumed_by=cast(iam.IPrincipal, iam.ServicePrincipal("ec2.amazonaws.com")),
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name("AmazonSSMManagedInstanceCore")
             ],

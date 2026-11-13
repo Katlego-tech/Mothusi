@@ -1,6 +1,7 @@
 """The front door, authentication and upload CORS (deployment-aws.md §6)."""
 
 from pathlib import Path
+from typing import cast
 
 from aws_cdk import CustomResource, Duration, Fn, Stack
 from aws_cdk import aws_cloudfront as cf
@@ -62,7 +63,10 @@ exports.handler = async (event) => {
                 ],
             )
         )
-        provider = cr.Provider(self, "OriginSecretProvider", on_event_handler=secret_writer)
+        # jsii Function implements IFunction despite generated protocol signature mismatches.
+        provider = cr.Provider(
+            self, "OriginSecretProvider", on_event_handler=cast(lambda_.IFunction, secret_writer)
+        )
         stored_secret = CustomResource(self, "OriginSecret", service_token=provider.service_token)
         header_value = stored_secret.get_att_string("Value")
         alb = elb.CfnLoadBalancer(
@@ -266,7 +270,9 @@ exports.handler = async (event) => {
                 ],
             )
         )
-        policy_provider = cr.Provider(self, "ConsolePolicyProvider", on_event_handler=policy_writer)
+        policy_provider = cr.Provider(
+            self, "ConsolePolicyProvider", on_event_handler=cast(lambda_.IFunction, policy_writer)
+        )
         CustomResource(
             self,
             "ConsolePolicy",
