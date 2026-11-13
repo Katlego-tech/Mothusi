@@ -925,3 +925,15 @@ def test_the_gpu_host_boots_from_the_script_it_was_built_with():
     assert "mothusi" not in script.lower()
     assert script.replace(A, "mothusi").replace(A.title(), "Mothusi") == USER_DATA.read_text()
     assert f"{PRODUCTION.opt_dir}/model-ready.sh" in script
+
+
+def test_the_release_role_takes_githubs_immutable_subject():
+    import re
+
+    t = Template.from_stack(
+        MothusiCi(App(), "CiPattern", stage=PRODUCTION, env=Environment(region="af-south-1"))
+    )
+    pattern = t.to_json()["Parameters"]["GitHubRepository"]["AllowedPattern"]
+    assert re.fullmatch(pattern, "Katlego-tech@115792195/Mothusi@1456381806")
+    assert re.fullmatch(pattern, "owner/repo")
+    assert not re.fullmatch(pattern, "owner/repo:ref:refs/heads/main")
