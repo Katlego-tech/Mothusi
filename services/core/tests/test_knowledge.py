@@ -155,7 +155,7 @@ def test_lone_surrogate_is_a_private_knowledge_error_before_io() -> None:
 def test_deeply_nested_json_is_a_private_knowledge_error() -> None:
     assert_failure(
         lambda request: httpx.Response(200, content=b"[" * 100_000),
-        "^Knowledge request failed$",
+        "^Knowledge returned invalid JSON$",
     )
 
 

@@ -85,7 +85,9 @@ class HttpKnowledge:
                 raise KnowledgeError(f"Knowledge returned non-200 status {response.status_code}")
             try:
                 payload = json.loads(response.content)
-            except ValueError, UnicodeError:
+            # Nesting past the parser's depth is invalid JSON too: depending on the platform the
+            # C parser reports it as a ValueError or a RecursionError, and either reads the same.
+            except ValueError, UnicodeError, RecursionError:
                 raise KnowledgeError("Knowledge returned invalid JSON") from None
             try:
                 result = _SearchResponse.model_validate(payload)
