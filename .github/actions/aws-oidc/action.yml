@@ -1,13 +1,10 @@
 name: AWS credentials through GitHub OIDC
 description: >
-  Exchanges this job's OIDC token for the stage's deploy role. The role trusts only its own
-  GitHub environment (repo:<owner>/<repo>:environment:<stage>), so no AWS keys live in the repo.
+  Exchanges this job's OIDC token for the release role (MothusiCi). The role trusts only jobs in
+  the repository's production environment, so no AWS keys live in the repo.
 inputs:
   role-arn:
-    description: The stage's deploy role (environment variable DEPLOY_ROLE_ARN)
-    required: true
-  stage:
-    description: staging or production, for the session name
+    description: The release role (the production environment's variable DEPLOY_ROLE_ARN)
     required: true
 runs:
   using: composite
@@ -15,14 +12,13 @@ runs:
     - shell: bash
       env:
         ROLE_ARN: ${{ inputs.role-arn }}
-        STAGE: ${{ inputs.stage }}
       run: |
         set -euo pipefail
-        test -n "$ROLE_ARN" || { echo "::error::set the $STAGE environment's variable DEPLOY_ROLE_ARN"; exit 1; }
+        test -n "$ROLE_ARN" || { echo "::error::set the production environment's variable DEPLOY_ROLE_ARN"; exit 1; }
         token="$(curl -sSf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
           "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r .value)"
         creds="$(aws sts assume-role-with-web-identity --role-arn "$ROLE_ARN" \
-          --role-session-name "mothusi-$STAGE-$GITHUB_RUN_ID" --web-identity-token "$token" \
+          --role-session-name "mothusi-release-$GITHUB_RUN_ID" --web-identity-token "$token" \
           --duration-seconds 3600 --query Credentials --output json)"
         key="$(jq -r .AccessKeyId <<<"$creds")"
         secret="$(jq -r .SecretAccessKey <<<"$creds")"

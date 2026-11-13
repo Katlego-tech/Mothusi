@@ -1,4 +1,4 @@
-"""One stage's release-scoped Fargate services, wired across stacks through SSM only (§4, §6.4)."""
+"""Release-scoped Fargate services with SSM-only cross-stack wiring (§4, §6.4)."""
 
 from aws_cdk import ArnFormat, Fn, Stack
 from aws_cdk import aws_ecs as ecs
@@ -8,7 +8,7 @@ from aws_cdk import aws_servicediscovery as discovery
 from aws_cdk import aws_ssm as ssm
 from aws_cdk import custom_resources as cr
 from constructs import Construct
-from mothusi_infra.stage import ECR_SERVICES, Stage, shared_ssm
+from mothusi_infra.stage import ECR_SERVICES, Stage
 
 
 class MothusiService(Stack):
@@ -62,7 +62,7 @@ class MothusiService(Stack):
                 ],
                 resources=[
                     self.format_arn(
-                        service="ecr", resource="repository", resource_name=f"mothusi-{n}"
+                        service="ecr", resource="repository", resource_name=f"{stage.prefix}-{n}"
                     )
                     for n in ECR_SERVICES
                 ],
@@ -77,7 +77,7 @@ class MothusiService(Stack):
             log = logs.LogGroup(
                 self,
                 f"{name}Logs",
-                log_group_name=f"/mothusi/{stage.name}/{name}",
+                log_group_name=f"/{stage.label}/{name}",
                 retention=logs.RetentionDays.ONE_WEEK,
             )
             execution.add_to_policy(
@@ -99,8 +99,8 @@ class MothusiService(Stack):
                 )
             if name in ("core", "knowledge"):
                 # The generated RDS secret holds host, port, username and password; the database
-                # name is fixed by MothusiData (db_name "mothusi"), so it is plain.
-                env["POSTGRES_DB"] = "mothusi"
+                # name is fixed by MothusiData (stage.db_name), so it is plain.
+                env["POSTGRES_DB"] = stage.db_name
                 db_secret = parameter("db/secret-arn")
                 secret_values.update(
                     {
@@ -245,7 +245,7 @@ class MothusiService(Stack):
             task = ecs.CfnTaskDefinition(
                 self,
                 f"{name}Task",
-                family=f"{stage.prefix}-{name}",
+                family=f"{stage.label}-{name}",
                 cpu=str(cpu),
                 memory=str(memory),
                 network_mode="awsvpc",
@@ -258,16 +258,7 @@ class MothusiService(Stack):
                 container_definitions=[
                     ecs.CfnTaskDefinition.ContainerDefinitionProperty(
                         name=name,
-                        image=Fn.join(
-                            "",
-                            [
-                                ssm.StringParameter.value_for_string_parameter(
-                                    self, shared_ssm(f"ecr/{name}")
-                                ),
-                                ":",
-                                tag,
-                            ],
-                        ),
+                        image=Fn.join("", [parameter(f"ecr/{name}"), ":", tag]),
                         essential=True,
                         port_mappings=[
                             ecs.CfnTaskDefinition.PortMappingProperty(

@@ -1,4 +1,4 @@
-"""One stage's network (deployment-aws.md §4 and §6.1): its own VPC, groups and namespace."""
+"""The network (deployment-aws.md §4 and §6.1): the VPC, its security groups and namespace."""
 
 from aws_cdk import CfnParameter, Stack
 from aws_cdk import aws_ec2 as ec2
@@ -7,7 +7,7 @@ from aws_cdk import aws_ssm as ssm
 from constructs import Construct
 from mothusi_infra.stage import Stage
 
-# /mothusi/<stage>/subnet-ids lists the public subnets in this order. g4dn.xlarge is offered in
+# /mothusi/subnet-ids lists the public subnets in this order. g4dn.xlarge is offered in
 # 1b and 1c only, so the model host takes index 1 (model_host.py).
 AZS = ["af-south-1a", "af-south-1b"]
 MODEL_HOST_SUBNET = AZS.index("af-south-1b")
@@ -47,8 +47,8 @@ class MothusiNetwork(Stack):
                 self,
                 f"{name.title()}SecurityGroup",
                 vpc=vpc,
-                security_group_name=f"{stage.prefix}-{name}-sg",
-                description=f"Mothusi {stage.name} {name}",
+                security_group_name=stage.sg_name(name),
+                description=f"{stage.sg_description_stem} {name}",
                 disable_inline_rules=True,
             )
             for name in ("alb", "service", "model", "db")

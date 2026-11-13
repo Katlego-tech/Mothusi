@@ -1,10 +1,21 @@
-"""Deployment stages: staging and production, side by side in one AWS account.
+"""Mothusi's one AWS environment, and every name in it.
 
-Every per-stage name is derived here, so a staging deploy can never write to a production
-resource: stacks are Mothusi<Stage><Part>, resources mothusi-<stage>-<thing>, SSM parameters
-/mothusi/<stage>/<thing> and secrets mothusi/<stage>/<thing>. What both stages share (the
-GitHub OIDC trust, the ECR repositories, the budget) lives in account-level stacks with plain
-mothusi-* names and /mothusi/<thing> parameters.
+The environment already existed when Mothusi adopted it, and it was adopted in place so that
+nothing stateful was rebuilt: the GPU host keeps running with its models loaded, the database
+keeps its data. AWS can't rename a CloudFormation stack, and it renames none of these without
+replacing them: S3 buckets, the database (identifier and database name), secrets, IAM roles,
+ECR repositories, security groups, the Cloud Map namespace, the CloudTrail trail, the load
+balancer and its target group, the GPU host's launch template and boot script, the Cognito
+domain. Those keep the stem they were created with (`adopted`). Every name AWS can change in
+place is Mothusi's: log groups, task families, the user pool, the KMS alias, the origin header,
+tags.
+
+SSM parameter names keep the stem too, though SSM itself renames freely: CloudFormation decides a
+replacement from the template, and the GPU host's subnet, the load balancer's target group and the
+database's security groups are all read from these parameters. A new name there replaces the GPU
+host and the target group even when the value behind it is the same.
+
+This file is the only place the adopted stem is written down.
 """
 
 from dataclasses import dataclass
@@ -12,44 +23,83 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Stage:
-    name: str  # "staging" | "production": also the GitHub environment that may deploy it
-    cidr: str  # the stage's VPC; distinct, so the two could be peered later
-
-    @property
-    def title(self) -> str:
-        return self.name.title()
+    name: str  # also the GitHub environment that may deploy it
+    cidr: str
+    adopted: str  # the stem of the names AWS can't change
 
     @property
     def stack_prefix(self) -> str:
-        return f"Mothusi{self.title}"
+        """CloudFormation stack names: <prefix>Network, <prefix>Data, ..."""
+        return self.adopted.title()
+
+    def stack(self, part: str) -> str:
+        return f"{self.stack_prefix}{part}"
 
     @property
     def prefix(self) -> str:
-        """Physical resource names: mothusi-<stage>."""
-        return f"mothusi-{self.name}"
+        """Physical names AWS can't change: buckets, roles, the database, the load balancer."""
+        return self.adopted
+
+    @property
+    def label(self) -> str:
+        """Names AWS changes in place."""
+        return "mothusi"
 
     def ssm(self, suffix: str) -> str:
-        """An SSM parameter name: /mothusi/<stage>/<suffix>."""
-        return f"/mothusi/{self.name}/{suffix}"
+        """An SSM parameter: /<adopted>/<suffix> (see the module docstring for why)."""
+        return f"/{self.adopted}/{suffix}"
 
     def secret(self, suffix: str) -> str:
-        """A Secrets Manager name: mothusi/<stage>/<suffix>."""
-        return f"mothusi/{self.name}/{suffix}"
+        """A Secrets Manager name (a new name is a new secret, so it keeps the adopted stem)."""
+        return f"{self.adopted}/{suffix}"
+
+    def sg_name(self, role: str) -> str:
+        return f"{role}-sg"
+
+    @property
+    def sg_description_stem(self) -> str:
+        """A security group's description can't change without replacing the group."""
+        return self.adopted.title()
 
     @property
     def namespace(self) -> str:
-        """The stage's private DNS namespace (Cloud Map)."""
-        return f"{self.name}.mothusi.internal"
+        return f"{self.adopted}.internal"
+
+    @property
+    def db_name(self) -> str:
+        return self.adopted
+
+    @property
+    def trail_name(self) -> str:
+        return self.adopted
+
+    @property
+    def opt_dir(self) -> str:
+        """Where the GPU host's boot script wrote model-ready.sh (changing it reboots the host)."""
+        return f"/opt/{self.adopted}"
 
 
-STAGING = Stage("staging", "10.41.0.0/16")
-PRODUCTION = Stage("production", "10.40.0.0/16")
-STAGES = {stage.name: stage for stage in (STAGING, PRODUCTION)}
+PRODUCTION = Stage("production", "10.40.0.0/16", adopted="thuto")
 
-# Account-level names shared by both stages.
 ECR_SERVICES = ("core", "intake", "knowledge")
 
 
-def shared_ssm(suffix: str) -> str:
-    """An account-level SSM parameter: /mothusi/<suffix> (never a stage's)."""
-    return f"/mothusi/{suffix}"
+def main() -> None:
+    """For the release workflow, which must not write the adopted names down a second time:
+
+    python -m mothusi_infra.stage stack Service   ->  the service stack's name
+    python -m mothusi_infra.stage ssm             ->  the SSM prefix, e.g. /<adopted>
+    """
+    import sys
+
+    match sys.argv[1:]:
+        case ["stack", part]:
+            print(PRODUCTION.stack(part))
+        case ["ssm"]:
+            print(PRODUCTION.ssm("").rstrip("/"))
+        case _:
+            sys.exit("usage: python -m mothusi_infra.stage stack <Part> | ssm")
+
+
+if __name__ == "__main__":
+    main()

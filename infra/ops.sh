@@ -3,8 +3,7 @@
 set -euo pipefail
 set -E
 
-stage=${1:-}
-mode=${2:-}
+mode=${1:-}
 region=${AWS_REGION:-af-south-1}
 cap=${OPS_WAIT_CAP_S:-1200}
 interval=${OPS_POLL_S:-20}
@@ -23,11 +22,16 @@ failed() {
 }
 trap failed ERR
 
-if [[ $# != 2 || ! "$stage" =~ ^(staging|production)$ || ! "$mode" =~ ^(start|stop|status)$ ]]; then
-    printf 'Usage: bash infra/ops.sh staging|production start|stop|status\n' >&2
+if [[ $# != 1 || ! "$mode" =~ ^(start|stop|status)$ ]]; then
+    printf 'Usage: bash infra/ops.sh start|stop|status\n' >&2
     exit 1
 fi
-ssm="/mothusi/$stage"
+# The adopted environment's SSM names and the GPU host's paths keep their original stem
+# (mothusi_infra/stage.py says why); read it from there rather than writing it down twice.
+infra_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+stem="$(PYTHONPATH="$infra_dir" python3 -c 'from mothusi_infra.stage import PRODUCTION; print(PRODUCTION.adopted)')"
+ssm="/$stem"
+ready_script="/opt/$stem/model-ready.sh"
 # Seconds may be fractional for polling, but the cap is a positive integer.
 if [[ ! "$cap" =~ ^[1-9][0-9]*$ ]] || ! python3 -c 'import sys; x=float(sys.argv[1]); assert 0 < x < float("inf")' "$interval"; then
     log 'OPS_WAIT_CAP_S must be a positive integer and OPS_POLL_S must be positive.'
@@ -67,7 +71,7 @@ parameter() {
     printf -v "$destination" '%s' "$value"
 }
 
-log "Read $stage deployment parameters for $mode in $region"
+log "Read deployment parameters for $mode in $region"
 parameters_ok=yes
 host='' endpoint='' cluster='' domain=''
 if ! parameter "$ssm/model-host/instance-id" host; then parameters_ok=no; fi
@@ -281,7 +285,7 @@ if [[ "$mode" == start ]]; then
         if ! ecs_ok "$service" 1; then all_ready=no; fi
     done
     if [[ "$needs_model" == yes || "$all_ready" != yes ]] || ! health_ok; then
-        poll 'model readiness' command_step /opt/mothusi/model-ready.sh yes
+        poll 'model readiness' command_step "$ready_script" yes
         # SSM Run Command starts shells without HOME, and the Ollama CLI panics without it.
         poll 'marker warm-up' command_step 'HOME=/root ollama run qwen3:14b ""' no
         for service in "${services[@]}"; do

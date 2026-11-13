@@ -1,10 +1,11 @@
 name: checks
 
-# Runs on every pull request, and on main after a merge through deploy.yml, which calls it and
-# deploys staging only when it is green. Not on plain branch pushes: that would run twice for any
-# branch with an open pull request.
+# Runs on every pull request and on main after a merge, and release.yml calls it before a release
+# deploys. Not on plain branch pushes: that would run twice for any branch with an open pull request.
 on:
   pull_request:
+  push:
+    branches: [main]
   workflow_call:
 
 permissions:

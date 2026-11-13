@@ -9,8 +9,11 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
+from mothusi_infra.stage import PRODUCTION
 
 OPS = Path(__file__).resolve().parents[1] / "ops.sh"
+SSM = PRODUCTION.ssm("").rstrip("/")
+READY = f"{PRODUCTION.opt_dir}/model-ready.sh"
 FAKE = Path(__file__).with_name("fake_aws.py")
 
 
@@ -22,11 +25,11 @@ def rig(tmp_path):
         shim.chmod(0o755)
     state = {
         "parameters": {
-            "/mothusi/staging/model-host/instance-id": "i-other-host",
-            "/mothusi/staging/db/endpoint": "other-db.random.rds.amazonaws.com",
-            "/mothusi/staging/cluster-name": "other-cluster",
-            "/mothusi/staging/service-names": "worker,api",
-            "/mothusi/staging/front/distribution-domain": "other.cloudfront.net",
+            f"{SSM}/model-host/instance-id": "i-other-host",
+            f"{SSM}/db/endpoint": "other-db.random.rds.amazonaws.com",
+            f"{SSM}/cluster-name": "other-cluster",
+            f"{SSM}/service-names": "worker,api",
+            f"{SSM}/front/distribution-domain": "other.cloudfront.net",
         },
         "db": "stopped",
         "ec2": "stopped",
@@ -50,7 +53,7 @@ def rig(tmp_path):
         else:
             env.pop("AWS_REGION", None)
         result = subprocess.run(
-            ["bash", str(OPS), "staging", verb], env=env, capture_output=True, text=True, timeout=15
+            ["bash", str(OPS), verb], env=env, capture_output=True, text=True, timeout=15
         )
         state.update(json.loads(path.read_text()))
         for call in state.get("calls", []):
@@ -98,7 +101,7 @@ def test_cold_start_order_and_readiness(rig):
         "update-service",
     ]
     assert state["commands"] == [
-        "/opt/mothusi/model-ready.sh",
+        READY,
         'HOME=/root ollama run qwen3:14b ""',
     ]
     actions = [call[2] if call[0] == "aws" else "curl" for call in state["calls"]]
@@ -186,21 +189,21 @@ def test_status_states(rig, db, ec2, desired, count, overall):
 @pytest.mark.parametrize("verb", ["start", "stop", "status"])
 def test_missing_required_ssm_names_parameter(rig, verb):
     state, run = rig
-    del state["parameters"]["/mothusi/staging/db/endpoint"]
+    del state["parameters"][f"{SSM}/db/endpoint"]
     result = run(verb)
     assert result.returncode == (0 if verb == "status" else 1)
-    assert "Cannot read SSM parameter /mothusi/staging/db/endpoint" in result.stdout + result.stderr
+    assert f"Cannot read SSM parameter {SSM}/db/endpoint" in result.stdout + result.stderr
     assert "overall: Degraded" in result.stdout
 
 
 def test_absent_service_list_is_supported(rig):
     state, run = rig
-    del state["parameters"]["/mothusi/staging/service-names"]
+    del state["parameters"][f"{SSM}/service-names"]
     result = run("start")
     assert result.returncode == 0, result.stdout + result.stderr
     assert not any(call[1] == "ecs" for call in state["calls"])
     assert state["commands"] == [
-        "/opt/mothusi/model-ready.sh",
+        READY,
         'HOME=/root ollama run qwen3:14b ""',
     ]
 
@@ -236,8 +239,8 @@ def test_readiness_retries_after_failed_exit(rig):
     result = run("start", readiness_failures=1)
     assert result.returncode == 0, result.stdout + result.stderr
     assert state["commands"] == [
-        "/opt/mothusi/model-ready.sh",
-        "/opt/mothusi/model-ready.sh",
+        READY,
+        READY,
         'HOME=/root ollama run qwen3:14b ""',
     ]
 
@@ -246,7 +249,7 @@ def test_inflight_command_is_polled_without_resubmission(rig):
     state, run = rig
     result = run("start", command_pending=True)
     assert result.returncode == 1
-    assert state["commands"] == ["/opt/mothusi/model-ready.sh"]
+    assert state["commands"] == [READY]
 
 
 def test_warm_failure_cannot_start_ecs(rig):
@@ -261,9 +264,7 @@ def test_optional_parameter_access_denied_is_fatal(rig):
     _, run = rig
     result = run("start", service_parameter_error="AccessDeniedException")
     assert result.returncode == 1
-    assert (
-        "Cannot read SSM parameter /mothusi/staging/service-names" in result.stdout + result.stderr
-    )
+    assert f"Cannot read SSM parameter {SSM}/service-names" in result.stdout + result.stderr
 
 
 @pytest.mark.parametrize(
@@ -300,7 +301,7 @@ def test_parameter_failure_is_reported_once_without_losing_known_components(
     rig, name, failure, verb
 ):
     state, run = rig
-    parameter = f"/mothusi/staging/{name}"
+    parameter = f"{SSM}/{name}"
     if failure == "missing":
         del state["parameters"][parameter]
     else:
@@ -334,7 +335,7 @@ def test_unreadable_service_parameter_reports_partial_status_once(rig, verb):
     result = run(verb, service_parameter_error="AccessDeniedException")
     assert result.returncode == (0 if verb == "status" else 1)
     assert (result.stdout + result.stderr).count(
-        "Cannot read SSM parameter /mothusi/staging/service-names"
+        f"Cannot read SSM parameter {SSM}/service-names"
     ) == 1
     assert result.stdout.count("overall:") == 1
     assert result.stdout.rstrip().endswith("overall: Degraded")
@@ -369,7 +370,7 @@ def test_partial_lifecycle_status(rig, db, ec2, desired, count, expected):
 @pytest.mark.parametrize("verb", ["status", "start", "stop"])
 def test_required_parameter_access_denied(rig, verb):
     state, run = rig
-    name = "/mothusi/staging/front/distribution-domain"
+    name = f"{SSM}/front/distribution-domain"
     result = run(verb, parameter_errors={name: "AccessDeniedException"})
     assert result.returncode == (0 if verb == "status" else 1)
     assert result.stdout.rstrip().endswith("overall: Degraded")
@@ -391,7 +392,7 @@ def test_required_parameter_access_denied(rig, verb):
 )
 def test_partial_lifecycle_without_ecs(rig, db, ec2, expected):
     state, run = rig
-    del state["parameters"]["/mothusi/staging/service-names"]
+    del state["parameters"][f"{SSM}/service-names"]
     result = run("status", db=db, ec2=ec2)
     assert result.returncode == 0
     assert result.stdout.rstrip().endswith(f"overall: {expected}")

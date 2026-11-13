@@ -9,17 +9,19 @@ from mothusi_infra.budget import MothusiBudget
 from mothusi_infra.ci import MothusiCi
 from mothusi_infra.data import MothusiData
 from mothusi_infra.network import AZS, MothusiNetwork
-from mothusi_infra.stage import PRODUCTION, STAGING
+from mothusi_infra.stage import PRODUCTION
+
+A = PRODUCTION.adopted  # the stem of every name AWS can't change (stage.py)
 
 
 @pytest.fixture(scope="module")
 def stacks():
     app = App()
     env = Environment(region="af-south-1")
-    # Production: the stage with every resource (the account's trail lives there).
     instances = [
-        cls(app, cls.__name__, stage=PRODUCTION, env=env) for cls in (MothusiNetwork, MothusiData)
-    ] + [MothusiCi(app, "MothusiCi", env=env)]
+        cls(app, cls.__name__, stage=PRODUCTION, env=env)
+        for cls in (MothusiNetwork, MothusiData, MothusiCi)
+    ]
     return {stack.stack_name: Template.from_stack(stack) for stack in instances}
 
 
@@ -42,17 +44,14 @@ def test_network_topology(stacks):
     t.resource_count_is("AWS::EC2::InternetGateway", 1)
     t.has_resource_properties("AWS::EC2::VPCEndpoint", {"VpcEndpointType": "Gateway"})
     t.has_resource_properties(
-        "AWS::ServiceDiscovery::PrivateDnsNamespace", {"Name": "production.mothusi.internal"}
+        "AWS::ServiceDiscovery::PrivateDnsNamespace", {"Name": f"{A}.internal"}
     )
 
 
 def test_security_groups_have_exact_ingress(stacks):
     t = stacks["MothusiNetwork"]
     groups = resources(t, "AWS::EC2::SecurityGroup")
-    ids = {
-        g["Properties"]["GroupName"].removeprefix("mothusi-production-"): key
-        for key, g in groups.items()
-    }
+    ids = {g["Properties"]["GroupName"]: key for key, g in groups.items()}
     assert set(ids) == {"alb-sg", "service-sg", "model-sg", "db-sg"}
     rules = []
     for key, group in groups.items():
@@ -89,7 +88,7 @@ def test_data_encryption_retention_and_database(stacks):
     assert len(keys) == 1
     key_id = next(iter(keys))
     key_arn = {"Fn::GetAtt": [key_id, "Arn"]}
-    t.has_resource_properties("AWS::KMS::Alias", {"AliasName": "alias/mothusi-production-data"})
+    t.has_resource_properties("AWS::KMS::Alias", {"AliasName": "alias/mothusi-data"})
     t.has_resource_properties("AWS::KMS::Key", {"EnableKeyRotation": True})
     buckets = resources(t, "AWS::S3::Bucket")
     assert len(buckets) == 6
@@ -99,7 +98,7 @@ def test_data_encryption_retention_and_database(stacks):
             ["BlockPublicAcls", "BlockPublicPolicy", "IgnorePublicAcls", "RestrictPublicBuckets"],
             True,
         )
-        console = "mothusi-production-console-" in json.dumps(p["BucketName"])
+        console = f"{A}-console-" in json.dumps(p["BucketName"])
         encryption = p["BucketEncryption"]["ServerSideEncryptionConfiguration"][0][
             "ServerSideEncryptionByDefault"
         ]
@@ -108,12 +107,12 @@ def test_data_encryption_retention_and_database(stacks):
             assert encryption["KMSMasterKeyID"] == key_arn
         assert bucket["DeletionPolicy"] == bucket["UpdateReplacePolicy"] == "Retain"
         assert "CorsConfiguration" not in p
-        if "mothusi-production-uploads-" in json.dumps(p["BucketName"]):
+        if f"{A}-uploads-" in json.dumps(p["BucketName"]):
             assert p["LifecycleConfiguration"]["Rules"][0]["ExpirationInDays"] == 30
     t.has_resource_properties(
         "AWS::RDS::DBInstance",
         {
-            "DBInstanceIdentifier": "mothusi-production-db",
+            "DBInstanceIdentifier": f"{A}-db",
             "Engine": "postgres",
             "EngineVersion": "17",
             "DBInstanceClass": "db.t4g.small",
@@ -129,29 +128,26 @@ def test_data_encryption_retention_and_database(stacks):
     )
     db = next(iter(resources(t, "AWS::RDS::DBInstance").values()))
     assert db["DeletionPolicy"] == db["UpdateReplacePolicy"] == "Retain"
-    assert "/mothusi/production/sg/db" in json.dumps(t.to_json())
+    assert f"/{A}/sg/db" in json.dumps(t.to_json())
     assert next(iter(keys.values()))["DeletionPolicy"] == "Retain"
 
 
 def test_secrets_repositories_trail(stacks):
     t = stacks["MothusiData"]
-    t.has_resource_properties(
-        "AWS::SecretsManager::Secret", {"Name": "mothusi/production/elevenlabs"}
-    )
+    t.has_resource_properties("AWS::SecretsManager::Secret", {"Name": f"{A}/elevenlabs"})
     t.has_resource_properties(
         "AWS::SecretsManager::Secret",
         {
-            "Name": "mothusi/production/note-key",
+            "Name": f"{A}/note-key",
             "GenerateSecretString": {"PasswordLength": 48, "ExcludePunctuation": True},
         },
     )
     t.resource_count_is("AWS::SecretsManager::RotationSchedule", 0)
-    t.resource_count_is("AWS::ECR::Repository", 0)  # shared by both stages: MothusiCi
     for name in ("core", "intake", "knowledge"):
-        stacks["MothusiCi"].has_resource_properties(
+        t.has_resource_properties(
             "AWS::ECR::Repository",
             {
-                "RepositoryName": f"mothusi-{name}",
+                "RepositoryName": f"{A}-{name}",
                 "LifecyclePolicy": {
                     "LifecyclePolicyText": Match.serialized_json(
                         {
@@ -161,7 +157,7 @@ def test_secrets_repositories_trail(stacks):
                                         "selection": {
                                             "tagStatus": "any",
                                             "countType": "imageCountMoreThan",
-                                            "countNumber": 20,
+                                            "countNumber": 10,
                                         },
                                         "action": {"type": "expire"},
                                     }
@@ -175,7 +171,7 @@ def test_secrets_repositories_trail(stacks):
     t.has_resource_properties(
         "AWS::CloudTrail::Trail",
         {
-            "TrailName": "mothusi",
+            "TrailName": A,
             "IsLogging": True,
             "EventSelectors": [{"IncludeManagementEvents": True, "ReadWriteType": "All"}],
         },
@@ -226,17 +222,17 @@ def test_exact_ssm_contract_and_no_exports(stacks):
             "bucket/curriculum",
             "db/endpoint",
             "db/secret-arn",
+            "ecr/core",
+            "ecr/intake",
+            "ecr/knowledge",
             "secret/elevenlabs-arn",
         },
-    }
-    full = {name: {f"/mothusi/production/{x}" for x in v} for name, v in expected.items()}
-    full["MothusiCi"] = {f"/mothusi/ecr/{n}" for n in ("core", "intake", "knowledge")} | {
-        f"/mothusi/{stage}/ci/deploy-role-arn" for stage in ("staging", "production")
+        "MothusiCi": {"ci/deploy-role-arn"},
     }
     for name, t in stacks.items():
-        assert {
-            r["Properties"]["Name"] for r in resources(t, "AWS::SSM::Parameter").values()
-        } == full[name]
+        assert {r["Properties"]["Name"] for r in resources(t, "AWS::SSM::Parameter").values()} == {
+            f"/{A}/{suffix}" for suffix in expected[name]
+        }
         assert "Fn::ImportValue" not in json.dumps(t.to_json())
         assert all("Export" not in o for o in t.to_json().get("Outputs", {}).values())
         assert "ami-" not in json.dumps(t.to_json())
@@ -250,6 +246,7 @@ def test_ci_trust_and_permissions(stacks):
         MothusiCi(
             App(context={"createGithubOidcProvider": "true"}),
             "CiCreate",
+            stage=PRODUCTION,
             env=Environment(region="af-south-1"),
         )
     )
@@ -260,35 +257,19 @@ def test_ci_trust_and_permissions(stacks):
             "ClientIdList": ["sts.amazonaws.com"],
         },
     )
-    roles = {
-        r["Properties"]["RoleName"]: (key, r["Properties"])
-        for key, r in resources(t, "AWS::IAM::Role").items()
+    role = next(
+        r["Properties"]
+        for r in resources(t, "AWS::IAM::Role").values()
+        if r["Properties"]["RoleName"] == "mothusi-github-release"
+    )
+    trust = role["AssumeRolePolicyDocument"]["Statement"]
+    assert len(trust) == 1
+    assert trust[0]["Action"] == "sts:AssumeRoleWithWebIdentity"
+    condition = trust[0]["Condition"]["StringEquals"]
+    assert condition["token.actions.githubusercontent.com:aud"] == "sts.amazonaws.com"
+    assert condition["token.actions.githubusercontent.com:sub"] == {
+        "Fn::Join": ["", ["repo:", {"Ref": "GitHubRepository"}, ":environment:production"]]
     }
-    assert set(roles) == {"mothusi-staging-github-deploy", "mothusi-production-github-deploy"}
-    for stage in ("staging", "production"):
-        key, role = roles[f"mothusi-{stage}-github-deploy"]
-        trust = role["AssumeRolePolicyDocument"]["Statement"]
-        assert len(trust) == 1
-        assert trust[0]["Action"] == "sts:AssumeRoleWithWebIdentity"
-        condition = trust[0]["Condition"]["StringEquals"]
-        assert condition["token.actions.githubusercontent.com:aud"] == "sts.amazonaws.com"
-        # Only that GitHub environment's jobs may assume the role: never a bare branch ref.
-        assert condition["token.actions.githubusercontent.com:sub"] == {
-            "Fn::Join": ["", ["repo:", {"Ref": "GitHubRepository"}, f":environment:{stage}"]]
-        }
-        policy = json.dumps(
-            [
-                p
-                for p in resources(t, "AWS::IAM::Policy").values()
-                if {"Ref": key} in p["Properties"]["Roles"]
-            ]
-        )
-        assert f"Mothusi{stage.title()}*/*" in policy
-        assert f"mothusi-{stage}-console-" in policy
-        other = "production" if stage == "staging" else "staging"
-        assert f"Mothusi{other.title()}" not in policy and f"mothusi-{other}-" not in policy
-        # Staging builds and pushes; production only deploys an image staging already pushed.
-        assert ("ecr:PutImage" in policy) == (stage == "staging")
     policies = json.dumps(resources(t, "AWS::IAM::Policy"))
     for action in (
         "ecr:PutImage",
@@ -394,7 +375,7 @@ def test_front_listener_and_target_ownership(front):
     target = properties(front, "AWS::ElasticLoadBalancingV2::TargetGroup")[0]
     assert target["Port"] == 8000 and target["TargetType"] == "ip"
     assert target["HealthCheckPath"] == "/health/live" and target["HealthCheckProtocol"] == "HTTP"
-    assert "/mothusi/production/front/core-target-group-arn" in json.dumps(front.to_json())
+    assert f"/{A}/front/core-target-group-arn" in json.dumps(front.to_json())
 
 
 def test_cors_secret_and_cognito(front):
@@ -405,7 +386,7 @@ def test_cors_secret_and_cognito(front):
         for required in ("AllowedOrigins", "https://", "PUT", "Content-Type", "3000"):
             assert required in text
         assert "localhost" not in text
-    assert "/mothusi/production/bucket/uploads" in json.dumps(front.to_json())
+    assert f"/{A}/bucket/uploads" in json.dumps(front.to_json())
     writers = properties(front, "AWS::Lambda::Function")
     secret_writer = next(
         p for p in writers if "SecureString" in p.get("Code", {}).get("ZipFile", "")
@@ -413,14 +394,14 @@ def test_cors_secret_and_cognito(front):
     secret_code = secret_writer["Code"]["ZipFile"]
     assert "process.env.PARAMETER_NAME" in secret_code
     assert secret_writer["Environment"]["Variables"] == {
-        "PARAMETER_NAME": "/mothusi/production/front/origin-secret"
+        "PARAMETER_NAME": f"/{A}/front/origin-secret"
     }
     assert "NoEcho: true" in secret_code
     assert "randomBytes(36)" in secret_code
     front.has_resource_properties(
         "AWS::Cognito::UserPool",
         {
-            "UserPoolName": "mothusi-production-teachers",
+            "UserPoolName": "mothusi-teachers",
             "AdminCreateUserConfig": {"AllowAdminCreateUserOnly": True},
         },
     )
@@ -437,7 +418,7 @@ def test_dev_cors_is_opt_in():
         MothusiFront(
             App(context={"devCors": True}),
             "DevFront",
-            stage=STAGING,
+            stage=PRODUCTION,
             env=Environment(region="af-south-1"),
         )
     )
@@ -449,12 +430,8 @@ def test_functions_execute_without_mutating_queries(front):
     import subprocess
 
     functions = properties(front, "AWS::CloudFront::Function")
-    strip = next(
-        f["FunctionCode"] for f in functions if f["Name"] == "mothusi-production-strip-api-prefix"
-    )
-    spa = next(
-        f["FunctionCode"] for f in functions if f["Name"] == "mothusi-production-spa-rewrite"
-    )
+    strip = next(f["FunctionCode"] for f in functions if f["Name"] == "strip-api-prefix")
+    spa = next(f["FunctionCode"] for f in functions if f["Name"] == "spa-rewrite")
     for code, cases in (
         (
             strip,
@@ -510,7 +487,7 @@ def test_core_singleton_and_ssm_wiring():
     assert env["MOTHUSI_DATA"] == "/data" and env["MOTHUSI_NOTE_LINK_DAYS"] == "14"
     assert "KNOWLEDGE_URL" not in env and "POSTGRES_URL" not in env
     assert env["MOTHUSI_PUBLIC_URL"] == env["MOTHUSI_WEB_ORIGINS"]
-    assert env["POSTGRES_DB"] == "mothusi"  # fixed by MothusiData; not a key of the RDS secret
+    assert env["POSTGRES_DB"] == A  # fixed by MothusiData; not a key of the RDS secret
     assert env["MOTHUSI_OLLAMA_MODERATOR_MODEL"] == "phi4"
     assert env["MOTHUSI_OLLAMA_READER_MODEL"] == "qwen3-vl:8b-instruct"
     secrets = {s["Name"]: s["ValueFrom"] for s in container["Secrets"]}
@@ -534,11 +511,10 @@ def test_core_singleton_and_ssm_wiring():
         "cognito/client-id",
         "front/distribution-domain",
     ):
-        assert f"/mothusi/production/{path}" in text
-    assert "/mothusi/ecr/core" in text  # the image comes from the shared repository
+        assert f"/{A}/{path}" in text
     for absent in ("ANTHROPIC_API_KEY", "RABBITMQ_URL", "MOTHUSI_TEACHER_EMAIL", "Fn::ImportValue"):
         assert absent not in text
-    assert "mothusi/production/note-key" in text and "s3:DeleteObject" in text
+    assert f"{A}/note-key" in text and "s3:DeleteObject" in text
 
 
 def test_optional_services_and_knowledge_permissions():
@@ -549,26 +525,20 @@ def test_optional_services_and_knowledge_permissions():
         "knowledge",
     }
     tasks = {p["Family"]: p for p in properties(t, "AWS::ECS::TaskDefinition")}
+    assert tasks["mothusi-intake"]["Cpu"] == "512" and tasks["mothusi-intake"]["Memory"] == "1024"
     assert (
-        tasks["mothusi-production-intake"]["Cpu"] == "512"
-        and tasks["mothusi-production-intake"]["Memory"] == "1024"
-    )
-    assert (
-        tasks["mothusi-production-knowledge"]["Cpu"] == "1024"
-        and tasks["mothusi-production-knowledge"]["Memory"] == "4096"
+        tasks["mothusi-knowledge"]["Cpu"] == "1024"
+        and tasks["mothusi-knowledge"]["Memory"] == "4096"
     )
     envs = {
         n: {e["Name"]: e["Value"] for e in p["ContainerDefinitions"][0]["Environment"]}
         for n, p in tasks.items()
     }
-    assert (
-        envs["mothusi-production-core"]["KNOWLEDGE_URL"]
-        == "http://knowledge.production.mothusi.internal:8000"
-    )
-    assert "KNOWLEDGE_SNAPSHOT" in envs["mothusi-production-knowledge"]
-    assert "OLLAMA_URL" not in envs["mothusi-production-knowledge"]
-    assert "POSTGRES_HOST" not in json.dumps(tasks["mothusi-production-intake"])
-    assert "/mothusi/production/knowledge/snapshot" in json.dumps(t.to_json())
+    assert envs["mothusi-core"]["KNOWLEDGE_URL"] == f"http://knowledge.{A}.internal:8000"
+    assert "KNOWLEDGE_SNAPSHOT" in envs["mothusi-knowledge"]
+    assert "OLLAMA_URL" not in envs["mothusi-knowledge"]
+    assert "POSTGRES_HOST" not in json.dumps(tasks["mothusi-intake"])
+    assert f"/{A}/knowledge/snapshot" in json.dumps(t.to_json())
     policies = json.dumps(properties(t, "AWS::IAM::Policy"))
     assert "kms:ViaService" in policies and "s3.af-south-1.amazonaws.com" in policies
     for log in properties(t, "AWS::Logs::LogGroup"):
@@ -639,6 +609,7 @@ def test_origin_secret_is_persisted_and_never_rotated_by_update(front):
     )
     script = (
         "const vm = require('vm'); const assert = require('assert');\n"
+        + f"const ADOPTED = {json.dumps(A)};\n"
         + "const code = "
         + json.dumps(code)
         + ";\n"
@@ -650,7 +621,7 @@ class Command { constructor(input) { this.input = input; } }
 class GetParameterCommand extends Command {}
 class PutParameterCommand extends Command {}
 class SSMClient { async send(command) {
-    assert.strictEqual(command.input.Name, '/mothusi/production/front/origin-secret');
+    assert.strictEqual(command.input.Name, '/' + ADOPTED + '/front/origin-secret');
     if (fail) throw new Error('AccessDenied');
     if (command instanceof GetParameterCommand) {
         assert.strictEqual(command.input.WithDecryption, true);
@@ -660,7 +631,7 @@ class SSMClient { async send(command) {
     assert.strictEqual(command.input.Type, 'SecureString');
     value = command.input.Value; writes++; return {};
 } }
-const env = {PARAMETER_NAME: '/mothusi/production/front/origin-secret'};
+const env = {PARAMETER_NAME: '/' + ADOPTED + '/front/origin-secret'};
 const sandbox = {exports: {}, process: {env},
     require: name => name === 'crypto' ? require('crypto') : {
     SSMClient, GetParameterCommand, PutParameterCommand
@@ -699,9 +670,7 @@ def test_upload_cors_exact_rule_and_front_outputs(front):
     cors = next(c for c in properties(front, "Custom::AWS") if "putBucketCors" in json.dumps(c))
     call = json.loads(resolved(cors["Create"]))
     params = front.to_json()["Parameters"]
-    bucket_ref = next(
-        k for k, v in params.items() if v.get("Default") == "/mothusi/production/bucket/uploads"
-    )
+    bucket_ref = next(k for k, v in params.items() if v.get("Default") == f"/{A}/bucket/uploads")
     assert call["parameters"]["Bucket"] == "ref:" + bucket_ref
     dist_id = next(iter(resources(front, "AWS::CloudFront::Distribution")))
     assert call["parameters"]["CORSConfiguration"]["CORSRules"] == [
@@ -715,7 +684,7 @@ def test_upload_cors_exact_rule_and_front_outputs(front):
     assert resolved(cors["Create"]) == resolved(cors["Update"])
     outputs = {p["Name"] for p in properties(front, "AWS::SSM::Parameter")}
     assert outputs == {
-        f"/mothusi/production/{suffix}"
+        f"/{A}/{suffix}"
         for suffix in (
             "front/distribution-domain",
             "front/distribution-id",
@@ -732,9 +701,7 @@ def test_upload_cors_exact_rule_and_front_outputs(front):
 def test_deploy_role_can_read_the_mothusi_parameters(stacks):
     policy = json.dumps(resources(stacks["MothusiCi"], "AWS::IAM::Policy"))
     assert "ssm:GetParameter" in policy
-    for stage in ("staging", "production"):
-        assert f"parameter/mothusi/{stage}/*" in policy
-    assert "parameter/mothusi/ecr/*" in policy
+    assert f"parameter/{A}/*" in policy
 
 
 # --------------------------------------------------------------- MothusiModelHost (§6, §6.2)
@@ -781,7 +748,7 @@ def test_model_host_admin_is_ssm_only(model_host):
     model_host.has_resource_properties(
         "AWS::IAM::Role",
         {
-            "RoleName": "mothusi-production-model-host",
+            "RoleName": f"{A}-model-host",
             "ManagedPolicyArns": [
                 {
                     "Fn::Join": [
@@ -798,14 +765,13 @@ def test_model_host_admin_is_ssm_only(model_host):
     )
     model_host.resource_count_is("AWS::IAM::Policy", 0)  # nothing beyond Session Manager
     model_host.has_resource_properties(
-        "AWS::IAM::InstanceProfile", {"InstanceProfileName": "mothusi-production-model-host"}
+        "AWS::IAM::InstanceProfile", {"InstanceProfileName": f"{A}-model-host"}
     )
 
 
 def test_model_host_lands_where_g4dn_is_offered(model_host):
     # g4dn.xlarge is offered in af-south-1b and 1c only (DescribeInstanceTypeOfferings on the
-    # account, 2026-11-11). /mothusi/<stage>/subnet-ids lists the public subnets in network.py's AZ
-    # order,
+    # account, 2026-11-11). /mothusi/subnet-ids lists the public subnets in network.py's AZ order,
     # af-south-1a then af-south-1b, so the model host must take index 1.
     assert AZS == ["af-south-1a", "af-south-1b"]
     instance = next(iter(resources(model_host, "AWS::EC2::Instance").values()))
@@ -814,17 +780,14 @@ def test_model_host_lands_where_g4dn_is_offered(model_host):
 
 def test_model_host_network_and_outputs_come_from_ssm(model_host):
     template = json.dumps(model_host.to_json())
-    for name in ("/mothusi/production/subnet-ids", "/mothusi/production/sg/model"):
+    for name in (f"/{A}/subnet-ids", f"/{A}/sg/model"):
         assert name in template
     names = {p["Properties"]["Name"] for p in resources(model_host, "AWS::SSM::Parameter").values()}
-    assert names == {
-        "/mothusi/production/model-host/instance-id",
-        "/mothusi/production/model-host/url",
-    }
+    assert names == {f"/{A}/model-host/instance-id", f"/{A}/model-host/url"}
     url = next(
         p["Properties"]["Value"]
         for p in resources(model_host, "AWS::SSM::Parameter").values()
-        if p["Properties"]["Name"] == "/mothusi/production/model-host/url"
+        if p["Properties"]["Name"] == f"/{A}/model-host/url"
     )
     (instance_id,) = resources(model_host, "AWS::EC2::Instance")
     assert url == {
@@ -908,10 +871,10 @@ def test_model_ready_script_requires_every_model(tmp_path):
     assert partial.returncode != 0 and "qwen3:14b" in partial.stderr
 
 
-# ------------------------------------------------------------------- stages kept apart
+# ----------------------------------------------------------- the adopted environment
 
 
-def test_the_app_has_every_stack_once_per_stage(tmp_path):
+def test_the_app_names_the_adopted_stacks(tmp_path):
     import os
     import subprocess
     import sys
@@ -931,39 +894,34 @@ def test_the_app_has_every_stack_once_per_stage(tmp_path):
     stacks = {
         k for k, v in manifest["artifacts"].items() if v["type"] == "aws:cloudformation:stack"
     }
+    # CloudFormation can't rename a stack: adopted ones keep their names, new ones are Mothusi's.
     parts = ("Network", "Data", "Front", "ModelHost", "Service")
-    assert stacks == {"MothusiCi", "MothusiBudget"} | {
-        f"Mothusi{stage}{part}" for stage in ("Staging", "Production") for part in parts
+    assert stacks == {PRODUCTION.stack(part) for part in parts} | {"MothusiCi", "MothusiBudget"}
+
+
+def test_renamable_names_are_mothusi(stacks, front):
+    data = stacks["MothusiData"]
+    data.has_resource_properties("AWS::KMS::Alias", {"AliasName": "alias/mothusi-data"})
+    front.has_resource_properties("AWS::Cognito::UserPool", {"UserPoolName": "mothusi-teachers"})
+    oac = properties(front, "AWS::CloudFront::OriginAccessControl")[0]
+    assert oac["OriginAccessControlConfig"]["Name"] == "mothusi-console"
+    t = service_template("core,knowledge")
+    assert {p["Family"] for p in properties(t, "AWS::ECS::TaskDefinition")} == {
+        "mothusi-core",
+        "mothusi-knowledge",
+    }
+    assert {p["LogGroupName"] for p in properties(t, "AWS::Logs::LogGroup")} == {
+        "/mothusi/core",
+        "/mothusi/knowledge",
     }
 
 
-@pytest.mark.parametrize("stage", [STAGING, PRODUCTION], ids=lambda s: s.name)
-def test_a_stage_names_nothing_of_the_other(stage):
-    from mothusi_infra.front import MothusiFront
-    from mothusi_infra.model_host import MothusiModelHost
-    from mothusi_infra.service import MothusiService
+def test_the_gpu_host_boots_from_the_script_it_was_built_with():
+    # Any change to an instance's user data stops and starts it. The adopted host's script is the
+    # template with the adopted stem, so a deploy never touches the running GPU through it.
+    from mothusi_infra.model_host import USER_DATA, user_data
 
-    other = PRODUCTION if stage is STAGING else STAGING
-    env = Environment(region="af-south-1")
-    for cls in (MothusiNetwork, MothusiData, MothusiFront, MothusiModelHost, MothusiService):
-        app = App(context={"services": "core,intake,knowledge", "imageTag": "t"})
-        text = json.dumps(Template.from_stack(cls(app, "S", stage=stage, env=env)).to_json())
-        assert f"/mothusi/{stage.name}/" in text, cls.__name__
-        for foreign in (
-            f"/mothusi/{other.name}/",
-            f"mothusi-{other.name}-",
-            f"mothusi/{other.name}/",
-        ):
-            assert foreign not in text, (cls.__name__, foreign)
-
-
-def test_staging_has_its_own_network_and_no_account_trail():
-    env = Environment(region="af-south-1")
-    network = Template.from_stack(MothusiNetwork(App(), "N", stage=STAGING, env=env))
-    network.has_resource_properties("AWS::EC2::VPC", {"CidrBlock": "10.41.0.0/16"})
-    data = Template.from_stack(MothusiData(App(), "D", stage=STAGING, env=env))
-    data.resource_count_is("AWS::CloudTrail::Trail", 0)  # production's trail covers the account
-    data.resource_count_is("AWS::S3::Bucket", 5)
-    data.has_resource_properties(
-        "AWS::RDS::DBInstance", {"DBInstanceIdentifier": "mothusi-staging-db"}
-    )
+    script = user_data(PRODUCTION)
+    assert "mothusi" not in script.lower()
+    assert script.replace(A, "mothusi").replace(A.title(), "Mothusi") == USER_DATA.read_text()
+    assert f"{PRODUCTION.opt_dir}/model-ready.sh" in script

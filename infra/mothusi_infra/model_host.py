@@ -1,8 +1,8 @@
-"""One stage's model host: a g4dn.xlarge running Ollama for the open models (deployment-aws.md
-§6, §6.2).
+"""The model host: one g4dn.xlarge running Ollama for the open models (deployment-aws.md §6,
+§6.2).
 
 Kept between sessions and stopped by ops.sh; its private IP survives a stop, so the core's
-OLLAMA_URL (SSM /mothusi/<stage>/model-host/url) never changes. Admin is SSM only: no key pair,
+OLLAMA_URL (SSM <stem>/model-host/url) never changes. Admin is SSM only: no key pair,
 no SSH port.
 """
 
@@ -22,6 +22,18 @@ DLAMI_PARAMETER = (
     "/aws/service/deeplearning/ami/x86_64/base-oss-nvidia-driver-gpu-ubuntu-22.04/latest/ami-id"
 )
 USER_DATA = Path(__file__).with_name("model_host_user_data.sh")
+
+
+def user_data(stage: Stage) -> str:
+    """The boot script with the stage's stem. It must stay byte-identical to what the running
+    host booted with: any change to an instance's user data stops and starts it."""
+    stem = stage.adopted
+    return (
+        USER_DATA.read_text()
+        .replace("mothusi", stem)
+        .replace("Mothusi", stem.title())
+        .replace("MOTHUSI", stem.upper())
+    )
 
 
 class MothusiModelHost(Stack):
@@ -89,8 +101,8 @@ class MothusiModelHost(Stack):
             subnet_id=Fn.select(MODEL_HOST_SUBNET, Fn.split(",", parameter("subnet-ids"))),
             security_group_ids=[parameter("sg/model")],
             iam_instance_profile=profile.ref,
-            user_data=Fn.base64(USER_DATA.read_text()),
-            tags=[{"key": "Name", "value": f"{stage.prefix}-model-host"}],
+            user_data=Fn.base64(user_data(stage)),
+            tags=[{"key": "Name", "value": f"{stage.label}-model-host"}],
         )
         for suffix, value in {
             "model-host/instance-id": instance.ref,
