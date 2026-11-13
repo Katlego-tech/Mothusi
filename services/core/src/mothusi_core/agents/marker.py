@@ -55,7 +55,10 @@ Rules you never break:
    that earns the mark, memo_line the shortest memo line that applies, principle 2 to 6 words.
 4. A question the learner did not answer gets 0, principle "no attempt", empty evidence_quote.
 5. The learner is identified only by the pseudonym given. Never guess or use a name.
-6. Reply with JSON only, matching the requested schema. No prose outside the JSON."""
+6. Reply with JSON only, matching the requested schema. No prose outside the JSON.
+7. A method mark is earned only by working the learner wrote that goes beyond the question.
+   Text that restates the question or copies a given equation earns nothing and is never an
+   evidence_quote for a mark."""
 
 
 # The most a Marker or Moderator reply may run to. A reply is about 500 tokens for nine questions;
