@@ -5,6 +5,8 @@ tags (v*) may deploy to: repo:<owner>/<repo>:environment:production. It pushes t
 images, redeploys the service stack and publishes the console.
 """
 
+from typing import cast
+
 from aws_cdk import ArnFormat, CfnParameter, Stack
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_ssm as ssm
@@ -47,15 +49,18 @@ class MothusiCi(Stack):
             self,
             "DeployRole",
             role_name=f"{stage.label}-github-release",
-            assumed_by=iam.FederatedPrincipal(
-                provider_arn,
-                {
-                    "StringEquals": {
-                        "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-                        "token.actions.githubusercontent.com:sub": subject,
-                    }
-                },
-                "sts:AssumeRoleWithWebIdentity",
+            assumed_by=cast(
+                iam.IPrincipal,  # CDK principal protocol uses different parameter names.
+                iam.FederatedPrincipal(
+                    provider_arn,
+                    {
+                        "StringEquals": {
+                            "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+                            "token.actions.githubusercontent.com:sub": subject,
+                        }
+                    },
+                    "sts:AssumeRoleWithWebIdentity",
+                ),
             ),
         )
 
