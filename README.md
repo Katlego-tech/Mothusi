@@ -146,6 +146,13 @@ version, redeploys the service stack, publishes the console and writes the GitHu
 checked but never deployed. The GPU host, network, data and front-door stacks are changed only by hand after a
 `cdk diff`; AWS names that can't change in place are defined once, in `infra/mothusi_infra/stage.py`.
 
+When a release fails, its last step gathers the diagnostics into the run's summary: the identity GitHub presented to
+AWS, CloudFormation's failed events, each service's events and why its tasks stopped, and the services' recent logs.
+
+A watchdog (`infra/mothusi_infra/watchdog.py`) emails within about a minute when a stack update fails, an ECS
+deployment or task fails, the GPU host stops or fails its status checks, or a run halts or waits for the teacher.
+It runs no code of its own: AWS events and CloudWatch alarms feed one SNS topic, and it never changes anything.
+
 ## Baseline and dependencies
 
 | Dependency | Used for | Licence |

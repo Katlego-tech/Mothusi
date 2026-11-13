@@ -1,6 +1,7 @@
 """Mothusi's CDK app: the one environment, adopted in place (mothusi_infra/stage.py).
 
 npx cdk deploy MothusiCi    # once: the GitHub release role
+npx cdk deploy MothusiWatchdog -c watchdogEmail=<address>
 # the release workflow redeploys only the service stack, on a v* tag
 """
 
@@ -15,6 +16,7 @@ from mothusi_infra.model_host import MothusiModelHost
 from mothusi_infra.network import MothusiNetwork
 from mothusi_infra.service import MothusiService
 from mothusi_infra.stage import PRODUCTION
+from mothusi_infra.watchdog import MothusiWatchdog
 
 app = App()
 stage = PRODUCTION
@@ -34,6 +36,8 @@ model_host.add_dependency(data)
 service = MothusiService(app, stage.stack("Service"), stage=stage, env=env)
 service.add_dependency(front)
 MothusiCi(app, "MothusiCi", stage=stage, env=env)
+# Emails within a minute when a deploy fails, the GPU host stops or a run halts (watchdog.py).
+MothusiWatchdog(app, "MothusiWatchdog", stage=stage, env=env)
 # Budgets has no CloudFormation support in af-south-1; the budget lives in us-east-1.
 MothusiBudget(app, "MothusiBudget", env=Environment(account=account, region="us-east-1"))
 app.synth()

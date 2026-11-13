@@ -281,6 +281,11 @@ def test_ci_trust_and_permissions(stacks):
         "cloudfront:CreateInvalidation",
     ):
         assert action in policies
+    # A failed release prints its own diagnostics: read-only ECS and the services' log groups.
+    for action in ("ecs:DescribeServices", "ecs:DescribeTasks", "logs:FilterLogEvents"):
+        assert action in policies
+    assert "log-group:/mothusi/*" in policies
+    assert "ecs:UpdateService" not in policies and "logs:Delete" not in policies
     assert "iam:PassRole" not in policies
     assert "AdministratorAccess" not in policies
 
@@ -896,7 +901,11 @@ def test_the_app_names_the_adopted_stacks(tmp_path):
     }
     # CloudFormation can't rename a stack: adopted ones keep their names, new ones are Mothusi's.
     parts = ("Network", "Data", "Front", "ModelHost", "Service")
-    assert stacks == {PRODUCTION.stack(part) for part in parts} | {"MothusiCi", "MothusiBudget"}
+    assert stacks == {PRODUCTION.stack(part) for part in parts} | {
+        "MothusiCi",
+        "MothusiBudget",
+        "MothusiWatchdog",
+    }
 
 
 def test_renamable_names_are_mothusi(stacks, front):
@@ -937,3 +946,60 @@ def test_the_release_role_takes_githubs_immutable_subject():
     assert re.fullmatch(pattern, "Katlego-tech@115792195/Mothusi@1456381806")
     assert re.fullmatch(pattern, "owner/repo")
     assert not re.fullmatch(pattern, "owner/repo:ref:refs/heads/main")
+
+
+# ------------------------------------------------------------------------- the watchdog
+
+
+@pytest.fixture(scope="module")
+def watchdog():
+    from mothusi_infra.watchdog import MothusiWatchdog
+
+    app = App(context={"watchdogEmail": "ops@example.org"})
+    stack = MothusiWatchdog(
+        app, "MothusiWatchdog", stage=PRODUCTION, env=Environment(region="af-south-1")
+    )
+    return Template.from_stack(stack)
+
+
+def test_the_watchdog_emails_one_topic(watchdog):
+    watchdog.resource_count_is("AWS::SNS::Topic", 1)
+    watchdog.has_resource_properties(
+        "AWS::SNS::Subscription", {"Protocol": "email", "Endpoint": "ops@example.org"}
+    )
+    for alarm in properties(watchdog, "AWS::CloudWatch::Alarm"):
+        assert alarm["AlarmActions"] and alarm["OKActions"]
+
+
+def test_the_watchdog_hears_failed_deploys_and_the_gpu_host(watchdog):
+    rules = properties(watchdog, "AWS::Events::Rule")
+    patterns = json.dumps([r["EventPattern"] for r in rules if "EventPattern" in r])
+    for needle in (
+        "CloudFormation Stack Status Change",
+        "*ROLLBACK*",
+        "SERVICE_DEPLOYMENT_FAILED",
+        "TaskFailedToStart",
+        "EssentialContainerExited",
+        "EC2 Instance State-change Notification",
+    ):
+        assert needle in patterns, needle
+    assert f"/{A}/model-host/instance-id" in json.dumps(watchdog.to_json())
+    # A deploy stops the old tasks on purpose: that must not raise an alert.
+    assert "ServiceSchedulerInitiated" not in patterns
+
+
+def test_the_watchdog_runs_no_code_and_never_acts(watchdog):
+    # Katlego's rule: no Lambda (cost). Events and alarms only, and nothing that can act.
+    watchdog.resource_count_is("AWS::Lambda::Function", 0)
+    alarms = {a["AlarmName"] for a in properties(watchdog, "AWS::CloudWatch::Alarm")}
+    assert alarms == {"mothusi-run-halted", "mothusi-run-waiting", "mothusi-gpu-status-check"}
+    policies = json.dumps(properties(watchdog, "AWS::IAM::Policy"))
+    for action in ("ecs:", "ec2:", "rds:", "cloudformation:"):
+        assert action not in policies
+
+
+def test_the_watchdog_counts_the_cores_run_markers():
+    from mothusi_infra import watchdog as w
+
+    # mothusi_core.events writes these; the infra project can't import the core, so pin them here.
+    assert (w.RUN_HALTED, w.NEEDS_TEACHER) == ("WATCHDOG_RUN_HALTED", "WATCHDOG_NEEDS_TEACHER")
