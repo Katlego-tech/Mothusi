@@ -146,6 +146,26 @@ version, redeploys the service stack, publishes the console and writes the GitHu
 checked but never deployed. The GPU host, network, data and front-door stacks are changed only by hand after a
 `cdk diff`; AWS names that can't change in place are defined once, in `infra/mothusi_infra/stage.py`.
 
+When a release fails, its last step gathers the diagnostics into the run's summary: the identity GitHub presented to
+AWS, CloudFormation's failed events, each service's events and why its tasks stopped, and the services' recent logs.
+
+A watchdog runs on your own machine, checks once a minute, and exits with a desktop notification the moment
+something needs you: a failed Actions run, a stack that failed or rolled back, an ECS service short of tasks or a
+task that crashed, the GPU host stopping or failing its checks, a failed model load, or a run that halted or waits
+for the teacher. It only reads; it never changes anything.
+
+```bash
+bash infra/watchdog.sh              # until something goes wrong
+bash infra/watchdog.sh --gpu-busy   # also when the GPU idles (during an eval or a run)
+```
+
+What it costs, from your machine:
+
+```bash
+bash infra/costs.sh           # what's running now and the burn per hour and per day
+bash infra/costs.sh --spend   # also this month's usage by service and the credits applied
+```
+
 ## Baseline and dependencies
 
 | Dependency | Used for | Licence |
