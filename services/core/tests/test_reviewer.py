@@ -1,6 +1,6 @@
 """US4 scenario 2: the Reviewer rejects an ungrounded note, and the rewrite passes.
 
-Design: docs/design/marking-pipeline.md §6.1; the `reviewer` contract. Grounding is checked in code
+Design: docs/architecture/design/marking-pipeline.md §6.1; the `reviewer` contract. Grounding is checked in code
 (`check_note_grounding`); the model only reviews tone, and only on notes code passed.
 """
 

@@ -1,6 +1,6 @@
 """Learner names become L-001, L-002, ... before any agent reads a script.
 
-Design: docs/design/intake.md §3. The order is the teacher's class-list order, so the mapping is
+Design: docs/architecture/design/intake.md §3. The order is the teacher's class-list order, so the mapping is
 reproducible from the same list, and the mapping itself is kept only on the teacher's side.
 """
 

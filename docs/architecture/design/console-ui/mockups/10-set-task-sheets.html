@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mothusi · set the task with answer sheets</title>
+<link rel="stylesheet" href="console.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="wordmark">Mothusi<span>.</span></div>
+  <div class="run-title">
+    <strong>New assessment</strong>
+    <span class="muted">A colleague for the assessment cycle</span>
+  </div>
+  <ol class="steps"><li class="now">Set the task</li><li>Live run</li><li>Approval</li></ol>
+</header>
+
+<main class="compose">
+  <h1>What should Mothusi do?</h1>
+
+  <div class="field">
+    <label for="goal">Your instruction</label>
+    <textarea id="goal" class="goal">Mark my Grade 10 Term 1 Maths test and get it ready for my HOD.</textarea>
+  </div>
+
+  <div class="files">
+    <div class="file">
+      <span class="name">Memo <span>memo.toml · 4 KB</span></span>
+      <span class="facts"><b>50 marks</b> · <b>9 questions</b> · every item has its answer, marking notes and cognitive level · levels 24 / 36 / 28 / 12</span>
+    </div>
+    <div class="file">
+      <span class="name">Class list <span>class-list.csv · 1 KB</span></span>
+      <span class="facts"><b>32 learners</b> · one answer sheet each, named here and nowhere else; the sheets carry L-001 to L-032</span>
+    </div>
+  </div>
+  <div class="row" role="group" aria-label="How the scripts come in">
+    <span class="small muted">The scripts come in as</span>
+    <span class="mode-toggle"><button type="button" aria-pressed="false">typed answers (CSV)</button><button type="button" aria-pressed="true">answer sheets (photos or PDF)</button></span>
+  </div>
+
+  <div class="field">
+    <span class="lbl">Curriculum pack and task</span>
+    <div class="select">
+      <span>DBE CAPS · Mathematics · Grade 10 · <b>Term 1 Test</b> (50 marks, 14% of the SBA mark)</span>
+      <span class="muted">Change</span>
+    </div>
+    <span class="hint">Packs installed: Mathematics Grade 10, Accounting Grade 10. The task list is the pack's programme of assessment (DBE Circular S8 of 2023, Annexure §26).</span>
+  </div>
+
+  <div class="field">
+    <label for="budget">Spending limit</label>
+    <div class="row">
+      <span>Stop and ask me if this costs more than</span>
+      <input id="budget" class="input num" value="R 40.00">
+      <span class="hint">The last Grade 10 class set cost R 0.41 a script.</span>
+    </div>
+  </div>
+
+  <section class="next" aria-labelledby="next-h">
+    <h2 id="next-h">What happens next</h2>
+    <ol>
+      <li><b>The Setter sits the test</b> and compares its answers with your memo. <span>A line it doubts stops the run and asks you before a single script is marked.</span></li>
+      <li><b>The Marker marks every script</b> against the memo, <span>quoting the words that earned each mark and the memo line it applied.</span></li>
+      <li><b>Code checks every total, maximum and quote</b>, the PoA weighting and the cognitive grid. <span>A failed check sends the script back with the reason; after three attempts it comes to you.</span></li>
+      <li><b>The Moderator re-marks a blind sample</b>: 10% of the class, at least 6 scripts, top, middle and bottom, <span>without seeing the first marks. Disagreements go back with the reason written down.</span></li>
+      <li><b>You approve the paperwork</b>: mark sheet, item analysis, catch-up plan, a note per learner, the moderation report. <span>Only then are files written and notes sent.</span></li>
+    </ol>
+  </section>
+
+  <div class="promise">
+    <p class="muted">Nothing goes to a learner or a parent until you approve it.</p>
+    <button class="btn primary">Start marking</button>
+  </div>
+</main>
+</body>
+</html>

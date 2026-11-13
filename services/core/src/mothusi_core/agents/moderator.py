@@ -1,6 +1,6 @@
 """The Moderator: a blind second marking of a sample, the way a head of department moderates.
 
-Design: docs/design/marking-pipeline.md §4 steps 14-19; the `moderator` contract. The Moderator is
+Design: docs/architecture/design/marking-pipeline.md §4 steps 14-19; the `moderator` contract. The Moderator is
 the Marker's loop run under a different role: same rules checks, same retries, but its Brief never
 carries first marks (check_brief_blind is run on every Brief before dispatch) and it signs as
 "moderator". After the sample, `compare` turns the pairs into Disagreements and the widening call.

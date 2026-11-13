@@ -1,4 +1,4 @@
-"""Render one learner's note as markdown. Design: docs/design/outputs-and-delivery.md §3.
+"""Render one learner's note as markdown. Design: docs/architecture/design/outputs-and-delivery.md §3.
 
 The teacher's side carries the name; the pseudonym never appears in the note's text.
 """

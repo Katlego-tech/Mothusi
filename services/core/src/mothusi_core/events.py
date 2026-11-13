@@ -1,6 +1,6 @@
 """The live log: one Event per Brief, Result, check, decision, state change and teacher answer.
 
-Design: docs/design/event-log.md §6 (the store) and console-ui.md §6 (the kinds and payloads). The
+Design: docs/architecture/design/event-log.md §6 (the store) and console-ui.md §6 (the kinds and payloads). The
 Planner emits through `EventSink`; the API's SSE endpoint follows the same JSONL file with
 `follow`. No learner name is ever in a summary or payload: pseudonyms only.
 """

@@ -1,4 +1,4 @@
-// Typed calls for the HTTP endpoints of docs/design/console-ui.md §6.
+// Typed calls for the HTTP endpoints of docs/architecture/design/console-ui.md §6.
 // The base is /api (Vite proxies it to the core service in development); VITE_API_URL overrides.
 import { authHeader, onUnauthorized } from "../auth/session";
 import type { Bundle, FieldError, MemoDraftView, PageGaps, Pack, ReadingAnswer, ReadingItem, UploadTarget } from "./types";

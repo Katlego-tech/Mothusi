@@ -1,4 +1,4 @@
-"""Claude through the Messages API, with structured output. Design: docs/design/llm-seam.md §6."""
+"""Claude through the Messages API, with structured output. Design: docs/architecture/design/llm-seam.md §6."""
 
 from __future__ import annotations
 

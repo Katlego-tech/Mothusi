@@ -1,0 +1,1152 @@
+<title>Mothusi on AWS</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (~72ch) with a full-width map band; tables scroll inside their own frames. */
+:root{
+  --paper:#F4F6F3; --panel:#FFFFFF; --ink:#18202A; --muted:#5A6570; --rule:#D3D9D3;
+  --sa:#1C735F; --sa-wash:#E3EFEA; --cross:#B8322A; --cross-wash:#F6E4E1; --later:#7D8790; --learner:#3B5BA9;
+  --display:"Archivo",system-ui,sans-serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#101417; --panel:#171C20; --ink:#E4E8EA; --muted:#9AA4AC; --rule:#2B3338;
+  --sa:#4DB99D; --sa-wash:#15281F; --cross:#EE6A5D; --cross-wash:#2D1A18; --later:#86909A; --learner:#8FA8EC; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#101417; --panel:#171C20; --ink:#E4E8EA; --muted:#9AA4AC; --rule:#2B3338;
+  --sa:#4DB99D; --sa-wash:#15281F; --cross:#EE6A5D; --cross-wash:#2D1A18; --later:#86909A; --learner:#8FA8EC; color-scheme:dark}
+body{background:var(--paper);color:var(--ink);font:15px/1.6 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 64px}
+.wrap{max-width:1240px;margin:0 auto;display:grid;gap:48px}
+.col{max-width:76ch}
+h1,h2,h3{font-family:var(--display);font-stretch:88%;text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,5vw,3.1rem);font-weight:780;letter-spacing:-.01em}
+h2{font-size:1.55rem;font-weight:720;margin-bottom:12px}
+h3{font-size:1.1rem;font-weight:680;margin:20px 0 6px}
+p{margin:0 0 12px}
+.eyebrow{font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.lede{font-size:1.12rem;max-width:68ch}
+.meta{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:16px;font:13px/1.4 var(--mono);color:var(--muted)}
+.meta b{color:var(--ink);font-weight:500}
+.pill{display:inline-block;font:500 11px/1 var(--mono);letter-spacing:.04em;padding:4px 7px;border-radius:99px;border:1px solid var(--rule);white-space:nowrap}
+.pill.sa{color:var(--sa);border-color:var(--sa);background:var(--sa-wash)}
+.pill.cross{color:var(--cross);border-color:var(--cross);background:var(--cross-wash)}
+.pill.later{color:var(--later);border-style:dashed}
+.pill.check{color:var(--muted);border-style:dotted}
+ol.cycle{margin:8px 0 0;padding:0;list-style:none;counter-reset:s;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+ol.cycle li{counter-increment:s;padding:10px 12px;border-top:2px solid var(--ink);background:var(--panel);font-size:14px;line-height:1.45;min-width:0}
+ol.cycle li::before{content:counter(s);font:600 12px/1 var(--mono);color:var(--muted);display:block;margin-bottom:6px}
+ol.cycle b{font-weight:600}
+figure{margin:0}
+.mapframe{overflow-x:auto;background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:12px}
+svg.map{display:block;width:100%;min-width:980px;height:auto;font-family:var(--body)}
+.map .zone{fill:none;stroke:var(--rule);stroke-width:1.2}
+.map .zone.sa{fill:var(--sa-wash);stroke:var(--sa);stroke-opacity:.5}
+.map .zh{font:700 14px var(--display);fill:var(--ink)}
+.map .zh.sa{fill:var(--sa)}
+.map .band{font:500 10px var(--mono);letter-spacing:.1em;fill:var(--muted)}
+.map .border{stroke:var(--cross);stroke-width:1.6;stroke-dasharray:7 5}
+.map .bordertxt{font:500 11px var(--mono);fill:var(--cross);letter-spacing:.03em}
+.map .node rect{fill:var(--panel);stroke:var(--ink);stroke-width:1.1}
+.map .node.insa rect{stroke:var(--sa);stroke-width:2}
+.map .node.cross rect{stroke:var(--cross);stroke-width:2}
+.map .node.later rect,.map .node.local rect{stroke-dasharray:5 4;stroke:var(--later)}
+.map .node.later .t1{fill:var(--muted)}
+.map .node.learner rect{stroke:var(--learner);stroke-width:1.8}
+.map .band.hi{fill:var(--sa);font-weight:600}
+.map .edge.hi{stroke:var(--sa);stroke-width:1.8} .map .mkg{fill:var(--sa)} .map .el.hi{fill:var(--sa)}
+.map .empty{fill:none;stroke:var(--cross);stroke-dasharray:3 5;stroke-width:1.2}
+.map .emptytxt{font:500 12px var(--body);fill:var(--cross)}
+.map .small-svg{font:400 11px var(--body);fill:var(--muted)}
+.opt{display:grid;gap:14px}
+.opt-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px}
+.opt-head h3{margin:0;font-size:1.3rem}
+.pc{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.pc > div{background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:12px 16px;min-width:0}
+.pc h4{margin:0 0 6px;font:600 11px/1.3 var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.pc ul{margin:0;padding-left:18px;font-size:14px} .pc li{margin:3px 0}
+.notefig{display:grid;gap:14px;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+@media (max-width:760px){.notefig{grid-template-columns:1fr}}
+.paper{background:var(--panel);border:1px solid var(--rule);border-radius:4px;padding:18px 20px;font-size:14px;box-shadow:0 1px 0 var(--rule)}
+.paper .hd{display:flex;justify-content:space-between;gap:12px;font:500 12px var(--mono);color:var(--muted);border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:10px}
+.paper dl{margin:0;display:grid;gap:8px} .paper dt{font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--learner)} .paper dd{margin:0}
+.paper q{font-family:var(--mono);font-size:13px;background:var(--paper);padding:1px 4px}
+.map .node.insa.later rect{stroke:var(--sa);stroke-width:1.6}
+.map .edge.dash{stroke-dasharray:4 4;stroke:var(--later)}
+.map .t1{font:600 13px var(--body);fill:var(--ink)}
+.map .t2{font:400 11px var(--mono);fill:var(--ink)}
+.map .t3{font:500 9.5px var(--mono);letter-spacing:.06em;fill:var(--muted)}
+.map .badge{fill:var(--paper);stroke:var(--muted);stroke-width:.8}
+.map .badgetxt{font:600 10px var(--mono);fill:var(--muted);text-anchor:middle}
+.map .edge{fill:none;stroke:var(--ink);stroke-width:1.3}
+.map .edge.red{stroke:var(--cross);stroke-width:1.8}
+.map .mk{fill:var(--ink)} .map .mkr{fill:var(--cross)}
+.map .el{font:500 10.5px var(--body);fill:var(--ink);paint-order:stroke;stroke:var(--paper);stroke-width:4px;stroke-linejoin:round}
+.map .el.red{fill:var(--cross)}
+figcaption{margin-top:12px;color:var(--muted);font-size:14px;max-width:90ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:10px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.sw{width:22px;height:12px;border-radius:3px;border:1.6px solid var(--ink);display:inline-block}
+.sw.sa{border-color:var(--sa)} .sw.cross{border-color:var(--cross)} .sw.later{border-style:dashed;border-color:var(--later)} .sw.learner{border-color:var(--learner)}
+.ln{width:24px;height:0;border-top:2px solid var(--cross);display:inline-block}
+.tbl{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:14px;line-height:1.45}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--rule)}
+th{font:500 11px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--paper)}
+tr:last-child td{border-bottom:0}
+td code,p code,li code{font:13px var(--mono);background:var(--paper);padding:1px 4px;border-radius:3px}
+td.svc{font-family:var(--mono);font-size:13px;white-space:nowrap}
+.note{border-left:3px solid var(--cross);padding:8px 14px;background:var(--cross-wash);border-radius:0 6px 6px 0;max-width:80ch}
+.note.sa{border-color:var(--sa);background:var(--sa-wash)}
+ul.tight{margin:6px 0 12px;padding-left:20px} ul.tight li{margin:3px 0}
+.decisions{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.decision{background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:14px 16px;min-width:0}
+.decision h3{margin-top:0}
+.rec{font-size:14px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--rule)}
+.rec b{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--sa)}
+.small{font-size:13px;color:var(--muted)}
+a{color:var(--sa)}
+.calc{display:grid;gap:14px;margin-top:14px}
+.inputs{display:grid;gap:10px 14px;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:14px 16px}
+.inputs label{display:grid;gap:4px;font:500 11px/1.3 var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);min-width:0}
+.inputs input,.inputs select{font:14px var(--body);color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:6px 8px;width:100%;box-sizing:border-box;font-variant-numeric:tabular-nums}
+#c-out td,#c-steps td{font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--sa);outline-offset:2px}
+</style>
+
+<div class="wrap">
+
+<header class="col">
+  <div class="eyebrow">Architecture map · option A deployed 11 Nov 2026</div>
+  <h1>Mothusi on AWS</h1>
+  <p class="lede">How every part of Mothusi fits together on Amazon Web Services in Cape Town, including the learner side, the stretch features and the ten technologies the audit found dropped. Five ways to host the models are drawn separately: three with open-weight models, and two with Claude.</p>
+  <p class="note sa" style="margin-top:14px"><b>Decided 10 Nov 2026 (the project researcher):</b> option A. AWS af-south-1 with open-weight models on an EC2 G4dn in Cape Town. The repo records it in <code>docs/adr/0001-aws-cape-town-open-models.md</code>. The other options stay on this page as the record of what was weighed.</p>
+  <p class="note sa" style="margin-top:10px"><b>Deployed 11 Nov 2026.</b> The GPU quota was granted (8 vCPUs). Every stack is up in af-south-1: the console on CloudFront, Cognito sign-in, the core and knowledge services on Fargate, RDS, and one g4dn.xlarge in af-south-1b serving the three models through Ollama. <code>infra/ops.sh</code> starts and stops it, and it stays stopped between sessions (about $0.05/h). Section 10 has what was measured on 12 Nov and what remains before kickoff.</p>
+  <div class="meta">
+    <span>Updated <b>12 Nov 2026 · v9, deployed and measured</b></span>
+    <span>Kickoff <b>Fri 13 Nov, 11:00 SAST</b></span>
+    <span>Region <b>af-south-1</b></span>
+    <span>Credit left <b>$156.86 (12 Nov)</b></span>
+  </div>
+</header>
+
+<section class="col">
+  <div class="eyebrow">01 · The project</div>
+  <h2>What Mothusi is</h2>
+  <p>Mothusi is a digital colleague for South African teachers that takes over the assessment cycle. The teacher hands it the memo and the class's scripts as they are: photos, scans or PDFs of handwritten work. Mothusi sits the test to check the memo, marks every script against the memo while quoting the evidence for each mark, re-marks a blind sample the way a head of department moderates, and checks every total and weighting in code. It then produces the mark sheet, item analysis, catch-up plan and a note for each learner. Nothing reaches a learner or parent until the teacher approves it.</p>
+  <p>It is built for the Colleague Zero hackathon (13–14 Nov 2026) for a Grade 10 Mathematics teacher, three classes of 45, a head of department who wants the moderated mark sheet by Friday, and a phone as her main computer. Grade 10 Mathematics comes first, then Accounting as the second curriculum pack on the same code. A voice colleague in the console reports progress, explains a mark, asks the teacher Mothusi's questions and briefs her on the results.</p>
+  <p>The models run on Mothusi's own GPU in Cape Town (option A). Section 04 keeps all five options that were weighed, from that GPU to Claude on Bedrock. The deciding questions were what leaves South Africa, how well each option marks, and what each costs.</p>
+  <h3>One assessment, start to finish</h3>
+  <ol class="cycle">
+    <li><b>Intake</b> reads each page, crops off the cover with the name, and swaps names for pseudonyms before any model sees the work.</li>
+    <li><b>Setter</b> sits the test against the memo and flags memo errors for the teacher.</li>
+    <li><b>Marker</b> marks every script, quoting the answer and the memo line for each mark.</li>
+    <li><b>Rules in code</b> check totals, bounds, evidence quotes and weightings, and send failures back.</li>
+    <li><b>Moderator</b> re-marks a blind sample without seeing the first marks, on a model from a different family.</li>
+    <li><b>Analyst and Support</b> find the misconceptions and plan catch-up in the remaining ATP weeks.</li>
+    <li><b>Writer and Reviewer</b> draft each learner's note and reject any that is ungrounded or unkind.</li>
+    <li><b>Teacher approves</b> the bundle in the console. This gate cannot be skipped.</li>
+    <li><b>Executor</b> writes the mark sheet, the PDF moderation report and the learner notes, then releases them. It calls no model.</li>
+  </ol>
+</section>
+
+<section>
+  <div class="col">
+    <div class="eyebrow">02 · The learner side</div>
+    <h2>What learners and parents receive</h2>
+    <p>In the core build, learners never log in and never talk to a model (the stretch learner section in 03 adds a sign-in). After the teacher approves, each learner gets one note, and every part of it is checked in code before the teacher sees it. The note can reach a learner without Mothusi holding any phone number or email address.</p>
+  </div>
+  <div class="notefig" style="margin-top:14px">
+    <div class="paper" aria-label="Example learner note, synthetic">
+      <div class="hd"><span>Grade 10 Mathematics · Term 1 test · 50 marks</span><span>example, synthetic</span></div>
+      <dl>
+        <dt>What this test checked</dt><dd>Solving linear equations (Question 3 of the memo).</dd>
+        <dt>A mark you earned</dt><dd>Q3.2, 2 of 3: you wrote <q>2x − 6 = 10 so 2x = 16</q>, which is the memo's first two steps.</dd>
+        <dt>Your next task</dt><dd>In Q3.3 you divided only one side by 4. Redo Q3.3 dividing both sides, then do the two practice items in your class's catch-up week.</dd>
+        <dt>Ask yourself</dt><dd>Which step in Q3.3 would you check first next time, and why?</dd>
+      </dl>
+    </div>
+    <div class="col" style="min-width:0">
+      <div class="tbl"><table>
+        <thead><tr><th>Route</th><th>How it works</th><th>Personal data needed</th></tr></thead>
+        <tbody>
+          <tr><td><b>Printed note</b> (default)</td><td>The teacher prints the bundle's notes and hands them out in class</td><td>None beyond the class list</td></tr>
+          <tr><td><b>QR code to a note page</b></td><td>Each printed note carries a QR code for a one-time signed link that opens only that note on a phone. The link expires and needs no account</td><td>None</td></tr>
+          <tr><td><b>Parent email</b> (later)</td><td>Amazon SES in Cape Town sends the note after approval, only to addresses the school supplies</td><td>A parent's email, so it waits for a consent process</td></tr>
+        </tbody>
+      </table></div>
+      <p class="small" style="margin-top:10px">The four parts of the note come from the <code>LearnerNote</code> contract: outcome, mark with quote, next task, self-assessment prompt. The Writer never sees a name, and names are joined in only by the Executor, which calls no model. WhatsApp delivery stays out of scope (the agreed scope).</p>
+    </div>
+  </div>
+</section>
+
+
+<section>
+  <div class="col">
+    <div class="eyebrow">03 · Stretch features</div>
+    <h2>The learner section: practice tests and the exhibition hall</h2>
+    <p>Both were recorded as stretch on 8 Nov (the agreed scope and <code>voice-colleague-and-stretch.md</code> §2–3 on the unmerged voice branch). Today's changes: the exhibition hall narrows to Mathematics and Accounting, uses 3D models sourced from Sketchfab, and is narrated by ElevenLabs. The same record also lists approved-feedback PDFs for learners and WhatsApp delivery.</p>
+    <h3>Learner sign-in</h3>
+    <p>Learners sign in with a code and PIN that the teacher hands out. The account name is the learner's pseudonym code, so Cognito holds no name, email or phone number, and the class list that maps codes to names stays inside Mothusi. A learner account is still a child's personal information, so it needs a parent's consent first (POPIA s35(1)(a)).</p>
+  </div>
+
+  <div class="opt" style="margin-top:28px">
+    <div class="opt-head"><h3>Practice tests set from the ATP</h3><span class="pill">stretch</span></div>
+    <figure><div class="mapframe"><svg viewBox="0 0 1262 352" role="img" class="map" aria-label="Practice tests: the teacher picks an ATP week, the Setter drafts a test and memo that code checks, the teacher approves it once, learners take it on a phone, the Marker marks against the approved memo, and the learner sees the mark while the teacher follows progress.">
+<defs><marker id="pn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk" d="M0,0 L10,5 L0,10 z"/></marker><marker id="pr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mkr" d="M0,0 L10,5 L0,10 z"/></marker><marker id="pg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mkg" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+<rect class="zone " x="8" y="20" width="1246" height="100" rx="8"/>
+<text class="zh " x="20" y="76">Teacher</text>
+<rect class="zone sa" x="8" y="130" width="1246" height="100" rx="8"/>
+<text class="zh sa" x="20" y="186">Mothusi · Cape Town</text>
+<rect class="zone " x="8" y="240" width="1246" height="100" rx="8"/>
+<text class="zh " x="20" y="296">Learner</text>
+<g class="node "><rect x="150" y="39" width="140" height="62" rx="6"/><text class="t1" x="161" y="60">Chooses a topic</text><text class="t2" x="161" y="77">ATP week from the pack</text><text class="t3" x="161" y="93">STEP 1</text></g>
+<g class="node "><rect x="308" y="149" width="140" height="62" rx="6"/><text class="t1" x="319" y="170">Setter drafts it</text><text class="t2" x="319" y="187">test + memo, ATP &amp; CAPS</text><text class="t3" x="319" y="203">STEP 2 · MODEL</text></g>
+<g class="node "><rect x="466" y="149" width="140" height="62" rx="6"/><text class="t1" x="477" y="170">Code checks it</text><text class="t2" x="477" y="187">totals, grid; Setter sits it</text><text class="t3" x="477" y="203">STEP 3 · RULES</text></g>
+<g class="node insa"><rect x="624" y="39" width="140" height="62" rx="6"/><text class="t1" x="635" y="60">Approves once</text><text class="t2" x="635" y="77">test and memo</text><text class="t3" x="635" y="93">STEP 4 · THE GATE</text></g>
+<g class="node learner"><rect x="782" y="259" width="140" height="62" rx="6"/><text class="t1" x="793" y="280">Takes the test</text><text class="t2" x="793" y="297">phone: typed or photo</text><text class="t3" x="793" y="313">STEP 5</text></g>
+<g class="node "><rect x="940" y="149" width="140" height="62" rx="6"/><text class="t1" x="951" y="170">Marker marks it</text><text class="t2" x="951" y="187">approved memo + rules</text><text class="t3" x="951" y="203">STEP 6 · MODEL</text></g>
+<g class="node learner"><rect x="1098" y="259" width="140" height="62" rx="6"/><text class="t1" x="1109" y="280">Sees the result</text><text class="t2" x="1109" y="297">mark, quote, worked answer</text><text class="t3" x="1109" y="313">STEP 7</text></g>
+<g class="node "><rect x="1098" y="39" width="140" height="62" rx="6"/><text class="t1" x="1109" y="60">Follows progress</text><text class="t2" x="1109" y="77">every attempt</text><text class="t3" x="1109" y="93">STEP 8</text></g>
+<path class="edge " d="M220,101 V180 H306" marker-end="url(#pn)"/>
+<path class="edge " d="M448,180 H464" marker-end="url(#pn)"/>
+<path class="edge " d="M536,149 V70 H622" marker-end="url(#pn)"/>
+<text class="el " x="542" y="141" text-anchor="start">for approval</text>
+<path class="edge hi" d="M694,101 V290 H780" marker-end="url(#pg)"/>
+<text class="el hi" x="700" y="119" text-anchor="start">published</text>
+<path class="edge " d="M852,259 V180 H938" marker-end="url(#pn)"/>
+<path class="edge " d="M1010,211 V290 H1096" marker-end="url(#pn)"/>
+<path class="edge " d="M1010,149 V70 H1096" marker-end="url(#pn)"/>
+</svg>
+</div>
+    <figcaption>The teacher picks a topic from the pack's ATP weeks. The Setter drafts a test and memo from the pack's ATP and CAPS sources, code checks the totals and cognitive grid, and the Setter sits it. The teacher approves the test and memo once, which publishes it to the class. Each attempt is marked by the same Marker and rules as a class test, against that approved memo.</figcaption></figure>
+    <div class="pc">
+      <div><h4>Reuses</h4><ul><li>The Setter, Marker and every rules check, unchanged.</li><li>The pack's ATP weeks, already used by Support for the catch-up plan.</li><li>The catch-up plan, which can suggest the next practice topic per learner.</li></ul></div>
+      <div><h4>Watch</h4><ul><li><b>Non-negotiable I.</b> A learner sees practice feedback without the teacher reading each attempt. The proposal: the teacher's one approval of the test and memo covers it, and a learner sees only the code-checked mark, the quote that earned it and the memo's worked answer. There is no free-written model prose. This is a product-requirements change for the project researcher to decide.</li><li>the agreed scope rules out "a lesson-plan generator". Practice tests are for the learner, not the teacher's planning, but the design doc must draw that line.</li><li>Photo answers depend on the hosting option's page reader.</li></ul></div>
+    </div>
+  </div>
+
+  <div class="opt" style="margin-top:36px">
+    <div class="opt-head"><h3>The exhibition hall: narrated 3D models</h3><span class="pill">stretch</span></div>
+    <figure><div class="mapframe"><svg viewBox="0 0 1280 330" role="img" class="map" aria-label="Exhibition hall: the team downloads a licensed model from Sketchfab once, the Writer drafts a narration script from CAPS and the ATP, the teacher approves it, ElevenLabs turns it into audio once, and learners load the model and audio from Cape Town without contacting Sketchfab or ElevenLabs.">
+<defs><marker id="hn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk" d="M0,0 L10,5 L0,10 z"/></marker><marker id="hr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mkr" d="M0,0 L10,5 L0,10 z"/></marker><marker id="hg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mkg" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+<rect class="zone" x="12" y="20" width="212" height="300" rx="10"/>
+<rect class="zone sa" x="244" y="20" width="698" height="300" rx="10"/>
+<rect class="zone out" x="974" y="20" width="294" height="300" rx="10"/>
+<text class="zh" x="28" y="42">Learner</text><text class="zh sa" x="260" y="42">AWS af-south-1 · Cape Town</text><text class="zh" x="990" y="42">Outside SA</text>
+<line class="border" x1="958" y1="10" x2="958" y2="324"/>
+<text class="band hi" x="500" y="80">PREPARE · ONCE PER EXHIBIT</text><text class="band" x="260" y="190">SERVE · EVERY VISIT</text>
+<g class="node "><rect x="500" y="88" width="180" height="62" rx="6"/><text class="t1" x="511" y="109">Writer drafts script</text><text class="t2" x="511" y="126">from CAPS + ATP text</text><text class="t3" x="511" y="142">ONE CLIP PER CAMERA STOP</text></g>
+<g class="node insa"><rect x="740" y="88" width="180" height="62" rx="6"/><text class="t1" x="751" y="109">Teacher approves</text><text class="t2" x="751" y="126">script + facts cited</text><text class="t3" x="751" y="142">THE GATE</text></g>
+<g class="node "><rect x="990" y="88" width="262" height="62" rx="6"/><text class="t1" x="1001" y="109">Narration audio</text><text class="t2" x="1001" y="126">ElevenLabs text-to-speech</text><text class="t3" x="1001" y="142">CURRICULUM TEXT ONLY</text></g>
+<g class="node "><rect x="500" y="198" width="180" height="62" rx="6"/><text class="t1" x="511" y="219">Exhibit store</text><text class="t2" x="511" y="236">S3: glTF, MP3, stops</text><text class="t3" x="511" y="252">DATA · PUBLIC</text></g>
+<g class="node "><rect x="260" y="198" width="180" height="62" rx="6"/><text class="t1" x="271" y="219">Front door</text><text class="t2" x="271" y="236">CloudFront</text><text class="t3" x="271" y="252">EDGE · CDN</text></g>
+<g class="node "><rect x="990" y="198" width="262" height="62" rx="6"/><text class="t1" x="1001" y="219">Sketchfab</text><text class="t2" x="1001" y="236">source library only</text><text class="t3" x="1001" y="252">CC-BY / CC0 · LICENCE CHECKED</text></g>
+<g class="node learner"><rect x="28" y="198" width="180" height="62" rx="6"/><text class="t1" x="39" y="219">Exhibition hall</text><text class="t2" x="39" y="236">phone · &lt;model-viewer&gt;</text><text class="t3" x="39" y="252">LEARNER</text></g>
+<path class="edge " d="M680,119 H738" marker-end="url(#hn)"/>
+<path class="edge " d="M920,119 H988" marker-end="url(#hn)"/>
+<text class="el " x="954" y="112" text-anchor="middle">script</text>
+<path class="edge " d="M1050,150 V174 H590 V196" marker-end="url(#hn)"/>
+<text class="el " x="820" y="168" text-anchor="middle">MP3 per camera stop, generated once</text>
+<path class="edge " d="M990,229 H682" marker-end="url(#hn)"/>
+<text class="el " x="836" y="222" text-anchor="middle">model downloaded once by the team</text>
+<path class="edge " d="M500,229 H442" marker-end="url(#hn)"/>
+<text class="el " x="471" y="222" text-anchor="middle">model, audio</text>
+<path class="edge " d="M260,229 H210" marker-end="url(#hn)"/>
+<text class="el " x="235" y="222" text-anchor="middle">HTTPS</text>
+<text class="small-svg" x="28" y="284">The learner's phone never</text><text class="small-svg" x="28" y="300">contacts Sketchfab or ElevenLabs.</text>
+</svg>
+</div>
+    <figcaption>Each exhibit is prepared once. The team downloads a suitably licensed model from Sketchfab, the Writer drafts a short narration from the CAPS and ATP text (one clip per camera stop), the teacher approves it, and ElevenLabs renders the audio once. Learners then load the model, the audio and the camera stops from Cape Town, and the page moves the camera to each stop as its clip plays.</figcaption></figure>
+    <div class="tbl" style="margin-top:6px"><table>
+      <thead><tr><th>Subject</th><th>First exhibit</th><th>Where it sits in the ATP</th></tr></thead>
+      <tbody>
+        <tr><td>Mathematics</td><td>Solids that turn and unfold: prism, cylinder, cone, sphere, pyramid. Scaling one dimension by k shows its effect on volume and surface area</td><td>Grade 10 ATP 2023/24, Term 4, weeks 1–2: Measurement (volume and surface area of right prisms, cylinders, spheres, right pyramids and cones; the effect of multiplying a dimension by k)</td></tr>
+        <tr><td>Accounting</td><td>A small trading shop: stock on the shelves, the till, the delivery van. Each stop links a thing in the shop to assets, liabilities and owner's equity</td><td>Grade 10 ATP 2023/24: the accounting equation and the perpetual inventory system</td></tr>
+      </tbody>
+    </table></div>
+    <div class="pc" style="margin-top:12px">
+      <div><h4>Why this shape</h4><ul><li><b>Learners cannot use Sketchfab itself.</b> Its terms say "persons under the age of 18 are prohibited from registering with or using the Services" (§1.4), so the live Sketchfab viewer stays off learner pages. Sketchfab becomes the source library: an adult on the team downloads each model under a licence that allows it (CC-BY with credit shown in the hall, or CC0).</li><li>The audio is generated once from curriculum text, so no learner data ever reaches ElevenLabs, and learners' phones never contact it.</li><li>Models and audio come from Cape Town through CloudFront, with a size budget for phones on paid data.</li></ul></div>
+      <div><h4>Watch</h4><ul><li>A 3D viewer is a new library: Google's <code>&lt;model-viewer&gt;</code> web component, or three.js. Either is an architecture-plan stack change.</li><li>Sketchfab's own Viewer API (<code>gotoAnnotation</code>, <code>setCameraLookAt</code>, <code>annotationFocus</code>) would make the camera tour easier. It stays limited to teacher and team pages because of the under-18 rule.</li><li>Fitting Accounting models may be hard to find. Each licence is checked and recorded per model.</li><li>Every fact the narration states must trace to CAPS or the ATP (non-negotiable I), which is what the teacher's approval checks.</li></ul></div>
+    </div>
+    <p class="small" style="margin-top:12px"><b>Name:</b> we recommend <b>exhibition hall</b>. It is a room of exhibits that a learner walks between and plays at any time, which is what this is, and it is the name already in the record. An "auditorium" suggests one presentation that everyone watches together.</p>
+  </div>
+</section>
+
+<section>
+  <div class="col">
+    <div class="eyebrow">04 · Hosting options</div>
+    <h2>Five ways to run the models</h2>
+    <p>Everything except the models is the same in all five: the console, the core, the database and the learner side. The options differ only in where the models run, and therefore in what crosses the border. Green marks the models; red marks the crossings that carry people's data.</p>
+  </div>
+  <div class="tbl" style="margin-top:14px"><table>
+    <thead><tr><th></th><th>A · Open models, G4dn in Cape Town</th><th>B · Open models, Bedrock EU</th><th>C · School machine</th><th>D · Claude, Bedrock EU</th><th>E · Hybrid: Cape Town reader, Claude marks</th></tr></thead>
+    <tbody>
+      <tr><td>Where models run</td><td>Our own GPUs in af-south-1</td><td>AWS EU regions, managed</td><td>The school's laptop or server</td><td>AWS EU regions, managed</td><td>Reader on our G4dn; Claude in EU regions</td></tr>
+      <tr><td>What leaves South Africa</td><td><span class="pill sa">no learner data</span> only the teacher's voice</td><td><span class="pill cross">answer crops + pseudonymised text</span></td><td><span class="pill sa">nothing</span> unless the voice is on</td><td><span class="pill cross">answer crops + pseudonymised text</span></td><td><span class="pill cross">pseudonymised text only</span> no page images</td></tr>
+      <tr><td>POPIA position</td><td>Strongest in the cloud: no s72 transfer of learner data</td><td>Needs s72(1)(a): AWS's terms and GDPR-covered regions</td><td>Strongest overall: the data never leaves the school</td><td>Needs s72(1)(a), as for B</td><td>Needs s72(1)(a), for text only. Handwriting never leaves</td></tr>
+      <tr><td>How it is billed</td><td>Per GPU hour while running; stop it after the event</td><td>Per token</td><td>Hardware the school already has</td><td>Per token, at Claude prices</td><td>GPU hours for reading, plus tokens for marking</td></tr>
+      <tr><td>Biggest risk before Friday</td><td>The quota was granted 11 Nov (8 vCPUs). The risk now is <b>capacity</b>: a start on 12 Nov hit <code>InsufficientInstanceCapacity</code> for about 2½ minutes (options in section 10)</td><td>Bedrock quota, and the s72 basis for sending data abroad</td><td>Speed: the demo laptop has no GPU</td><td>Bedrock quota on a new account, and the af-south-1 runtime question (we call Frankfurt directly)</td><td>Two quotas (G4dn and Bedrock), and two bills</td></tr>
+      <tr><td>Verdict</td><td><b>Decided and deployed</b> (10 and 11 Nov)</td><td>Fallback if the GPU quota is refused</td><td>Kept as the offline fallback; the pitch for low-connectivity schools</td><td>Simplest build; most data crosses</td><td><b>Strongest Claude option.</b> The eval decides between A and E</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="opt" style="margin-top:36px">
+    <div class="opt-head"><h3>Option A · Everything in Cape Town on EC2 G4dn</h3><span class="pill sa">decided · deployed</span></div>
+    <figure><div class="mapframe"><svg viewBox="0 0 1280 712" role="img" class="map" aria-label="Option A: every model runs on EC2 G4dn GPUs in Cape Town, so learner data never leaves South Africa; only the teacher&#x27;s voice crosses the border.">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk" d="M0,0 L10,5 L0,10 z"/></marker><marker id="ahr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mkr" d="M0,0 L10,5 L0,10 z"/></marker><marker id="ahg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mkg" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+<rect class="zone" x="12" y="20" width="212" height="330" rx="10"/>
+<rect class="zone" x="12" y="366" width="212" height="334" rx="10"/>
+<rect class="zone sa" x="244" y="20" width="698" height="680" rx="10"/>
+<rect class="zone out" x="974" y="20" width="302" height="680" rx="10"/>
+<text class="zh" x="28" y="42">Teacher</text>
+<text class="zh" x="28" y="388">Learners and parents</text>
+<text class="zh sa" x="260" y="42">AWS af-south-1 · Cape Town</text>
+<text class="zh" x="990" y="42">Outside SA</text>
+<text class="band" x="260" y="88">EDGE</text>
+<text class="band" x="260" y="188">COMPUTE</text>
+<text class="band hi" x="260" y="288">MODELS · ONE G4DN.XLARGE, AF-SOUTH-1B</text>
+<text class="band" x="260" y="388">DATA</text>
+<text class="band" x="260" y="488">SUPPORTING</text>
+<text class="band" x="260" y="588">OPERATIONS</text>
+<line class="border" x1="958" y1="10" x2="958" y2="704"/>
+<text class="bordertxt" transform="translate(965 690) rotate(-90)">South African border · POPIA s72 governs what crosses</text>
+<g class="node "><rect x="28" y="96" width="180" height="62" rx="6"/><text class="t1" x="39" y="117">Teacher console</text><text class="t2" x="39" y="134">React · phone or laptop</text><text class="t3" x="39" y="150">CLIENT</text>
+</g>
+<g class="node later"><rect x="28" y="196" width="180" height="62" rx="6"/><text class="t1" x="39" y="217">Demo laptop</text><text class="t2" x="39" y="234">same stack + Ollama</text><text class="t3" x="39" y="250">OFFLINE FALLBACK</text>
+</g>
+<g class="node learner"><rect x="28" y="396" width="180" height="62" rx="6"/><text class="t1" x="39" y="417">Learner</text><text class="t2" x="39" y="434">note page on a phone</text><text class="t3" x="39" y="450">SIGNED LINK, NO ACCOUNT</text>
+</g>
+<g class="node learner"><rect x="28" y="496" width="180" height="62" rx="6"/><text class="t1" x="39" y="517">Parent</text><text class="t2" x="39" y="534">email or printed note</text><text class="t3" x="39" y="550">AFTER APPROVAL ONLY</text>
+</g>
+<text class="small-svg" x="28" y="600">Printed notes carry a QR code</text>
+<text class="small-svg" x="28" y="616">to the same page, so no learner</text>
+<text class="small-svg" x="28" y="632">contact details are needed.</text>
+<g class="node "><rect x="260" y="96" width="180" height="62" rx="6"/><text class="t1" x="271" y="117">Script uploads</text><text class="t2" x="271" y="134">S3 · KMS</text><text class="t3" x="271" y="150">DATA · PAGE PHOTOS</text>
+</g>
+<g class="node "><rect x="500" y="96" width="180" height="62" rx="6"/><text class="t1" x="511" y="117">API entry</text><text class="t2" x="511" y="134">Application LB</text><text class="t3" x="511" y="150">EDGE · LOAD BALANCER</text>
+</g>
+<g class="node "><rect x="740" y="96" width="180" height="62" rx="6"/><text class="t1" x="751" y="117">Front door</text><text class="t2" x="751" y="134">CloudFront + S3</text><text class="t3" x="751" y="150">EDGE · CDN + CONSOLE</text>
+</g>
+<g class="node "><rect x="260" y="196" width="180" height="62" rx="6"/><text class="t1" x="271" y="217">Intake</text><text class="t2" x="271" y="234">in the core task today</text><text class="t3" x="271" y="250">CROP COVER · PSEUDONYMISE</text>
+<rect class="badge" x="411" y="203" width="22" height="17" rx="8.5"/><text class="badgetxt" x="422.0" y="215.5">D5</text>
+</g>
+<g class="node "><rect x="500" y="196" width="180" height="62" rx="6"/><text class="t1" x="511" y="217">Core: Planner + agents</text><text class="t2" x="511" y="234">ECS Fargate · LangGraph</text><text class="t3" x="511" y="250">COMPUTE · RULES IN CODE</text>
+</g>
+<g class="node "><rect x="740" y="196" width="180" height="62" rx="6"/><text class="t1" x="751" y="217">Knowledge service</text><text class="t2" x="751" y="234">ECS Fargate</text><text class="t3" x="751" y="250">EMBEDS ON CPU · PGVECTOR</text>
+<rect class="badge" x="891" y="203" width="22" height="17" rx="8.5"/><text class="badgetxt" x="902.0" y="215.5">D7</text>
+</g>
+<g class="node insa"><rect x="260" y="296" width="180" height="62" rx="6"/><text class="t1" x="271" y="317">Page reader</text><text class="t2" x="271" y="334">qwen3-vl:8b-instruct</text><text class="t3" x="271" y="350">VISION · G4DN</text>
+<rect class="badge" x="411" y="303" width="22" height="17" rx="8.5"/><text class="badgetxt" x="422.0" y="315.5">D4</text>
+</g>
+<g class="node insa"><rect x="500" y="296" width="180" height="62" rx="6"/><text class="t1" x="511" y="317">Marker + writers</text><text class="t2" x="511" y="334">Ollama · qwen3:14b ×4</text><text class="t3" x="511" y="350">TEXT · G4DN</text>
+<rect class="badge" x="651" y="303" width="22" height="17" rx="8.5"/><text class="badgetxt" x="662.0" y="315.5">D6</text>
+</g>
+<g class="node insa"><rect x="740" y="296" width="180" height="62" rx="6"/><text class="t1" x="751" y="317">Moderator</text><text class="t2" x="751" y="334">Ollama · phi4 (14B)</text><text class="t3" x="751" y="350">OTHER FAMILY · G4DN</text>
+</g>
+<g class="node "><rect x="260" y="396" width="180" height="62" rx="6"/><text class="t1" x="271" y="417">Bundles + note pages</text><text class="t2" x="271" y="434">S3 · KMS · signed links</text><text class="t3" x="271" y="450">PDF REPORT · LEARNER NOTES</text>
+<rect class="badge" x="404" y="403" width="29" height="17" rx="8.5"/><text class="badgetxt" x="418.5" y="415.5">D10</text>
+</g>
+<g class="node "><rect x="500" y="396" width="180" height="62" rx="6"/><text class="t1" x="511" y="417">Assessment database</text><text class="t2" x="511" y="434">RDS Postgres 17</text><text class="t3" x="511" y="450">SQL + PGVECTOR</text>
+</g>
+<g class="node "><rect x="740" y="396" width="180" height="62" rx="6"/><text class="t1" x="751" y="417">Curriculum sources</text><text class="t2" x="751" y="434">S3 · DBE PDFs, packs</text><text class="t3" x="751" y="450">DATA · PUBLIC</text>
+</g>
+<g class="node "><rect x="260" y="496" width="180" height="62" rx="6"/><text class="t1" x="271" y="517">Email after approval</text><text class="t2" x="271" y="534">Amazon SES</text><text class="t3" x="271" y="550">MESSAGING · OUTBOUND</text>
+</g>
+<g class="node "><rect x="500" y="496" width="180" height="62" rx="6"/><text class="t1" x="511" y="517">Teacher sign-in</text><text class="t2" x="511" y="534">Amazon Cognito</text><text class="t3" x="511" y="550">SECURITY · IDENTITY</text>
+<rect class="badge" x="644" y="503" width="29" height="17" rx="8.5"/><text class="badgetxt" x="658.5" y="515.5">new</text>
+</g>
+<g class="node "><rect x="740" y="496" width="180" height="62" rx="6"/><text class="t1" x="751" y="517">Keys and secrets</text><text class="t2" x="751" y="534">Secrets Manager + KMS</text><text class="t3" x="751" y="550">SECURITY</text>
+</g>
+<g class="node "><rect x="260" y="596" width="180" height="62" rx="6"/><text class="t1" x="271" y="617">Logs and audit</text><text class="t2" x="271" y="634">CloudWatch + CloudTrail</text><text class="t3" x="271" y="650">OPERATIONS</text>
+</g>
+<g class="node "><rect x="500" y="596" width="180" height="62" rx="6"/><text class="t1" x="511" y="617">Eval runner</text><text class="t2" x="511" y="634">laptop, SSM port-forward</text><text class="t3" x="511" y="650">ON DEMAND · CALLS OLLAMA</text>
+<rect class="badge" x="651" y="603" width="22" height="17" rx="8.5"/><text class="badgetxt" x="662.0" y="615.5">D9</text>
+</g>
+<g class="node "><rect x="740" y="596" width="180" height="62" rx="6"/><text class="t1" x="751" y="617">Container images</text><text class="t2" x="751" y="634">Amazon ECR</text><text class="t3" x="751" y="650">OPERATIONS · REGISTRY</text>
+</g>
+<g class="node "><rect x="990" y="96" width="270" height="62" rx="6"/><text class="t1" x="1001" y="117">Voice colleague</text><text class="t2" x="1001" y="134">ElevenLabs Agents · US default</text><text class="t3" x="1001" y="150">EXTERNAL SAAS · VOICE</text>
+<rect class="badge" x="1231" y="103" width="22" height="17" rx="8.5"/><text class="badgetxt" x="1242.0" y="115.5">D1</text>
+</g>
+<g class="node "><rect x="990" y="596" width="270" height="62" rx="6"/><text class="t1" x="1001" y="617">Repo + CI gate</text><text class="t2" x="1001" y="634">GitHub Actions</text><text class="t3" x="1001" y="650">OPERATIONS · CI/CD</text>
+<rect class="badge" x="1231" y="603" width="22" height="17" rx="8.5"/><text class="badgetxt" x="1242.0" y="615.5">D8</text>
+</g>
+<path class="edge " d="M118,96 V70 H830 V94" marker-end="url(#ah)"/>
+<text class="el " x="470" y="66" text-anchor="middle">HTTPS</text>
+<path class="edge red" d="M150,96 V56 H1125 V94" marker-end="url(#ahr)" marker-start="url(#ahr)"/>
+<text class="el red" x="640" y="52" text-anchor="middle">teacher&#x27;s voice and spoken replies · no learner names</text>
+<path class="edge " d="M208,135 H258" marker-end="url(#ah)"/>
+<text class="el " x="233" y="129" text-anchor="middle">photos, PDFs</text>
+<path class="edge " d="M740,127 H682" marker-end="url(#ah)"/>
+<text class="el " x="711" y="120" text-anchor="middle">/api</text>
+<path class="edge " d="M590,158 V194" marker-end="url(#ah)"/>
+<text class="el " x="598" y="184" text-anchor="start">API + live log</text>
+<path class="edge " d="M350,158 V194" marker-end="url(#ah)"/>
+<text class="el " x="358" y="184" text-anchor="start">new pages</text>
+<path class="edge " d="M440,227 H498" marker-end="url(#ah)"/>
+<text class="el " x="470" y="220" text-anchor="middle">no names</text>
+<path class="edge " d="M680,227 H738" marker-end="url(#ah)"/>
+<text class="el " x="710" y="220" text-anchor="middle">cite</text>
+<path class="edge " d="M500,246 H470 V427 H498" marker-end="url(#ah)"/>
+<text class="el " x="466" y="382" text-anchor="end">marks, state</text>
+<path class="edge " d="M470,427 H442" marker-end="url(#ah)"/>
+<text class="el " x="470" y="443" text-anchor="middle">bundle</text>
+<path class="edge hi" d="M350,258 V294" marker-end="url(#ahg)" marker-start="url(#ahg)"/>
+<text class="el hi" x="358" y="284" text-anchor="start">pages ⇄ text</text>
+<path class="edge hi" d="M590,258 V294" marker-end="url(#ahg)"/>
+<text class="el hi" x="598" y="284" text-anchor="start">briefs</text>
+<path class="edge hi" d="M660,258 L760,294" marker-end="url(#ahg)"/>
+<text class="el hi" x="722" y="282" text-anchor="start">blind sample</text>
+<path class="edge " d="M260,427 H210" marker-end="url(#ah)"/>
+<text class="el " x="236" y="420" text-anchor="middle">note</text>
+<path class="edge " d="M260,527 H210" marker-end="url(#ah)"/>
+<text class="el " x="236" y="520" text-anchor="middle">email</text>
+<path class="edge " d="M990,627 H922" marker-end="url(#ah)"/>
+<text class="el " x="958" y="620" text-anchor="middle">images</text>
+</svg>
+</div>
+    <figcaption>Learner work never leaves Cape Town. The intake worker sends page photos to the reader model on a G4dn and gets text back, then hands the core text with no names. The core sends Briefs to the marker model and a blind sample to a moderator from a different family, all on the same GPUs. Embeddings run on the knowledge service's CPU. Only the teacher's voice (to ElevenLabs) and container images (from GitHub) cross the border. As deployed on 11 Nov, the intake code runs inside the core task (a separate intake service is added with its task), and the eval runs from the laptop through a Session Manager port-forward to Ollama.</figcaption></figure>
+    <div class="pc">
+      <div><h4>Why</h4><ul><li>No learner data leaves South Africa, including what the models read.</li><li><code>mothusi_llm</code>'s Ollama provider already works, so the G4dn needs no new adapter, and qwen3:14b is already on the laptop.</li><li>Billed per GPU hour (g4dn.xlarge $0.698/h in Cape Town), and the instance can be stopped between sets.</li><li>The same models run on the laptop fallback, so the prompts are tuned once.</li><li>A managed variant exists: SageMaker real-time endpoints on ml.g4dn run in Cape Town too ($0.977/h for xlarge).</li></ul></div>
+      <div><h4>Watch</h4><ul><li><b>Capacity, not quota.</b> The quota was granted 11 Nov. g4dn.xlarge is offered only in af-south-1b and 1c, so the host sits in 1b, and on 12 Nov a start was refused for about 2½ minutes (<code>InsufficientInstanceCapacity</code>). <code>ops.sh</code> now starts the GPU before RDS, so a refusal costs nothing.</li><li><b>Speed, measured 12 Nov.</b> The T4 is an older GPU: 16 GB, fp16 only, no FlashAttention-2. qwen3:14b decodes about 17 tokens/s alone and about 25 tokens/s across four requests at once, so the host serves 4 in parallel and the Planner marks in batches of 4. A Marker call still takes 64 s at the median (110 s at p95), over the 30 s target. Thinking is off for every role.</li><li>Ollama loads one model at a time (a cold load of qwen3:14b took 75 s), so each swap between reader, marker and moderator costs time. A g4dn.12xlarge (four T4s) keeps them all loaded.</li><li>In the 12 Nov eval every phi4 Moderator call hit the 180 s client timeout. The cause is being investigated.</li><li>No model card publishes a handwriting score. Open models may mark less accurately than Claude; the rules in code turn bad marks into logged retries, and the eval measures agreement.</li><li>Gemma 3 and 4 are unstable on a T4 in fp16, so we avoid them.</li></ul></div>
+    </div>
+  </div>
+
+  <div class="opt" style="margin-top:36px">
+    <div class="opt-head"><h3>Option B · Cape Town data, open models on Bedrock in the EU</h3><span class="pill cross">data crosses</span></div>
+    <figure><div class="mapframe"><svg viewBox="0 0 1280 712" role="img" class="map" aria-label="Option B: the Cape Town stack calls open-weight models on Bedrock in the EU, so pseudonymised text and answer crops cross the border.">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk" d="M0,0 L10,5 L0,10 z"/></marker><marker id="ahr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mkr" d="M0,0 L10,5 L0,10 z"/></marker><marker id="ahg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mkg" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+<rect class="zone" x="12" y="20" width="212" height="330" rx="10"/>
+<rect class="zone" x="12" y="366" width="212" height="334" rx="10"/>
+<rect class="zone sa" x="244" y="20" width="698" height="680" rx="10"/>
+<rect class="zone out" x="974" y="20" width="302" height="680" rx="10"/>
+<text class="zh" x="28" y="42">Teacher</text>
+<text class="zh" x="28" y="388">Learners and parents</text>
+<text class="zh sa" x="260" y="42">AWS af-south-1 · Cape Town</text>
+<text class="zh" x="990" y="42">Outside SA · EU models</text>
+<text class="band" x="260" y="88">EDGE</text>
+<text class="band" x="260" y="188">COMPUTE</text>
+<text class="band hi" x="260" y="288">MODELS · NONE IN CAPE TOWN</text>
+<text class="band" x="260" y="388">DATA</text>
+<text class="band" x="260" y="488">SUPPORTING</text>
+<text class="band" x="260" y="588">OPERATIONS</text>
+<line class="border" x1="958" y1="10" x2="958" y2="704"/>
+<text class="bordertxt" transform="translate(965 690) rotate(-90)">South African border · POPIA s72 governs what crosses</text>
+<g class="node "><rect x="28" y="96" width="180" height="62" rx="6"/><text class="t1" x="39" y="117">Teacher console</text><text class="t2" x="39" y="134">React · phone or laptop</text><text class="t3" x="39" y="150">CLIENT</text>
+</g>
+<g class="node later"><rect x="28" y="196" width="180" height="62" rx="6"/><text class="t1" x="39" y="217">Demo laptop</text><text class="t2" x="39" y="234">same stack + Ollama</text><text class="t3" x="39" y="250">OFFLINE FALLBACK</text>
+</g>
+<g class="node learner"><rect x="28" y="396" width="180" height="62" rx="6"/><text class="t1" x="39" y="417">Learner</text><text class="t2" x="39" y="434">note page on a phone</text><text class="t3" x="39" y="450">SIGNED LINK, NO ACCOUNT</text>
+</g>
+<g class="node learner"><rect x="28" y="496" width="180" height="62" rx="6"/><text class="t1" x="39" y="517">Parent</text><text class="t2" x="39" y="534">email or printed note</text><text class="t3" x="39" y="550">AFTER APPROVAL ONLY</text>
+</g>
+<text class="small-svg" x="28" y="600">Printed notes carry a QR code</text>
+<text class="small-svg" x="28" y="616">to the same page, so no learner</text>
+<text class="small-svg" x="28" y="632">contact details are needed.</text>
+<g class="node "><rect x="260" y="96" width="180" height="62" rx="6"/><text class="t1" x="271" y="117">Script uploads</text><text class="t2" x="271" y="134">S3 · KMS</text><text class="t3" x="271" y="150">DATA · PAGE PHOTOS</text>
+</g>
+<g class="node "><rect x="500" y="96" width="180" height="62" rx="6"/><text class="t1" x="511" y="117">API entry</text><text class="t2" x="511" y="134">Application LB</text><text class="t3" x="511" y="150">EDGE · LOAD BALANCER</text>
+</g>
+<g class="node "><rect x="740" y="96" width="180" height="62" rx="6"/><text class="t1" x="751" y="117">Front door</text><text class="t2" x="751" y="134">CloudFront + S3</text><text class="t3" x="751" y="150">EDGE · CDN + CONSOLE</text>
+</g>
+<g class="node "><rect x="260" y="196" width="180" height="62" rx="6"/><text class="t1" x="271" y="217">Intake worker</text><text class="t2" x="271" y="234">ECS Fargate</text><text class="t3" x="271" y="250">CROP COVER · PSEUDONYMISE</text>
+<rect class="badge" x="411" y="203" width="22" height="17" rx="8.5"/><text class="badgetxt" x="422.0" y="215.5">D5</text>
+</g>
+<g class="node "><rect x="500" y="196" width="180" height="62" rx="6"/><text class="t1" x="511" y="217">Core: Planner + agents</text><text class="t2" x="511" y="234">ECS Fargate · LangGraph</text><text class="t3" x="511" y="250">COMPUTE · RULES IN CODE</text>
+</g>
+<g class="node "><rect x="740" y="196" width="180" height="62" rx="6"/><text class="t1" x="751" y="217">Knowledge service</text><text class="t2" x="751" y="234">ECS Fargate</text><text class="t3" x="751" y="250">EMBEDS ON CPU · PGVECTOR</text>
+<rect class="badge" x="891" y="203" width="22" height="17" rx="8.5"/><text class="badgetxt" x="902.0" y="215.5">D7</text>
+</g>
+<rect class="empty" x="260" y="296" width="660" height="62" rx="6"/>
+<text class="emptytxt" x="590" y="332" text-anchor="middle">Bedrock has no model in Cape Town: every model call goes to the EU</text>
+<g class="node "><rect x="260" y="396" width="180" height="62" rx="6"/><text class="t1" x="271" y="417">Bundles + note pages</text><text class="t2" x="271" y="434">S3 · KMS · signed links</text><text class="t3" x="271" y="450">PDF REPORT · LEARNER NOTES</text>
+<rect class="badge" x="404" y="403" width="29" height="17" rx="8.5"/><text class="badgetxt" x="418.5" y="415.5">D10</text>
+</g>
+<g class="node "><rect x="500" y="396" width="180" height="62" rx="6"/><text class="t1" x="511" y="417">Assessment database</text><text class="t2" x="511" y="434">RDS Postgres 17</text><text class="t3" x="511" y="450">SQL + PGVECTOR</text>
+</g>
+<g class="node "><rect x="740" y="396" width="180" height="62" rx="6"/><text class="t1" x="751" y="417">Curriculum sources</text><text class="t2" x="751" y="434">S3 · DBE PDFs, packs</text><text class="t3" x="751" y="450">DATA · PUBLIC</text>
+</g>
+<g class="node "><rect x="260" y="496" width="180" height="62" rx="6"/><text class="t1" x="271" y="517">Email after approval</text><text class="t2" x="271" y="534">Amazon SES</text><text class="t3" x="271" y="550">MESSAGING · OUTBOUND</text>
+</g>
+<g class="node "><rect x="500" y="496" width="180" height="62" rx="6"/><text class="t1" x="511" y="517">Teacher sign-in</text><text class="t2" x="511" y="534">Amazon Cognito</text><text class="t3" x="511" y="550">SECURITY · IDENTITY</text>
+<rect class="badge" x="644" y="503" width="29" height="17" rx="8.5"/><text class="badgetxt" x="658.5" y="515.5">new</text>
+</g>
+<g class="node "><rect x="740" y="496" width="180" height="62" rx="6"/><text class="t1" x="751" y="517">Keys and secrets</text><text class="t2" x="751" y="534">Secrets Manager + KMS</text><text class="t3" x="751" y="550">SECURITY</text>
+</g>
+<g class="node "><rect x="260" y="596" width="180" height="62" rx="6"/><text class="t1" x="271" y="617">Logs and audit</text><text class="t2" x="271" y="634">CloudWatch + CloudTrail</text><text class="t3" x="271" y="650">OPERATIONS</text>
+</g>
+<g class="node "><rect x="500" y="596" width="180" height="62" rx="6"/><text class="t1" x="511" y="617">Eval runner</text><text class="t2" x="511" y="634">ECS task, on demand</text><text class="t3" x="511" y="650">COMPUTE · ONE-OFF</text>
+<rect class="badge" x="651" y="603" width="22" height="17" rx="8.5"/><text class="badgetxt" x="662.0" y="615.5">D9</text>
+</g>
+<g class="node "><rect x="740" y="596" width="180" height="62" rx="6"/><text class="t1" x="751" y="617">Container images</text><text class="t2" x="751" y="634">Amazon ECR</text><text class="t3" x="751" y="650">OPERATIONS · REGISTRY</text>
+</g>
+<g class="node "><rect x="990" y="96" width="270" height="62" rx="6"/><text class="t1" x="1001" y="117">Voice colleague</text><text class="t2" x="1001" y="134">ElevenLabs Agents · US default</text><text class="t3" x="1001" y="150">EXTERNAL SAAS · VOICE</text>
+<rect class="badge" x="1231" y="103" width="22" height="17" rx="8.5"/><text class="badgetxt" x="1242.0" y="115.5">D1</text>
+</g>
+<g class="node "><rect x="990" y="596" width="270" height="62" rx="6"/><text class="t1" x="1001" y="617">Repo + CI gate</text><text class="t2" x="1001" y="634">GitHub Actions</text><text class="t3" x="1001" y="650">OPERATIONS · CI/CD</text>
+<rect class="badge" x="1231" y="603" width="22" height="17" rx="8.5"/><text class="badgetxt" x="1242.0" y="615.5">D8</text>
+</g>
+<g class="node cross"><rect x="990" y="296" width="270" height="62" rx="6"/><text class="t1" x="1001" y="317">Open-weight models</text><text class="t2" x="1001" y="334">eu-west-1 · Qwen3-VL, gpt-oss</text><text class="t3" x="1001" y="350">BEDROCK EU · PER TOKEN</text>
+<rect class="badge" x="1210" y="303" width="43" height="17" rx="8.5"/><text class="badgetxt" x="1231.5" y="315.5">D4 D6</text>
+</g>
+<path class="edge " d="M118,96 V70 H830 V94" marker-end="url(#ah)"/>
+<text class="el " x="470" y="66" text-anchor="middle">HTTPS</text>
+<path class="edge red" d="M150,96 V56 H1125 V94" marker-end="url(#ahr)" marker-start="url(#ahr)"/>
+<text class="el red" x="640" y="52" text-anchor="middle">teacher&#x27;s voice and spoken replies · no learner names</text>
+<path class="edge " d="M208,135 H258" marker-end="url(#ah)"/>
+<text class="el " x="233" y="129" text-anchor="middle">photos, PDFs</text>
+<path class="edge " d="M740,127 H682" marker-end="url(#ah)"/>
+<text class="el " x="711" y="120" text-anchor="middle">/api</text>
+<path class="edge " d="M590,158 V194" marker-end="url(#ah)"/>
+<text class="el " x="598" y="184" text-anchor="start">API + live log</text>
+<path class="edge " d="M350,158 V194" marker-end="url(#ah)"/>
+<text class="el " x="358" y="184" text-anchor="start">new pages</text>
+<path class="edge " d="M440,227 H498" marker-end="url(#ah)"/>
+<text class="el " x="470" y="220" text-anchor="middle">no names</text>
+<path class="edge " d="M680,227 H738" marker-end="url(#ah)"/>
+<text class="el " x="710" y="220" text-anchor="middle">cite</text>
+<path class="edge " d="M500,246 H470 V427 H498" marker-end="url(#ah)"/>
+<text class="el " x="466" y="382" text-anchor="end">marks, state</text>
+<path class="edge " d="M470,427 H442" marker-end="url(#ah)"/>
+<text class="el " x="470" y="443" text-anchor="middle">bundle</text>
+<path class="edge red" d="M630,258 V282 H970 V327 H988" marker-end="url(#ahr)"/>
+<text class="el red" x="975" y="276" text-anchor="end">answer crops + pseudonymised text</text>
+<path class="edge " d="M260,427 H210" marker-end="url(#ah)"/>
+<text class="el " x="236" y="420" text-anchor="middle">note</text>
+<path class="edge " d="M260,527 H210" marker-end="url(#ah)"/>
+<text class="el " x="236" y="520" text-anchor="middle">email</text>
+<path class="edge " d="M990,627 H922" marker-end="url(#ah)"/>
+<text class="el " x="958" y="620" text-anchor="middle">images</text>
+</svg>
+</div>
+    <figcaption>The models band in Cape Town is empty because Bedrock has no model there. The core sends cover-less answer crops and pseudonymised text to open-weight models running in-region in Ireland (eu-west-1): Qwen3-VL-235B reads, and Qwen3-32B or gpt-oss-120b marks. Names, covers, marks and bundles stay in Cape Town.</figcaption></figure>
+    <div class="pc">
+      <div><h4>Why</h4><ul><li>Models far larger than a T4 holds, including a vision model (Qwen3-VL-235B) running in-region in Ireland.</li><li>No GPU for us to run or patch.</li><li>Billed per token, with nothing running between sets.</li></ul></div>
+      <div><h4>Watch</h4><ul><li>Learner-derived data leaves South Africa: s72(1)(a).</li><li>Still paid per token. Third-party Bedrock models may be billed through AWS Marketplace, which credits usually do not cover (unverified).</li><li>A new <code>mothusi_llm</code> adapter (Bedrock Converse).</li></ul></div>
+    </div>
+  </div>
+
+  <div class="opt" style="margin-top:36px">
+    <div class="opt-head"><h3>Option C · Everything on a school machine</h3><span class="pill sa">nothing leaves</span></div>
+    <figure><div class="mapframe"><svg viewBox="0 0 1280 330" role="img" class="map" aria-label="Option C: the whole stack runs on a laptop or server at the school, with models on Ollama; nothing about learners leaves the building and notes go home on paper.">
+<defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk" d="M0,0 L10,5 L0,10 z"/></marker><marker id="ahr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mkr" d="M0,0 L10,5 L0,10 z"/></marker><marker id="ahg2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mkg" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+<rect class="zone sa" x="12" y="20" width="930" height="300" rx="10"/>
+<rect class="zone out" x="974" y="20" width="294" height="300" rx="10"/>
+<text class="zh sa" x="28" y="42">The school · one laptop or server, docker-compose</text>
+<text class="zh" x="990" y="42">Outside SA</text>
+<line class="border" x1="958" y1="10" x2="958" y2="324"/>
+<g class="node "><rect x="28" y="70" width="190" height="62" rx="6"/><text class="t1" x="39" y="91">Teacher console</text><text class="t2" x="39" y="108">browser · localhost</text><text class="t3" x="39" y="124">CLIENT</text></g>
+<g class="node "><rect x="268" y="70" width="410" height="62" rx="6"/><text class="t1" x="279" y="91">Core: Planner + agents, intake, knowledge</text><text class="t2" x="279" y="108">the same containers as on AWS</text><text class="t3" x="279" y="124">COMPUTE · RULES IN CODE</text></g>
+<g class="node "><rect x="728" y="70" width="196" height="62" rx="6"/><text class="t1" x="739" y="91">Postgres 17 + pgvector</text><text class="t2" x="739" y="108">docker volume</text><text class="t3" x="739" y="124">DATA</text></g>
+<g class="node insa"><rect x="268" y="180" width="196" height="62" rx="6"/><text class="t1" x="279" y="201">Page reader</text><text class="t2" x="279" y="218">Ollama · qwen3-vl:8b-instruct</text><text class="t3" x="279" y="234">VISION · OLLAMA</text></g>
+<g class="node insa"><rect x="482" y="180" width="196" height="62" rx="6"/><text class="t1" x="493" y="201">Marker + moderator</text><text class="t2" x="493" y="218">Ollama · qwen3:14b, phi4</text><text class="t3" x="493" y="234">TEXT · OLLAMA</text></g>
+<g class="node "><rect x="728" y="180" width="196" height="62" rx="6"/><text class="t1" x="739" y="201">Bundle folder + Maildir</text><text class="t2" x="739" y="218">files on the machine</text><text class="t3" x="739" y="234">PRINTED NOTES · QR</text></g>
+<g class="node learner"><rect x="28" y="180" width="190" height="62" rx="6"/><text class="t1" x="39" y="201">Learners and parents</text><text class="t2" x="39" y="218">printed notes</text><text class="t3" x="39" y="234">NO CONTACT DETAILS</text></g>
+<g class="node later"><rect x="990" y="70" width="262" height="62" rx="6"/><text class="t1" x="1001" y="91">Voice colleague (optional)</text><text class="t2" x="1001" y="108">ElevenLabs Agents</text><text class="t3" x="1001" y="124">NEEDS INTERNET</text></g>
+<g class="node "><rect x="990" y="180" width="262" height="62" rx="6"/><text class="t1" x="1001" y="201">Repo + CI gate</text><text class="t2" x="1001" y="218">GitHub Actions</text><text class="t3" x="1001" y="234">CODE ONLY</text></g>
+<path class="edge " d="M218,101 H266" marker-end="url(#ah2)"/>
+<text class="el " x="242" y="94" text-anchor="middle">local</text>
+<path class="edge " d="M678,101 H726" marker-end="url(#ah2)"/>
+<text class="el " x="702" y="94" text-anchor="middle">state</text>
+<path class="edge hi" d="M366,132 V178" marker-end="url(#ahg2)" marker-start="url(#ahg2)"/>
+<text class="el hi" x="374" y="160" text-anchor="start">pages ⇄ text</text>
+<path class="edge hi" d="M580,132 V178" marker-end="url(#ahg2)"/>
+<text class="el hi" x="588" y="160" text-anchor="start">briefs</text>
+<path class="edge " d="M640,132 L760,178" marker-end="url(#ah2)"/>
+<text class="el " x="712" y="150" text-anchor="start">bundle</text>
+<path class="edge " d="M826,242 V274 H123 V246" marker-end="url(#ah2)"/>
+<text class="el " x="470" y="268" text-anchor="middle">printed after the teacher approves</text>
+<path class="edge red" d="M218,90 V58 H1120 V68" marker-end="url(#ahr2)" marker-start="url(#ahr2)"/>
+<text class="el red" x="640" y="54" text-anchor="middle">teacher&#x27;s voice · optional</text>
+<text class="small-svg" x="28" y="306">CPU only on the current demo laptop (22 GB RAM, no GPU): a school server with a GPU would be faster.</text>
+</svg>
+</div>
+    <figcaption>The same containers run under docker-compose on one machine at the school, with the models on Ollama. Nothing about learners leaves the building, and notes go home printed. This is today's offline fallback.</figcaption></figure>
+    <div class="pc">
+      <div><h4>Why</h4><ul><li>Nothing leaves the school, which is the strongest POPIA position.</li><li>No cloud bill.</li><li>Already built: it is today's offline fallback.</li><li>Fits schools with poor connectivity, a real pitch point.</li></ul></div>
+      <div><h4>Watch</h4><ul><li>The demo laptop has no GPU (22 GB RAM, CPU only), so a 32-script set will be slow (unmeasured).</li><li>No live URL for the judges.</li><li>One machine is a single point of failure.</li></ul></div>
+    </div>
+  </div>
+
+  <div class="opt" style="margin-top:36px">
+    <div class="opt-head"><h3>Option D · Claude on Bedrock in the EU</h3><span class="pill cross">data crosses</span></div>
+    <figure><div class="mapframe"><svg viewBox="0 0 1280 712" role="img" class="map" aria-label="Option D: the Cape Town stack calls Claude on Bedrock through the EU profile, so answer crops and pseudonymised text cross the border.">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk" d="M0,0 L10,5 L0,10 z"/></marker><marker id="ahr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mkr" d="M0,0 L10,5 L0,10 z"/></marker><marker id="ahg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mkg" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+<rect class="zone" x="12" y="20" width="212" height="330" rx="10"/>
+<rect class="zone" x="12" y="366" width="212" height="334" rx="10"/>
+<rect class="zone sa" x="244" y="20" width="698" height="680" rx="10"/>
+<rect class="zone out" x="974" y="20" width="302" height="680" rx="10"/>
+<text class="zh" x="28" y="42">Teacher</text>
+<text class="zh" x="28" y="388">Learners and parents</text>
+<text class="zh sa" x="260" y="42">AWS af-south-1 · Cape Town</text>
+<text class="zh" x="990" y="42">Outside SA · EU models</text>
+<text class="band" x="260" y="88">EDGE</text>
+<text class="band" x="260" y="188">COMPUTE</text>
+<text class="band hi" x="260" y="288">MODELS · NONE IN CAPE TOWN</text>
+<text class="band" x="260" y="388">DATA</text>
+<text class="band" x="260" y="488">SUPPORTING</text>
+<text class="band" x="260" y="588">OPERATIONS</text>
+<line class="border" x1="958" y1="10" x2="958" y2="704"/>
+<text class="bordertxt" transform="translate(965 690) rotate(-90)">South African border · POPIA s72 governs what crosses</text>
+<g class="node "><rect x="28" y="96" width="180" height="62" rx="6"/><text class="t1" x="39" y="117">Teacher console</text><text class="t2" x="39" y="134">React · phone or laptop</text><text class="t3" x="39" y="150">CLIENT</text>
+</g>
+<g class="node later"><rect x="28" y="196" width="180" height="62" rx="6"/><text class="t1" x="39" y="217">Demo laptop</text><text class="t2" x="39" y="234">same stack + Ollama</text><text class="t3" x="39" y="250">OFFLINE FALLBACK</text>
+</g>
+<g class="node learner"><rect x="28" y="396" width="180" height="62" rx="6"/><text class="t1" x="39" y="417">Learner</text><text class="t2" x="39" y="434">note page on a phone</text><text class="t3" x="39" y="450">SIGNED LINK, NO ACCOUNT</text>
+</g>
+<g class="node learner"><rect x="28" y="496" width="180" height="62" rx="6"/><text class="t1" x="39" y="517">Parent</text><text class="t2" x="39" y="534">email or printed note</text><text class="t3" x="39" y="550">AFTER APPROVAL ONLY</text>
+</g>
+<text class="small-svg" x="28" y="600">Printed notes carry a QR code</text>
+<text class="small-svg" x="28" y="616">to the same page, so no learner</text>
+<text class="small-svg" x="28" y="632">contact details are needed.</text>
+<g class="node "><rect x="260" y="96" width="180" height="62" rx="6"/><text class="t1" x="271" y="117">Script uploads</text><text class="t2" x="271" y="134">S3 · KMS</text><text class="t3" x="271" y="150">DATA · PAGE PHOTOS</text>
+</g>
+<g class="node "><rect x="500" y="96" width="180" height="62" rx="6"/><text class="t1" x="511" y="117">API entry</text><text class="t2" x="511" y="134">Application LB</text><text class="t3" x="511" y="150">EDGE · LOAD BALANCER</text>
+</g>
+<g class="node "><rect x="740" y="96" width="180" height="62" rx="6"/><text class="t1" x="751" y="117">Front door</text><text class="t2" x="751" y="134">CloudFront + S3</text><text class="t3" x="751" y="150">EDGE · CDN + CONSOLE</text>
+</g>
+<g class="node "><rect x="260" y="196" width="180" height="62" rx="6"/><text class="t1" x="271" y="217">Intake worker</text><text class="t2" x="271" y="234">ECS Fargate</text><text class="t3" x="271" y="250">CROP COVER · PSEUDONYMISE</text>
+<rect class="badge" x="411" y="203" width="22" height="17" rx="8.5"/><text class="badgetxt" x="422.0" y="215.5">D5</text>
+</g>
+<g class="node "><rect x="500" y="196" width="180" height="62" rx="6"/><text class="t1" x="511" y="217">Core: Planner + agents</text><text class="t2" x="511" y="234">ECS Fargate · LangGraph</text><text class="t3" x="511" y="250">COMPUTE · RULES IN CODE</text>
+</g>
+<g class="node "><rect x="740" y="196" width="180" height="62" rx="6"/><text class="t1" x="751" y="217">Knowledge service</text><text class="t2" x="751" y="234">ECS Fargate</text><text class="t3" x="751" y="250">EMBEDS ON CPU · PGVECTOR</text>
+<rect class="badge" x="891" y="203" width="22" height="17" rx="8.5"/><text class="badgetxt" x="902.0" y="215.5">D7</text>
+</g>
+<rect class="empty" x="260" y="296" width="660" height="62" rx="6"/>
+<text class="emptytxt" x="590" y="332" text-anchor="middle">Bedrock has no model in Cape Town: every model call goes to the EU</text>
+<g class="node "><rect x="260" y="396" width="180" height="62" rx="6"/><text class="t1" x="271" y="417">Bundles + note pages</text><text class="t2" x="271" y="434">S3 · KMS · signed links</text><text class="t3" x="271" y="450">PDF REPORT · LEARNER NOTES</text>
+<rect class="badge" x="404" y="403" width="29" height="17" rx="8.5"/><text class="badgetxt" x="418.5" y="415.5">D10</text>
+</g>
+<g class="node "><rect x="500" y="396" width="180" height="62" rx="6"/><text class="t1" x="511" y="417">Assessment database</text><text class="t2" x="511" y="434">RDS Postgres 17</text><text class="t3" x="511" y="450">SQL + PGVECTOR</text>
+</g>
+<g class="node "><rect x="740" y="396" width="180" height="62" rx="6"/><text class="t1" x="751" y="417">Curriculum sources</text><text class="t2" x="751" y="434">S3 · DBE PDFs, packs</text><text class="t3" x="751" y="450">DATA · PUBLIC</text>
+</g>
+<g class="node "><rect x="260" y="496" width="180" height="62" rx="6"/><text class="t1" x="271" y="517">Email after approval</text><text class="t2" x="271" y="534">Amazon SES</text><text class="t3" x="271" y="550">MESSAGING · OUTBOUND</text>
+</g>
+<g class="node "><rect x="500" y="496" width="180" height="62" rx="6"/><text class="t1" x="511" y="517">Teacher sign-in</text><text class="t2" x="511" y="534">Amazon Cognito</text><text class="t3" x="511" y="550">SECURITY · IDENTITY</text>
+<rect class="badge" x="644" y="503" width="29" height="17" rx="8.5"/><text class="badgetxt" x="658.5" y="515.5">new</text>
+</g>
+<g class="node "><rect x="740" y="496" width="180" height="62" rx="6"/><text class="t1" x="751" y="517">Keys and secrets</text><text class="t2" x="751" y="534">Secrets Manager + KMS</text><text class="t3" x="751" y="550">SECURITY</text>
+</g>
+<g class="node "><rect x="260" y="596" width="180" height="62" rx="6"/><text class="t1" x="271" y="617">Logs and audit</text><text class="t2" x="271" y="634">CloudWatch + CloudTrail</text><text class="t3" x="271" y="650">OPERATIONS</text>
+</g>
+<g class="node "><rect x="500" y="596" width="180" height="62" rx="6"/><text class="t1" x="511" y="617">Eval runner</text><text class="t2" x="511" y="634">ECS task, on demand</text><text class="t3" x="511" y="650">COMPUTE · ONE-OFF</text>
+<rect class="badge" x="651" y="603" width="22" height="17" rx="8.5"/><text class="badgetxt" x="662.0" y="615.5">D9</text>
+</g>
+<g class="node "><rect x="740" y="596" width="180" height="62" rx="6"/><text class="t1" x="751" y="617">Container images</text><text class="t2" x="751" y="634">Amazon ECR</text><text class="t3" x="751" y="650">OPERATIONS · REGISTRY</text>
+</g>
+<g class="node "><rect x="990" y="96" width="270" height="62" rx="6"/><text class="t1" x="1001" y="117">Voice colleague</text><text class="t2" x="1001" y="134">ElevenLabs Agents · US default</text><text class="t3" x="1001" y="150">EXTERNAL SAAS · VOICE</text>
+<rect class="badge" x="1231" y="103" width="22" height="17" rx="8.5"/><text class="badgetxt" x="1242.0" y="115.5">D1</text>
+</g>
+<g class="node "><rect x="990" y="596" width="270" height="62" rx="6"/><text class="t1" x="1001" y="617">Repo + CI gate</text><text class="t2" x="1001" y="634">GitHub Actions</text><text class="t3" x="1001" y="650">OPERATIONS · CI/CD</text>
+<rect class="badge" x="1231" y="603" width="22" height="17" rx="8.5"/><text class="badgetxt" x="1242.0" y="615.5">D8</text>
+</g>
+<g class="node cross"><rect x="990" y="296" width="270" height="62" rx="6"/><text class="t1" x="1001" y="317">Claude Sonnet, Opus, Haiku 5.5</text><text class="t2" x="1001" y="334">Bedrock · EU geographic profile</text><text class="t3" x="1001" y="350">PER TOKEN · TEXT + PAGE CROPS</text>
+<rect class="badge" x="1231" y="303" width="22" height="17" rx="8.5"/><text class="badgetxt" x="1242.0" y="315.5">D6</text>
+</g>
+<path class="edge " d="M118,96 V70 H830 V94" marker-end="url(#ah)"/>
+<text class="el " x="470" y="66" text-anchor="middle">HTTPS</text>
+<path class="edge red" d="M150,96 V56 H1125 V94" marker-end="url(#ahr)" marker-start="url(#ahr)"/>
+<text class="el red" x="640" y="52" text-anchor="middle">teacher&#x27;s voice and spoken replies · no learner names</text>
+<path class="edge " d="M208,135 H258" marker-end="url(#ah)"/>
+<text class="el " x="233" y="129" text-anchor="middle">photos, PDFs</text>
+<path class="edge " d="M740,127 H682" marker-end="url(#ah)"/>
+<text class="el " x="711" y="120" text-anchor="middle">/api</text>
+<path class="edge " d="M590,158 V194" marker-end="url(#ah)"/>
+<text class="el " x="598" y="184" text-anchor="start">API + live log</text>
+<path class="edge " d="M350,158 V194" marker-end="url(#ah)"/>
+<text class="el " x="358" y="184" text-anchor="start">new pages</text>
+<path class="edge " d="M440,227 H498" marker-end="url(#ah)"/>
+<text class="el " x="470" y="220" text-anchor="middle">no names</text>
+<path class="edge " d="M680,227 H738" marker-end="url(#ah)"/>
+<text class="el " x="710" y="220" text-anchor="middle">cite</text>
+<path class="edge " d="M500,246 H470 V427 H498" marker-end="url(#ah)"/>
+<text class="el " x="466" y="382" text-anchor="end">marks, state</text>
+<path class="edge " d="M470,427 H442" marker-end="url(#ah)"/>
+<text class="el " x="470" y="443" text-anchor="middle">bundle</text>
+<path class="edge red" d="M630,258 V282 H970 V327 H988" marker-end="url(#ahr)"/>
+<text class="el red" x="975" y="276" text-anchor="end">answer crops + pseudonymised text</text>
+<path class="edge " d="M260,427 H210" marker-end="url(#ah)"/>
+<text class="el " x="236" y="420" text-anchor="middle">note</text>
+<path class="edge " d="M260,527 H210" marker-end="url(#ah)"/>
+<text class="el " x="236" y="520" text-anchor="middle">email</text>
+<path class="edge " d="M990,627 H922" marker-end="url(#ah)"/>
+<text class="el " x="958" y="620" text-anchor="middle">images</text>
+</svg>
+</div>
+    <figcaption>No model runs in Cape Town. The core sends cover-less answer crops and pseudonymised text to Claude through Bedrock's EU geographic profile, called from Frankfurt (eu-central-1), and Claude reads and marks in one step. Names, covers, marks and bundles stay in Cape Town.</figcaption></figure>
+    <div class="pc">
+      <div><h4>Why</h4><ul><li>Likely the strongest reading of maths working and marking against a memo (to be measured).</li><li>No GPU for us to run.</li><li>The least new code: the Anthropic SDK has a Bedrock client.</li></ul></div>
+      <div><h4>Watch</h4><ul><li>Answer crops and pseudonymised text leave South Africa: s72(1)(a).</li><li>Per-token cost against the architecture plan's R40 per set.</li><li>Must use the EU profile from eu-central-1. Global inference would route prompts worldwide.</li></ul></div>
+    </div>
+    <p class="note" style="margin:0">Two other ways to reach Claude, both weaker on the law. <b>Bedrock global inference</b>, the only Claude option offered from Cape Town itself, routes a prompt to "any supported AWS commercial Region worldwide", which raises s57(1)(d) for children's data. <b>Anthropic's own API</b> uses the same <code>anthropic_provider.py</code> already in the repo, but brings a second vendor contract and a bill outside AWS.</p>
+  </div>
+
+  <div class="opt" style="margin-top:36px">
+    <div class="opt-head"><h3>Option E · Hybrid: pages read in Cape Town, Claude marks the text</h3><span class="pill cross">text crosses</span></div>
+    <figure><div class="mapframe"><svg viewBox="0 0 1280 712" role="img" class="map" aria-label="Option E: pages are read on a G4dn in Cape Town and only pseudonymised text crosses the border to Claude on Bedrock in the EU.">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk" d="M0,0 L10,5 L0,10 z"/></marker><marker id="ahr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mkr" d="M0,0 L10,5 L0,10 z"/></marker><marker id="ahg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mkg" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+<rect class="zone" x="12" y="20" width="212" height="330" rx="10"/>
+<rect class="zone" x="12" y="366" width="212" height="334" rx="10"/>
+<rect class="zone sa" x="244" y="20" width="698" height="680" rx="10"/>
+<rect class="zone out" x="974" y="20" width="302" height="680" rx="10"/>
+<text class="zh" x="28" y="42">Teacher</text>
+<text class="zh" x="28" y="388">Learners and parents</text>
+<text class="zh sa" x="260" y="42">AWS af-south-1 · Cape Town</text>
+<text class="zh" x="990" y="42">Outside SA · EU models</text>
+<text class="band" x="260" y="88">EDGE</text>
+<text class="band" x="260" y="188">COMPUTE</text>
+<text class="band hi" x="260" y="288">MODELS · READER ON G4DN IN CAPE TOWN; MARKING IN THE EU</text>
+<text class="band" x="260" y="388">DATA</text>
+<text class="band" x="260" y="488">SUPPORTING</text>
+<text class="band" x="260" y="588">OPERATIONS</text>
+<line class="border" x1="958" y1="10" x2="958" y2="704"/>
+<text class="bordertxt" transform="translate(965 690) rotate(-90)">South African border · POPIA s72 governs what crosses</text>
+<g class="node "><rect x="28" y="96" width="180" height="62" rx="6"/><text class="t1" x="39" y="117">Teacher console</text><text class="t2" x="39" y="134">React · phone or laptop</text><text class="t3" x="39" y="150">CLIENT</text>
+</g>
+<g class="node later"><rect x="28" y="196" width="180" height="62" rx="6"/><text class="t1" x="39" y="217">Demo laptop</text><text class="t2" x="39" y="234">same stack + Ollama</text><text class="t3" x="39" y="250">OFFLINE FALLBACK</text>
+</g>
+<g class="node learner"><rect x="28" y="396" width="180" height="62" rx="6"/><text class="t1" x="39" y="417">Learner</text><text class="t2" x="39" y="434">note page on a phone</text><text class="t3" x="39" y="450">SIGNED LINK, NO ACCOUNT</text>
+</g>
+<g class="node learner"><rect x="28" y="496" width="180" height="62" rx="6"/><text class="t1" x="39" y="517">Parent</text><text class="t2" x="39" y="534">email or printed note</text><text class="t3" x="39" y="550">AFTER APPROVAL ONLY</text>
+</g>
+<text class="small-svg" x="28" y="600">Printed notes carry a QR code</text>
+<text class="small-svg" x="28" y="616">to the same page, so no learner</text>
+<text class="small-svg" x="28" y="632">contact details are needed.</text>
+<g class="node "><rect x="260" y="96" width="180" height="62" rx="6"/><text class="t1" x="271" y="117">Script uploads</text><text class="t2" x="271" y="134">S3 · KMS</text><text class="t3" x="271" y="150">DATA · PAGE PHOTOS</text>
+</g>
+<g class="node "><rect x="500" y="96" width="180" height="62" rx="6"/><text class="t1" x="511" y="117">API entry</text><text class="t2" x="511" y="134">Application LB</text><text class="t3" x="511" y="150">EDGE · LOAD BALANCER</text>
+</g>
+<g class="node "><rect x="740" y="96" width="180" height="62" rx="6"/><text class="t1" x="751" y="117">Front door</text><text class="t2" x="751" y="134">CloudFront + S3</text><text class="t3" x="751" y="150">EDGE · CDN + CONSOLE</text>
+</g>
+<g class="node "><rect x="260" y="196" width="180" height="62" rx="6"/><text class="t1" x="271" y="217">Intake worker</text><text class="t2" x="271" y="234">ECS Fargate</text><text class="t3" x="271" y="250">CROP COVER · PSEUDONYMISE</text>
+<rect class="badge" x="411" y="203" width="22" height="17" rx="8.5"/><text class="badgetxt" x="422.0" y="215.5">D5</text>
+</g>
+<g class="node "><rect x="500" y="196" width="180" height="62" rx="6"/><text class="t1" x="511" y="217">Core: Planner + agents</text><text class="t2" x="511" y="234">ECS Fargate · LangGraph</text><text class="t3" x="511" y="250">COMPUTE · RULES IN CODE</text>
+</g>
+<g class="node "><rect x="740" y="196" width="180" height="62" rx="6"/><text class="t1" x="751" y="217">Knowledge service</text><text class="t2" x="751" y="234">ECS Fargate</text><text class="t3" x="751" y="250">EMBEDS ON CPU · PGVECTOR</text>
+<rect class="badge" x="891" y="203" width="22" height="17" rx="8.5"/><text class="badgetxt" x="902.0" y="215.5">D7</text>
+</g>
+<g class="node insa"><rect x="260" y="296" width="180" height="62" rx="6"/><text class="t1" x="271" y="317">Page reader</text><text class="t2" x="271" y="334">qwen3-vl:8b-instruct</text><text class="t3" x="271" y="350">VISION · G4DN</text>
+<rect class="badge" x="411" y="303" width="22" height="17" rx="8.5"/><text class="badgetxt" x="422.0" y="315.5">D4</text>
+</g>
+<rect class="empty" x="500" y="296" width="420" height="62" rx="6"/>
+<text class="emptytxt" x="710" y="332" text-anchor="middle">Marking models run in the EU (Claude on Bedrock)</text>
+<g class="node "><rect x="260" y="396" width="180" height="62" rx="6"/><text class="t1" x="271" y="417">Bundles + note pages</text><text class="t2" x="271" y="434">S3 · KMS · signed links</text><text class="t3" x="271" y="450">PDF REPORT · LEARNER NOTES</text>
+<rect class="badge" x="404" y="403" width="29" height="17" rx="8.5"/><text class="badgetxt" x="418.5" y="415.5">D10</text>
+</g>
+<g class="node "><rect x="500" y="396" width="180" height="62" rx="6"/><text class="t1" x="511" y="417">Assessment database</text><text class="t2" x="511" y="434">RDS Postgres 17</text><text class="t3" x="511" y="450">SQL + PGVECTOR</text>
+</g>
+<g class="node "><rect x="740" y="396" width="180" height="62" rx="6"/><text class="t1" x="751" y="417">Curriculum sources</text><text class="t2" x="751" y="434">S3 · DBE PDFs, packs</text><text class="t3" x="751" y="450">DATA · PUBLIC</text>
+</g>
+<g class="node "><rect x="260" y="496" width="180" height="62" rx="6"/><text class="t1" x="271" y="517">Email after approval</text><text class="t2" x="271" y="534">Amazon SES</text><text class="t3" x="271" y="550">MESSAGING · OUTBOUND</text>
+</g>
+<g class="node "><rect x="500" y="496" width="180" height="62" rx="6"/><text class="t1" x="511" y="517">Teacher sign-in</text><text class="t2" x="511" y="534">Amazon Cognito</text><text class="t3" x="511" y="550">SECURITY · IDENTITY</text>
+<rect class="badge" x="644" y="503" width="29" height="17" rx="8.5"/><text class="badgetxt" x="658.5" y="515.5">new</text>
+</g>
+<g class="node "><rect x="740" y="496" width="180" height="62" rx="6"/><text class="t1" x="751" y="517">Keys and secrets</text><text class="t2" x="751" y="534">Secrets Manager + KMS</text><text class="t3" x="751" y="550">SECURITY</text>
+</g>
+<g class="node "><rect x="260" y="596" width="180" height="62" rx="6"/><text class="t1" x="271" y="617">Logs and audit</text><text class="t2" x="271" y="634">CloudWatch + CloudTrail</text><text class="t3" x="271" y="650">OPERATIONS</text>
+</g>
+<g class="node "><rect x="500" y="596" width="180" height="62" rx="6"/><text class="t1" x="511" y="617">Eval runner</text><text class="t2" x="511" y="634">ECS task, on demand</text><text class="t3" x="511" y="650">COMPUTE · ONE-OFF</text>
+<rect class="badge" x="651" y="603" width="22" height="17" rx="8.5"/><text class="badgetxt" x="662.0" y="615.5">D9</text>
+</g>
+<g class="node "><rect x="740" y="596" width="180" height="62" rx="6"/><text class="t1" x="751" y="617">Container images</text><text class="t2" x="751" y="634">Amazon ECR</text><text class="t3" x="751" y="650">OPERATIONS · REGISTRY</text>
+</g>
+<g class="node "><rect x="990" y="96" width="270" height="62" rx="6"/><text class="t1" x="1001" y="117">Voice colleague</text><text class="t2" x="1001" y="134">ElevenLabs Agents · US default</text><text class="t3" x="1001" y="150">EXTERNAL SAAS · VOICE</text>
+<rect class="badge" x="1231" y="103" width="22" height="17" rx="8.5"/><text class="badgetxt" x="1242.0" y="115.5">D1</text>
+</g>
+<g class="node "><rect x="990" y="596" width="270" height="62" rx="6"/><text class="t1" x="1001" y="617">Repo + CI gate</text><text class="t2" x="1001" y="634">GitHub Actions</text><text class="t3" x="1001" y="650">OPERATIONS · CI/CD</text>
+<rect class="badge" x="1231" y="603" width="22" height="17" rx="8.5"/><text class="badgetxt" x="1242.0" y="615.5">D8</text>
+</g>
+<g class="node cross"><rect x="990" y="296" width="270" height="62" rx="6"/><text class="t1" x="1001" y="317">Claude Sonnet, Opus, Haiku 5.5</text><text class="t2" x="1001" y="334">Bedrock · EU geographic profile</text><text class="t3" x="1001" y="350">PER TOKEN · TEXT ONLY</text>
+<rect class="badge" x="1231" y="303" width="22" height="17" rx="8.5"/><text class="badgetxt" x="1242.0" y="315.5">D6</text>
+</g>
+<path class="edge " d="M118,96 V70 H830 V94" marker-end="url(#ah)"/>
+<text class="el " x="470" y="66" text-anchor="middle">HTTPS</text>
+<path class="edge red" d="M150,96 V56 H1125 V94" marker-end="url(#ahr)" marker-start="url(#ahr)"/>
+<text class="el red" x="640" y="52" text-anchor="middle">teacher&#x27;s voice and spoken replies · no learner names</text>
+<path class="edge " d="M208,135 H258" marker-end="url(#ah)"/>
+<text class="el " x="233" y="129" text-anchor="middle">photos, PDFs</text>
+<path class="edge " d="M740,127 H682" marker-end="url(#ah)"/>
+<text class="el " x="711" y="120" text-anchor="middle">/api</text>
+<path class="edge " d="M590,158 V194" marker-end="url(#ah)"/>
+<text class="el " x="598" y="184" text-anchor="start">API + live log</text>
+<path class="edge " d="M350,158 V194" marker-end="url(#ah)"/>
+<text class="el " x="358" y="184" text-anchor="start">new pages</text>
+<path class="edge " d="M440,227 H498" marker-end="url(#ah)"/>
+<text class="el " x="470" y="220" text-anchor="middle">no names</text>
+<path class="edge " d="M680,227 H738" marker-end="url(#ah)"/>
+<text class="el " x="710" y="220" text-anchor="middle">cite</text>
+<path class="edge " d="M500,246 H470 V427 H498" marker-end="url(#ah)"/>
+<text class="el " x="466" y="382" text-anchor="end">marks, state</text>
+<path class="edge " d="M470,427 H442" marker-end="url(#ah)"/>
+<text class="el " x="470" y="443" text-anchor="middle">bundle</text>
+<path class="edge hi" d="M350,258 V294" marker-end="url(#ahg)" marker-start="url(#ahg)"/>
+<text class="el hi" x="358" y="284" text-anchor="start">pages ⇄ text</text>
+<path class="edge red" d="M630,258 V282 H970 V327 H988" marker-end="url(#ahr)"/>
+<text class="el red" x="975" y="276" text-anchor="end">pseudonymised text only</text>
+<path class="edge " d="M260,427 H210" marker-end="url(#ah)"/>
+<text class="el " x="236" y="420" text-anchor="middle">note</text>
+<path class="edge " d="M260,527 H210" marker-end="url(#ah)"/>
+<text class="el " x="236" y="520" text-anchor="middle">email</text>
+<path class="edge " d="M990,627 H922" marker-end="url(#ah)"/>
+<text class="el " x="958" y="620" text-anchor="middle">images</text>
+</svg>
+</div>
+    <figcaption>The page reader runs on a G4dn in Cape Town, as in option A, so no handwriting or page image leaves South Africa. Only pseudonymised text goes to Claude in the EU for marking, moderating and writing, which is what the architecture plan assumed before AWS was chosen.</figcaption></figure>
+    <div class="pc">
+      <div><h4>Why</h4><ul><li>Claude's marking, while no handwriting or page image leaves South Africa.</li><li>Only pseudonymised text crosses, which is what the original plan assumed.</li><li>Its reader is option A's, so building A's reader first serves both.</li></ul></div>
+      <div><h4>Watch</h4><ul><li>Two quotas to secure (G4dn and Bedrock) and two bills.</li><li>The reader's accuracy on maths handwriting caps everything after it; the eval measures it.</li><li>Text still crosses, so s72(1)(a) applies.</li></ul></div>
+    </div>
+  </div>
+  <div class="legend" style="margin-top:18px">
+    <span><i class="sw"></i>Standard service or our code</span>
+    <span><i class="sw sa"></i>Model running where the option puts it</span>
+    <span><i class="sw cross"></i>Model outside South Africa</span>
+    <span><i class="sw learner"></i>Learner side</span>
+    <span><i class="sw later"></i>Fallback or optional</span>
+    <span><i class="ln"></i>People's data crossing the border</span>
+    <span><span class="pill">D4</span>Returning row from the dropped-technologies audit</span>
+  </div>
+</section>
+
+<section>
+  <div class="col">
+    <div class="eyebrow">05 · Costs</div>
+    <h2>What each option costs on AWS</h2>
+    <p>The assumptions: everything is started for testing and stopped in between, and it runs continuously through the judges' 4-hour window. Every price is AWS's own Cape Town price list (published 5 Nov 2026) or the per-token price named below. The numbers update as you change the assumptions. Token counts are estimates until the eval run measures them with <code>mothusi_llm</code>'s usage meter.</p>
+  </div>
+  <div class="calc" id="calc">
+    <div class="inputs">
+      <label for="c-days">Days the stack exists<input id="c-days" type="number" min="1" max="60" value="5"></label>
+      <label for="c-testh">Hours the stack runs for testing<input id="c-testh" type="number" min="0" max="500" value="24"></label>
+      <label for="c-gpuh">GPU hours for testing (A, E)<input id="c-gpuh" type="number" min="0" max="500" value="12"></label>
+      <label for="c-judge">Judging window, hours<input id="c-judge" type="number" min="0" max="48" value="4"></label>
+      <label for="c-tsets">Class sets marked in testing<input id="c-tsets" type="number" min="0" max="200" value="10"></label>
+      <label for="c-jsets">Class sets marked while judged<input id="c-jsets" type="number" min="0" max="50" value="4"></label>
+      <label for="c-scripts">Scripts per set<input id="c-scripts" type="number" min="1" max="200" value="32"></label>
+      <label for="c-pages">Pages per script<input id="c-pages" type="number" min="1" max="20" value="4"></label>
+      <label for="c-gpu">GPU instance (A, E)<select id="c-gpu"><option value="xl">g4dn.xlarge · 1 T4</option><option value="x12">g4dn.12xlarge · 4 T4</option></select></label>
+      <label for="c-fx">Rand per US dollar<input id="c-fx" type="number" min="1" max="100" step="0.01" value="16.35"></label>
+    </div>
+    <div class="tbl"><table id="c-out">
+      <thead><tr><th>Option</th><th>Base stack</th><th>GPU</th><th>Model tokens</th><th>Kept while stopped</th><th>Total</th><th>Judging window alone</th><th>Per class set (models only)</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+    <p class="small" id="c-credit"></p>
+  </div>
+  <div class="pc" style="margin-top:14px">
+    <div><h4>Base stack, per running hour (A, B, D, E)</h4><ul>
+      <li>Load balancer $0.03/h plus about 1 capacity unit at $0.0095/h</li>
+      <li>Fargate (x86, $0.0546 per vCPU-hour, $0.006 per GB-hour): core 1 vCPU/2 GB, intake 0.5/1, knowledge 1/4 (bge-m3 on CPU)</li>
+      <li>RDS PostgreSQL db.t4g.small, Single-AZ, $0.041/h</li>
+      <li>6 public IPv4 addresses at $0.005/h. We skip the NAT gateway ($0.057/h plus $0.057/GB) by giving tasks public IPs behind security groups</li>
+      <li><b>Total: $0.289 per hour.</b> As deployed, only core and knowledge run (intake is inside core), so the real figure is a little lower. "Stopped" (<code>ops.sh stop</code>) means ECS scaled to zero, the g4dn and RDS stopped. The load balancer and CloudFront stay up, about $0.05/h</li>
+    </ul></div>
+    <div><h4>Kept while stopped (pro rata per day)</h4><ul>
+      <li>RDS storage 20 GB × $0.151/GB-month</li>
+      <li>EBS gp3 100 GB for the G4dn's models × $0.1047/GB-month (A, E only)</li>
+      <li>4 secrets × $0.40/month; 1 KMS key $1/month</li>
+      <li>ECR 3 GB × $0.10; S3 5 GB × $0.0274; logs and transfer, about $1 a month in total (estimate)</li>
+      <li>Cognito sign-in is free at this size (AWS's Cognito free tier)</li>
+    </ul></div>
+  </div>
+  <div class="tbl" style="margin-top:14px"><table>
+    <thead><tr><th>Step per class set</th><th>Calls</th><th>Input tokens each</th><th>Output tokens each</th><th>B · open on Bedrock</th><th>D · Claude</th><th>E · hybrid</th></tr></thead>
+    <tbody id="c-steps"></tbody>
+  </table></div>
+  <p class="small" style="margin-top:8px">The token counts are our estimates, not measurements. A page photo sent at 1,280 × 1,800 px is about 2,990 input tokens by Anthropic's rule (⌈width/28⌉ × ⌈height/28⌉, capped at 4,784 on the 5.5 models). We assume the open vision models are similar, though that is unverified. A page's transcription is about 450 tokens. The Moderator re-marks 6 scripts (10%, minimum 6), plus 2 for widening. 15% of Marker calls are retries. Thinking tokens could raise output costs; the eval meter will tell.</p>
+<div class="tbl" style="margin-top:14px"><table>
+  <thead><tr><th>Model (route)</th><th>Input, $ per 1M tokens</th><th>Output, $ per 1M tokens</th><th>Used for</th></tr></thead>
+  <tbody>
+  <tr><td>Claude Sonnet 5.5 (Bedrock EU)</td><td>2.20</td><td>11.00</td><td>D, E: reader (D only), Marker, Setter, Analyst, Support, class sheet, Reviewer</td></tr>
+  <tr><td>Claude Opus 5.5 (Bedrock EU)</td><td>4.40</td><td>22.00</td><td>D, E: Moderator</td></tr>
+  <tr><td>Claude Haiku 5.5 (Bedrock EU)</td><td>0.11</td><td>0.55</td><td>D, E: learner notes (the bulk step, D6)</td></tr>
+  <tr><td>Qwen3-VL-235B (Bedrock, Ireland)</td><td>0.62</td><td>3.12</td><td>B: reader</td></tr>
+  <tr><td>Qwen3-32B (Bedrock, Ireland)</td><td>0.18</td><td>0.70</td><td>B: Marker and the other text agents</td></tr>
+  <tr><td>gpt-oss-120b (Bedrock, Ireland)</td><td>0.18</td><td>0.70</td><td>B: Moderator, a different family from Qwen</td></tr>
+  </tbody></table></div>
+<p class="small" style="margin-top:8px">These are AWS price lists read 10 Nov 2026 (AmazonBedrockFoundationModels, published 9 Nov; AmazonBedrock, published 6 Nov). Claude's EU route costs 10% more than Global inference, and Global equals Anthropic's own API price. Rand at R16.3515 per US dollar (SARB, 10 Nov 2026). Prompt caching would cut Claude's input cost further: a cache read on Sonnet 5.5 is $0.11 per 1M in the EU. The table leaves caching out, so Claude's numbers are an upper bound.</p>
+<div class="note" style="margin-top:14px"><b>Credits.</b> A new account gets up to $200 in credits. AWS's promotional credit terms exclude AWS Marketplace, and Claude on Bedrock is billed as "AWS Marketplace software usage", so <b>the $200 does not pay for Claude</b> (options D and E). AWS Activate credits are the exception: their terms let them pay for third-party models on Bedrock. Whether the $200 covers the open models on Bedrock (option B) is unverified. GPU instances need an account on the paid plan; credits carry over when you upgrade.</div>
+<div class="note sa" style="margin-top:10px"><b>Actual spend, last checked 12 Nov.</b> November usage was $1.60, all covered by credits, with $156.86 of credit left. Billing lags by up to a day, so 12 Nov's testing is not in it yet. Finishing the EC2 and Bedrock Free Tier activities adds $40 more.</div>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  var P={son:[2.20,11.00],opus:[4.40,22.00],haiku:[0.11,0.55],qvl:[0.62,3.12],q32:[0.18,0.70],oss:[0.18,0.70]};
+  var BASE_H=0.0300+0.0095+(0.0546*1+0.006*2)+(0.0546*0.5+0.006*1)+(0.0546*1+0.006*4)+0.041+6*0.005;
+  var FIXED_M=20*0.151+4*0.40+1+3*0.10+5*0.0274+1, EBS_M=100*0.1047;
+  var GPU={xl:0.698,x12:5.19};
+  function steps(S,Pg){
+    var mod=Math.max(6,Math.ceil(S*0.1))+2;
+    return [
+      ['Read each page',S*Pg,3300,450,{B:'qvl',D:'son',E:null}],
+      ['Marker (15% retries)',S*1.15,3000+Pg*450,1200,{B:'q32',D:'son',E:'son'}],
+      ['Moderator, blind sample',mod,3000+Pg*450,1200,{B:'oss',D:'opus',E:'opus'}],
+      ['Setter sits the memo',1,4000,2000,{B:'q32',D:'son',E:'son'}],
+      ['Analyst',1,8000,2000,{B:'q32',D:'son',E:'son'}],
+      ['Support (catch-up plan)',1,5000,1500,{B:'q32',D:'son',E:'son'}],
+      ['Writer, learner notes',S,2000,400,{B:'q32',D:'haiku',E:'haiku'}],
+      ['Writer, class sheet',1,6000,2000,{B:'q32',D:'son',E:'son'}],
+      ['Reviewer',1,2000+S*400,2000,{B:'q32',D:'son',E:'son'}]
+    ];
+  }
+  function cost(m,i,o){return m?(i*P[m][0]+o*P[m][1])/1e6:0}
+  function perSet(opt,S,Pg){var t=0;steps(S,Pg).forEach(function(r){t+=r[1]*cost(r[4][opt],r[2],r[3])});return t}
+  var NAMES={A:'A · open models, G4dn Cape Town',B:'B · open models, Bedrock EU',C:'C · school machine',D:'D · Claude, Bedrock EU',E:'E · hybrid'};
+  function num(id){var v=parseFloat($(id).value);return isFinite(v)&&v>=0?v:0}
+  function usd(x){return '$'+x.toFixed(2)}
+  function both(x,fx){return '<b>'+usd(x)+'</b><br><span class="small">R'+Math.round(x*fx).toLocaleString('en-ZA')+'</span>'}
+  function render(){
+    var days=num('c-days'),th=num('c-testh'),gh=num('c-gpuh'),jh=num('c-judge'),ts=num('c-tsets'),js=num('c-jsets'),S=Math.max(1,num('c-scripts')),Pg=Math.max(1,num('c-pages')),fx=num('c-fx')||16.35,g=GPU[$('c-gpu').value];
+    var rows='',stepRows='';
+    ['A','B','C','D','E'].forEach(function(o){
+      var aws=o!=='C', gpu=(o==='A'||o==='E'), ps=perSet(o,S,Pg);
+      var base=aws?(th+jh)*BASE_H:0, gpuC=gpu?(gh+jh)*g:0, tok=(ts+js)*ps, fixed=aws?(FIXED_M+(gpu?EBS_M:0))*days/30:0;
+      var total=base+gpuC+tok+fixed, judge=aws?jh*(BASE_H+(gpu?g:0))+js*ps:0;
+      rows+='<tr><td>'+NAMES[o]+'</td><td>'+usd(base)+'</td><td>'+usd(gpuC)+'</td><td>'+usd(tok)+'</td><td>'+usd(fixed)+'</td><td>'+both(total,fx)+'</td><td>'+both(judge,fx)+'</td><td>'+(o==='A'||o==='C'?'<span class="small">no per-token cost</span>':both(ps,fx)+'<br><span class="small">'+(ps*fx<=40?'within':'over')+' the R40 budget</span>')+'</td></tr>';
+    });
+    steps(S,Pg).forEach(function(r){
+      var c=function(o){var m=r[4][o];return m?usd(r[1]*cost(m,r[2],r[3])):'<span class="small">G4dn</span>'};
+      stepRows+='<tr><td>'+r[0]+'</td><td>'+(Math.round(r[1]*100)/100)+'</td><td>'+r[2].toLocaleString('en-ZA')+'</td><td>'+r[3].toLocaleString('en-ZA')+'</td><td>'+c('B')+'</td><td>'+c('D')+'</td><td>'+c('E')+'</td></tr>';
+    });
+    $('c-out').tBodies[0].innerHTML=rows; $('c-steps').innerHTML=stepRows;
+    $('c-credit').innerHTML='Base stack: $'+BASE_H.toFixed(3)+' per running hour. GPU: $'+g.toFixed(3)+' per hour. The GPU column counts testing plus judging hours, and so does the base stack. "Per class set" is model spend only, against the architecture plan\'s R40.';
+  }
+  ['c-days','c-testh','c-gpuh','c-judge','c-tsets','c-jsets','c-scripts','c-pages','c-gpu','c-fx'].forEach(function(id){$(id).addEventListener('input',render);$(id).addEventListener('change',render)});
+  render();
+})();
+</script>
+</section>
+
+<section>
+  <div class="col">
+    <div class="eyebrow">06 · Models</div>
+    <h2>Which open models, on what</h2>
+    <p>Each job, with the model per option. For option A every model fits one T4 (16 GB) through Ollama. Rules stay in code (the architecture plan non-negotiable 8), so no model checks totals, weightings or quotes.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Job</th><th>A · G4dn</th><th>B · Bedrock EU, open</th><th>C · school machine</th><th>D · Claude</th><th>E · hybrid</th></tr></thead>
+    <tbody>
+
+<tr><td>Page reader (vision)</td><td>Qwen3-VL-8B (<code>qwen3-vl:8b-instruct</code>, 6.2 GB). Fallbacks: olmOCR-2-7B, Qwen2.5-VL-7B</td><td>Qwen3-VL-235B, in-region in Ireland</td><td>qwen3-vl:8b-instruct on CPU</td><td>Claude Sonnet 5.5 (reads and marks)</td><td>Same as A</td></tr>
+<tr><td>Marker, Setter, Writer, Analyst, Support, Reviewer</td><td>Qwen3-14B (<code>qwen3:14b</code>, 9.3 GB, already on the laptop)</td><td>Qwen3-32B or gpt-oss-120b, Ireland</td><td>qwen3:14b</td><td>Claude Sonnet 5.5</td><td>Claude Sonnet 5.5</td></tr>
+<tr><td>Moderator (different family)</td><td>Phi-4 14B (<code>phi4</code>, 9.1 GB), loaded after marking</td><td>gpt-oss-120b if Qwen marks, or the reverse</td><td>phi4</td><td>Claude Opus 5.5 (same family as the marker)</td><td>Phi-4 on the G4dn (a different family), or Opus 5.5</td></tr>
+<tr><td>Embeddings</td><td>bge-m3 on the knowledge service's CPU</td><td>same</td><td>same</td><td>same</td><td>same</td></tr>
+<tr><td>Licences</td><td>Apache-2.0 (Qwen), MIT (Phi-4, bge-m3)</td><td>AWS terms, per token</td><td>as A</td><td>Anthropic via AWS, per token</td><td>A's plus Anthropic's</td></tr>
+
+    </tbody>
+  </table></div>
+<div class="note" style="margin-top:16px"><b>What the research could not answer:</b> none of these model cards publishes a handwriting score, so the reader is chosen by reading our own synthetic Grade 10 scripts, not by benchmark. The reader is the <code>-instruct</code> tag because plain <code>qwen3-vl:8b</code> kept thinking with thinking switched off: 97 s and 3,274 tokens for a one-line reply on the T4 (ADR 0001 amendment, 12 Nov). Inf1, the other accelerator in Cape Town, cannot serve these models: the Neuron SDK runs no GPT-style model on Inf1, and Inf1 has a 2 GB weight limit.</div><p class="small" style="margin-top:10px">Prices for orientation only (AWS price lists, Cape Town, read 10 Nov): g4dn.xlarge $0.698/h, g4dn.12xlarge $5.19/h, SageMaker ml.g4dn.xlarge $0.977/h. A new account gets $100 of credit at sign-up and up to $100 more. Section 05 prices each option.</p>
+</section>
+
+<section>
+  <div class="col">
+    <div class="eyebrow">07 · Components</div>
+    <h2>Component, type and AWS home (option A)</h2>
+    <p>"Today" is what exists on 12 Nov: built on <code>main</code>, and deployed to af-south-1 where it says so. "D" numbers point to the rows of <code>docs/dropped-technologies.md</code>.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Component</th><th>Type</th><th>AWS home</th><th>Today</th><th>From</th></tr></thead>
+    <tbody>
+<tr><td>Teacher console</td><td>Client UI</td><td class="svc">CloudFront + S3</td><td>Built (<code>apps/web</code>), deployed on CloudFront</td><td>the architecture plan</td></tr>
+<tr><td>Teacher sign-in</td><td>Identity</td><td class="svc">Cognito, invited accounts only</td><td>Deployed: invited accounts only, the console signs in. The end-to-end check on AWS is still to run</td><td><span class="pill">new</span></td></tr>
+<tr><td>API entry</td><td>Load balancer</td><td class="svc">Application Load Balancer</td><td>Deployed; accepts only CloudFront (origin-facing prefix list and a secret header)</td><td><span class="pill">new</span></td></tr>
+<tr><td>Core: Planner + agents</td><td>Container</td><td class="svc">ECS on Fargate</td><td>Built (<code>services/core</code>), deployed</td><td>the architecture plan</td></tr>
+<tr><td>Intake worker</td><td>Container</td><td class="svc">ECS on Fargate</td><td>Built and running inside the core task: pseudonymiser; answer-sheet pages squared up by their corner marks and cut into one crop per answer, so the name never reaches a model; memo from PDF or Word</td><td><span class="pill">D5</span></td></tr>
+<tr><td>Page reader</td><td>Vision model on a GPU</td><td class="svc">EC2 g4dn.xlarge, af-south-1b (Ollama 0.40.15)</td><td>Built, <code>qwen3-vl:8b-instruct</code> pulled on the host. The live reading check waits for the photographed set</td><td><span class="pill">D4</span></td></tr>
+<tr><td>Marker, writers, moderator</td><td>Text models on a GPU (A); Claude (D, E)</td><td class="svc">EC2 G4dn (Ollama or vLLM)</td><td>Deployed: <code>qwen3:14b</code> marks, <code>phi4</code> moderates, 4 requests at once, thinking off, 180 s client timeout</td><td>the architecture plan</td></tr>
+<tr><td>Bulk steps</td><td>Small text model</td><td class="svc">Same G4dn</td><td>Run by <code>qwen3:14b</code> for now</td><td><span class="pill">D6</span></td></tr>
+<tr><td>Knowledge service + embeddings</td><td>Container, CPU embeddings</td><td class="svc">ECS on Fargate</td><td>Built, deployed; 976 curriculum passages in its S3 snapshot</td><td><span class="pill">D7</span></td></tr>
+<tr><td>Assessment database</td><td>Relational + vector store</td><td class="svc">RDS for PostgreSQL 17.11 + pgvector 0.8.2</td><td>Local Postgres 17 + pgvector 0.8.7 (pin to 0.8.2 to match)</td><td>the architecture plan</td></tr>
+<tr><td>Uploads, bundles, learner note pages</td><td>Object store, signed links</td><td class="svc">S3, encrypted with KMS</td><td>Built: bundles in S3, the PDF moderation report and the note pages</td><td><span class="pill">D10</span> <span class="pill">new</span></td></tr>
+<tr><td>Curriculum sources</td><td>Object store, public</td><td class="svc">S3</td><td>Packs in <code>packs/</code>; DBE PDFs held locally</td><td>the architecture plan</td></tr>
+<tr><td>Parent email</td><td>Outbound messaging</td><td class="svc">Amazon SES (af-south-1)</td><td>Maildir mock (the demo service declarations)</td><td>the demo service declarations</td></tr>
+<tr><td>Agent outbox</td><td>Queue</td><td class="svc">Amazon MQ (RabbitMQ engine in Cape Town unverified)</td><td>Deferred until agents run as separate services</td><td>the architecture plan</td></tr>
+<tr><td>Keys and secrets</td><td>Security</td><td class="svc">Secrets Manager + KMS</td><td>Deployed; <code>.env</code> only on the laptop</td><td><span class="pill">new</span></td></tr>
+<tr><td>Voice colleague</td><td>External SaaS</td><td class="svc">ElevenLabs Agents (not AWS)</td><td>Design merged (the voice design to review); wiring not built</td><td><span class="pill">D1</span></td></tr>
+<tr><td>Eval runner</td><td>One-off container</td><td class="svc">From the laptop today, through an SSM port-forward</td><td>Built; first full run 12 Nov halted (section 10)</td><td><span class="pill">D9</span></td></tr>
+<tr><td>Container images, CI</td><td>Registry, CI/CD</td><td class="svc">ECR + GitHub Actions</td><td>Images in ECR, pushed by hand. No git remote yet, so CI deploy is not wired</td><td><span class="pill">D8</span></td></tr>
+<tr><td>Logs and audit</td><td>Operations</td><td class="svc">CloudWatch + CloudTrail</td><td>Deployed (logs, budget alarm); the JSONL event log (<code>mothusi_events</code>) stays</td><td><span class="pill">new</span></td></tr>
+<tr><td>Infrastructure as code</td><td>Tooling</td><td class="svc">AWS CDK (Python)</td><td>Built: seven stacks, six deployed (CI waits for the remote), with <code>infra/ops.sh</code> to start and stop</td><td><span class="pill">new</span></td></tr>
+<tr><td>Learner sign-in <span class="pill">stretch</span></td><td>Identity</td><td class="svc">Cognito, pseudonym codes + PIN</td><td>Not built</td><td>stretch record</td></tr>
+<tr><td>Practice tests <span class="pill">stretch</span></td><td>Agents + rules in the core</td><td class="svc">ECS on Fargate (core)</td><td>Setter, Marker and rules built; the learner flow is designed, not built</td><td>stretch record</td></tr>
+<tr><td>Exhibition hall <span class="pill">stretch</span></td><td>Static 3D page</td><td class="svc">S3 + CloudFront, <code>&lt;model-viewer&gt;</code></td><td>Designed; waits for the two models to be picked</td><td>stretch record</td></tr>
+<tr><td>Exhibit narration <span class="pill">stretch</span></td><td>Text-to-speech, generated once</td><td class="svc">ElevenLabs API (not AWS)</td><td>None</td><td>new</td></tr>
+<tr><td>3D model source <span class="pill">stretch</span></td><td>Asset library, team use only</td><td class="svc">Sketchfab (not AWS)</td><td>None</td><td>new</td></tr>
+<tr><td>Offline fallback</td><td>Local models</td><td class="svc">Ollama on the laptop (option C)</td><td>Built (<code>ollama_provider.py</code>)</td><td>the architecture plan</td></tr>
+<tr><td>Claude (options D, E)</td><td>Paid model API</td><td class="svc">Bedrock, EU geographic profile</td><td><code>anthropic_provider.py</code> built; the Anthropic SDK's Bedrock client is a small addition</td><td>the architecture plan</td></tr>
+
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <div class="col">
+    <div class="eyebrow">08 · Regulation</div>
+    <h2>Staying within the law</h2>
+    <p>Learners are minors, so their records carry POPIA's strictest rules. Options A and C make no transfer of learner data. B, D and E rely on s72(1)(a), and E sends the least: text, never pages. The rest of POPIA applies wherever the servers are.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Data</th><th>Where it lives (A)</th><th>Crosses the border?</th><th>Rule that governs it</th></tr></thead>
+    <tbody>
+<tr><td><b>Learner names and the class list</b></td><td>RDS in Cape Town, encrypted</td><td><span class="pill sa">never</span></td><td>Names are joined to notes only in the Executor's bundle, which calls no model (marking-pipeline.md §6.1)</td></tr>
+<tr><td><b>Page photos</b> (the cover carries the name)</td><td>S3 in Cape Town</td><td><span class="pill sa">never</span></td><td>Read by the G4dn reader in Cape Town; the cover is cropped before anything else sees the page</td></tr>
+<tr><td><b>Pseudonymised answer text</b> and the memo</td><td>RDS and the G4dn, Cape Town</td><td><span class="pill sa">never</span></td><td>Still personal information, because pseudonyms can be re-linked (s6(1)(b)). The s19 safeguards apply</td></tr>
+<tr><td><b>Marks, notes, bundles, event log</b></td><td>RDS and S3 in Cape Town</td><td><span class="pill sa">never</span></td><td>Released only after the teacher approves (non-negotiable I)</td></tr>
+<tr><td><b>A learner's note page</b></td><td>S3 in Cape Town, opened by a signed link</td><td><span class="pill">to the learner's phone</span></td><td>One note per link; the link expires, needs no account, and is set not to be cached at the edge</td></tr>
+<tr><td><b>The teacher's voice</b> and spoken replies</td><td>ElevenLabs</td><td><span class="pill cross">yes</span></td><td>The teacher's own speech, with her consent (s72(1)(b)). Replies are built by Mothusi's code and never contain a learner's name</td></tr>
+<tr><td><b>Practice-test attempts</b> (stretch)</td><td>RDS in Cape Town, under the pseudonym code</td><td><span class="pill sa">never</span> under A</td><td>A child's personal information: parental consent for the account (s35(1)(a)), the s19 safeguards</td></tr>
+<tr><td><b>Exhibit models and narration</b> (stretch)</td><td>S3 in Cape Town</td><td><span class="pill">allowed</span></td><td>Public curriculum content. The script goes to ElevenLabs once, and learners never contact Sketchfab or ElevenLabs</td></tr>
+<tr><td><b>Curriculum text</b> (CAPS, ATP, memo principles)</td><td>S3 and pgvector</td><td><span class="pill">allowed</span></td><td>Public DBE documents, no personal information</td></tr>
+<tr><td><b>Code and container images</b></td><td>GitHub, ECR</td><td><span class="pill">allowed</span></td><td>No personal information. Test data stays synthetic</td></tr>
+
+    </tbody>
+  </table></div>
+
+<div class="decisions" style="margin-top:16px">
+<div class="decision"><h3>Children's records · s34, s35</h3><p class="small">Processing a child's personal information (anyone under 18) is prohibited unless an exception applies. The ones that fit a school are prior consent of a competent person (a parent, s35(1)(a)) or processing needed for an obligation in law (s35(1)(b)). <b>Our reading:</b> marking is a school's assessment duty, but this needs a legal check before Mothusi touches a real class. The hackathon uses synthetic scripts only (PROJECT-ARSENAL §7).</p></div>
+<div class="decision"><h3>Sending data abroad · s72, s57</h3><p class="small">A transfer is allowed if the recipient is bound by law, rules or an agreement giving adequate protection (s72(1)(a)), or the person consents (s72(1)(b)). Sending a child's information to a country <i>without</i> adequate protection needs the Regulator's prior authorisation (s57(1)(d)). <b>Option A makes no transfer of learner data.</b> Option B would rely on s72(1)(a): AWS's data processing terms and EU regions, which are covered by GDPR. Option C keeps everything in the school.</p></div>
+<div class="decision"><h3>Pseudonyms are still personal data · s1, s6</h3><p class="small">The Act stops applying only to information "de-identified to the extent that it cannot be re-identified again" (s6(1)(b)). Mothusi keeps the pseudonym map so it can return notes to the right learner, so the text the models read stays under POPIA wherever they run. Pseudonymising reduces the risk but does not take the data out of the Act.</p></div>
+<div class="decision"><h3>Operators and breaches · s19–s22</h3><p class="small">The school is the responsible party; AWS and ElevenLabs act as operators. Under option C the school runs everything itself. Each needs a written contract requiring security measures and immediate notice of a breach (s21). Reasonable technical measures (s19) here mean KMS encryption, private subnets, Cognito sign-in and CloudTrail. A breach is reported to the Regulator and the people affected (s22).</p></div>
+<div class="decision"><h3>Where data must be hosted</h3><p class="small">The National Data and Cloud Policy (2024) requires in-country storage only for government data on national security and sovereignty (15.4.2). We found no DBE or provincial rule on where learner data must be hosted. Option A keeps all learner data in Cape Town, at rest and while it is processed. That goes beyond what is required.</p></div>
+<div class="decision"><h3>The voice · ElevenLabs</h3><p class="small">ElevenLabs stores data in the US by default. Its EU, India and Singapore residency still allows processing elsewhere, and its zero-retention mode is Enterprise-only (HIPAA/BAA). It has no Africa option. The voice carries the teacher's own speech (consent under s72(1)(b)) and sentences built by Mothusi's code from pseudonyms and counts, never a learner's name. Amazon Transcribe and Polly both run in Cape Town if that ever has to change.</p></div>
+</div>
+</section>
+
+<section>
+  <div class="col">
+    <div class="eyebrow">09 · Decisions</div>
+    <h2>What was decided, and what is still open</h2>
+    <p>Each decision becomes an architecture-plan change by PR. A decision only counts once the architecture plan or the agreed scope on <code>main</code> says it. By 12 Nov ADRs 0001–0004 had settled most of them; the vLLM question is open again because of what the eval measured.</p>
+  </div>
+  <div class="decisions">
+<div class="decision"><h3><span class="pill sa">settled</span> Which hosting option?</h3>
+<p class="small">Section 03 compares all five. A and E share the same Cape Town reader. They differ only in which provider <code>mothusi_llm</code> uses for marking, and that is a configuration setting.</p>
+<div class="rec"><b>Settled</b> option A (ADR 0001, 10 Nov), deployed 11 Nov. Originally recommended: build the shared part first, the G4dn reader in Cape Town. Then run the eval with an open marker (A) against Claude (E) and choose on agreement, minutes and rand per set. C stays the offline fallback. B and D are for the case where the GPU quota is refused.</div></div>
+<div class="decision"><h3><span class="pill cross">open again</span> Ollama or vLLM on the G4dn?</h3>
+<p class="small"><code>mothusi_llm</code> already talks to Ollama, structured output included. vLLM serves many requests at once, which helps a 32-script set, but it needs a new adapter.</p>
+<div class="rec"><b>Settled</b> Ollama first (ADR 0001), with vLLM only if a set takes longer than 15 minutes. <b>Measured 12 Nov:</b> the first full eval ran 49 minutes and halted before finishing, with Marker calls at 64 s median even with four in parallel. So the trigger is met. Whether to move to vLLM the day before the event, or cut the demo set, is the project researcher's call.</div></div>
+<div class="decision"><h3><span class="pill sa">settled</span> Which open models?</h3>
+<p class="small">For A, B, C and the E reader: the T4 has 16 GB of memory, so each model must fit. The moderator should come from a different family from the marker (llm-seam.md §10).</p>
+<div class="rec"><b>Settled</b> (ADR 0001, amended 12 Nov for the reader tag), for A on one g4dn.xlarge: qwen3-vl:8b-instruct reads, qwen3:14b marks, phi4 moderates, and bge-m3 embeds on CPU, all under Apache-2.0 or MIT. Keep olmOCR-2-7B as the reader to try second.</div></div>
+<div class="decision"><h3><span class="pill sa">settled</span> How do notes reach learners?</h3>
+<p class="small">Printed notes need no contact details. A QR code on each note opens the same note on a phone. Parent email needs consent first.</p>
+<div class="rec"><b>Settled and built</b>: printed notes with a QR code to a signed note page. Parent email through SES comes later.</div></div>
+<div class="decision"><h3><span class="pill sa">settled</span> Live URL or laptop for the demo?</h3>
+<p class="small">the preparation notes asks for a live URL. the architecture plan still names the laptop as the demo target.</p>
+<div class="rec"><b>Settled:</b> demo from the AWS URL (deployed 11 Nov), with the laptop running the same stack as the fallback.</div></div>
+<div class="decision"><h3><span class="pill sa">settled</span> The plan changes this makes</h3>
+<p class="small">the architecture plan's locked stack names Anthropic (direct) for the Marker, Moderator and Writer, and its budget is R40 per class set in model spend.</p>
+<div class="rec"><b>Settled</b> in ADR 0001 and the architecture plan: the deploy target is AWS af-south-1 via CDK. Open models on Ollama join the stack as a full provider, not only the fallback. Claude, if kept, is reached through Bedrock's EU profile. The budget is measured as rand per set whether that comes from GPU hours or tokens.</div></div>
+<div class="decision"><h3><span class="pill sa">settled</span> How does the voice reach <code>main</code>?</h3>
+<p class="small">The decision and draft design sit on <code>docs/scope-voice-and-stretch</code>, which you said not to merge.</p>
+<div class="rec"><b>Settled:</b> the voice branch is merged (ADR 0003). The design is still to review, and the wiring is not built.</div></div>
+<div class="decision"><h3><span class="pill sa">settled</span> Teacher sign-in</h3>
+<p class="small">A public URL that shows class records needs a login. Nothing in the plan has one.</p>
+<div class="rec"><b>Settled and deployed:</b> a Cognito user pool with invited accounts only (judges and the team), and no self sign-up.</div></div>
+<div class="decision"><h3><span class="pill sa">settled</span> Practice feedback and non-negotiable I</h3>
+<p class="small">Today nothing reaches a learner before the teacher approves it. Practice tests need learners to see a result without the teacher reading every attempt.</p>
+<div class="rec"><b>Settled</b> as ADR 0004's scoped exception: one approval of the test and its memo covers every attempt. Learners see only the code-checked mark, the evidence quote and the memo's worked answer. Write it into the product requirements as a scoped exception.</div></div>
+<div class="decision"><h3><span class="pill sa">settled</span> Sketchfab: embed or self-host?</h3>
+<p class="small">The live embed is quicker and its Viewer API drives the camera tour. But Sketchfab's terms bar under-18s from using the service.</p>
+<div class="rec"><b>Settled</b> in the exhibition-hall design: self-host the downloaded models in Cape Town with <code>&lt;model-viewer&gt;</code>, and using only CC-BY or CC0 models with the credit shown.</div></div>
+<div class="decision"><h3><span class="pill sa">settled</span> Exhibition hall or auditorium?</h3>
+<p class="small">Learners pick an exhibit and play it whenever they like.</p>
+<div class="rec"><b>Settled:</b> "exhibition hall". It fits a room of exhibits played on demand, and it is the name already in the record.</div></div>
+
+  </div>
+</section>
+
+<section>
+  <div class="col">
+    <div class="eyebrow">10 · Before kickoff</div>
+    <h2>Where the build stands, 12 Nov</h2>
+    <p>The plan of 10 Nov put the deploy on Wednesday and the eval on Thursday, and both happened. The quota was granted on 11 Nov, so the fallback to B or D was not needed. The risks now are speed on the T4, the Moderator, and getting GPU capacity on the day.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Day</th><th>Done</th><th>Result</th></tr></thead>
+    <tbody>
+<tr><td><b>Tue 10 Nov</b></td><td>Option A and the models decided (ADRs 0001–0004). AWS account opened, af-south-1 enabled, G-instance quota filed. The Phase 8 build started that evening.</td><td>the architecture plan and the ADRs on <code>main</code></td></tr>
+<tr><td><b>Wed 11 Nov</b></td><td>Phase 8 waves 1–6 merged: CDK stacks, <code>ops.sh</code>, the reader and page endpoints, answer sheets, the bundle store and PDFs, sign-in, the knowledge service, the eval runner. The first deploy ran that night.</td><td>Quota granted (8 vCPUs). Every stack deployed; the model host in af-south-1b because 1a offers no g4dn; three models pulled with their digests recorded</td></tr>
+<tr><td><b>Thu 12 Nov</b></td><td>Thinking off for every role. The reader swapped to <code>qwen3-vl:8b-instruct</code>. The host decodes 4 requests at once, the Planner marks in batches of 4, the client waits 180 s. <code>ops.sh</code> starts the GPU first. One cold start measured, and the first full eval run.</td><td>See the two tables below</td></tr>
+    </tbody>
+  </table></div>
+  <div class="pc" style="margin-top:14px">
+    <div><h4>Cold start, measured 12 Nov</h4><ul>
+      <li>RDS available: 4 min 14 s</li>
+      <li>GPU capacity refused, then granted: 2 min 40 s (not counted)</li>
+      <li>EC2 status checks: 1 min 11 s</li>
+      <li>Models ready: 24 s; Marker warm-up: 1 min 25 s</li>
+      <li>ECS services stable: 2 min 38 s</li>
+      <li><b>About 10 minutes in all</b>, run one step after another. The GPU and RDS now start together, which should bring it to about 6 minutes (not yet measured). Start 60 minutes before judging either way.</li>
+    </ul></div>
+    <div><h4>First full eval, 12 Nov (32 scripts)</h4><ul>
+      <li>Ran 49 minutes, then halted: no complete attempt for script L-018</li>
+      <li>Marker (<code>qwen3:14b</code>): 85 calls, 64 s median, 110 s at p95, all over the 30 s target</li>
+      <li>Moderator (<code>phi4</code>): 95 calls, every one hit the 180 s timeout, so the blind re-mark compared nothing. The cause is under investigation</li>
+      <li>Planted traps: the memo error and L-014's evidence were caught; L-021's over-mark and L-007's note were not</li>
+      <li>35 questions for the teacher, mostly on 1.1 and 4</li>
+      <li>GPU busy 96–99% the whole run; the host's CPUs about 38%; the Fargate tasks idle (the eval runs from the laptop)</li>
+    </ul></div>
+  </div>
+  <div class="tbl" style="margin-top:14px"><table>
+    <thead><tr><th>Before Fri 13 Nov, 11:00</th><th>Done when</th></tr></thead>
+    <tbody>
+<tr><td>Find why every <code>phi4</code> call timed out, fix it, and run the eval again</td><td>The Moderator compares a blind sample and the eval finishes</td></tr>
+<tr><td>Merge the batch, timeout and <code>ops.sh</code> fixes; rebuild and deploy the core image</td><td>The deployed core marks in batches of 4</td></tr>
+<tr><td>One marking run through the console on AWS</td><td>Sign-in, catch-up citations (runbook step 11) and the host reached from inside the VPC all pass</td></tr>
+<tr><td>Measure the parallel start</td><td>A timed <code>ops.sh start</code> recorded in deployment-aws.md §5.2</td></tr>
+<tr><td>The photographed class set; the demo script on the live URL</td><td>The demo path runs on the live URL from handwritten pages</td></tr>
+<tr><td>GitHub remote</td><td>The judges have the repo link by Sat 11:00</td></tr>
+    </tbody>
+  </table></div>
+  <div class="col" style="margin-top:20px">
+    <h3>GPU capacity during the event</h3>
+    <p>Research for the project researcher to decide on the day (deployment-aws.md §10). The window is Fri 13 Nov 07:00 to Sat 14 Nov 13:00 SAST, 30 hours, at g4dn.xlarge $0.698/h, the rest of the stack $0.289/h running and about $0.05/h stopped.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Option</th><th>What runs</th><th>Cost for the 30 h</th><th>Start can fail on capacity?</th></tr></thead>
+    <tbody>
+<tr><td>1. Always on</td><td>Everything, the whole window</td><td>~$29.60</td><td>The Friday start only</td></tr>
+<tr><td>1b. Stop overnight (Fri 19:00 → Sat 06:00)</td><td>19 h running, 11 h stopped</td><td>~$19.30</td><td>The Friday start and the Saturday 06:00 restart</td></tr>
+<tr><td>2. Capacity Reservation, always on</td><td>As 1; the reservation covers the running g4dn (billed once)</td><td>~$29.60</td><td>The Friday start only</td></tr>
+<tr><td>2b. Capacity Reservation, stop overnight</td><td>Reservation held 30 h; RDS and Fargate stopped overnight</td><td>~$27.00</td><td>The Friday start only; the Saturday restart is guaranteed</td></tr>
+<tr><td>4. Second zone (af-south-1c), stop overnight</td><td>As 1b, plus a second host's 100 GB disk in 1c</td><td>~$20, ~$0.20 to set up, then $10.47/month for the disk until deleted</td><td>Only if both zones are short at once</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small" style="margin-top:8px">A Capacity Reservation is created or refused at once, and only while capacity exists, so it is made right after the g4dn starts. It is billed at the on-demand rate whether or not an instance runs in it. Options 1 and 2 cost the same; the reservation pays only if the host must be stopped or restarted mid-event. 2b over 1b is about $7.70 for a guaranteed Saturday restart. Option 4 costs about half a day of work and a VPC change the day before the event, and lowers the risk rather than removing it.</p>
+</section>
+
+<section class="col">
+  <div class="eyebrow">11 · Sources</div>
+  <h2>Where the facts come from</h2>
+<ul class="tight">
+<li>Repo: <code>the architecture plan</code> (Technical Context), <code>the agreed scope</code>, <code>docs/architecture/design/marking-pipeline.md</code>, <code>docs/architecture/design/llm-seam.md</code> §10, <code>docs/dropped-technologies.md</code>.</li>
+<li><code>preparation/docs/research/google-cloud-deployment.md</code> §4 (AWS comparison, read 2026-11-08) and <code>preparation/PROJECT-ARSENAL.md</code> §9.2.</li>
+<li>AWS, Bedrock model Region compatibility (Global only from af-south-1): <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/models-region-compatibility.html">docs.aws.amazon.com/bedrock/…/models-region-compatibility</a></li>
+<li>AWS, cross-Region inference ("any supported AWS commercial Region worldwide"; CloudTrail <code>inferenceRegion</code>): <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html">…/cross-region-inference</a></li>
+<li>AWS endpoints: <a href="https://docs.aws.amazon.com/general/latest/gr/bedrock.html">Bedrock</a> (no Data Automation or Knowledge Bases in af-south-1; no runtime row either, which conflicts with the model page, so we test it with a live call), <a href="https://docs.aws.amazon.com/general/latest/gr/textract.html">Textract</a> (no af-south-1), <a href="https://docs.aws.amazon.com/general/latest/gr/ses.html">SES</a>, <a href="https://docs.aws.amazon.com/general/latest/gr/sagemaker.html">SageMaker</a>, <a href="https://docs.aws.amazon.com/general/latest/gr/transcribe.html">Transcribe</a>, <a href="https://docs.aws.amazon.com/general/latest/gr/pol.html">Polly</a></li>
+<li>AWS, EC2 instance types by Region (af-south-1: G4dn and Inf1 only): <a href="https://docs.aws.amazon.com/ec2/latest/instancetypes/ec2-instance-regions.html">…/ec2-instance-regions</a></li>
+<li>AWS, RDS PostgreSQL versions (17.11) and extensions (pgvector 0.8.2; our local image runs 0.8.7): <a href="https://docs.aws.amazon.com/AmazonRDS/latest/PostgreSQLReleaseNotes/postgresql-versions.html">versions</a>, <a href="https://docs.aws.amazon.com/AmazonRDS/latest/PostgreSQLReleaseNotes/postgresql-extensions.html">extensions</a></li>
+<li>AWS, opt-in Regions (af-south-1 is opt-in): <a href="https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-regions.html">…/manage-acct-regions</a></li>
+<li>ElevenLabs, data residency: <a href="https://elevenlabs.io/docs/overview/administration/data-residency">elevenlabs.io/docs/…/data-residency</a>; zero retention (Enterprise, HIPAA): <a href="https://elevenlabs.io/docs/eleven-agents/legal/hipaa">…/hipaa</a></li>
+<li>POPIA, Act 4 of 2013 (s1, s6, s19–22, s34–35, s57, s72): <a href="https://www.gov.za/sites/default/files/gcis_document/201409/3706726-11act4of2013protectionofpersonalinforcorrect.pdf">gov.za PDF</a></li>
+<li>National Data and Cloud Policy, Gazette 50741 (31 May 2024), §15.4.2: <a href="https://www.gov.za/sites/default/files/gcis_document/202406/50741gen2533.pdf">gov.za PDF</a></li>
+<li>AWS, G4dn specifications: <a href="https://docs.aws.amazon.com/ec2/latest/instancetypes/ac.html">…/instancetypes/ac</a>; EC2 quotas (G instances start at 0): <a href="https://docs.aws.amazon.com/ec2/latest/instancetypes/ec2-instance-quotas.html">…/ec2-instance-quotas</a>; requesting increases: <a href="https://docs.aws.amazon.com/servicequotas/latest/userguide/request-quota-increase.html">Service Quotas guide</a></li>
+<li>AWS price lists, af-south-1: <a href="https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/af-south-1/index.csv">EC2</a>, <a href="https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonSageMaker/current/af-south-1/index.json">SageMaker</a></li>
+<li>Neuron model fit (no decoder models on Inf1): <a href="https://awsdocs-neuron.readthedocs-hosted.com/en/v2.9.1/general/arch/model-architecture-fit.html">awsdocs-neuron…/model-architecture-fit</a></li>
+<li>vLLM GPU requirements and quantisation on Turing: <a href="https://docs.vllm.ai/en/latest/getting_started/installation/gpu.html">docs.vllm.ai</a>; Ollama GPU support: <a href="https://raw.githubusercontent.com/ollama/ollama/main/docs/gpu.mdx">ollama docs/gpu</a></li>
+<li>Model cards: <a href="https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct">Qwen3-VL-8B</a>, <a href="https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct">Qwen2.5-VL-7B</a>, <a href="https://huggingface.co/allenai/olmOCR-2-7B-1025">olmOCR-2-7B</a>, <a href="https://huggingface.co/Qwen/Qwen3-14B-AWQ">Qwen3-14B</a>, <a href="https://huggingface.co/microsoft/phi-4">Phi-4</a>, <a href="https://huggingface.co/BAAI/bge-m3">bge-m3</a>; Gemma 3 in fp16: <a href="https://docs.unsloth.ai/basics/gemma-3-how-to-run-and-fine-tune">Unsloth notes</a></li>
+<li>Bedrock models by Region (EU open-weight models): <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/models-region-compatibility.html">…/models-region-compatibility</a>; Free Tier credits: <a href="https://aws.amazon.com/blogs/aws/aws-free-tier-update-new-customers-can-get-started-and-explore-aws-with-up-to-200-in-credits/">AWS blog</a></li>
+<li>Sketchfab terms (§1.4: under-18s may not use the Services; §5: watermark and embed options): <a href="https://sketchfab.com/terms">sketchfab.com/terms</a>; Viewer API functions: <a href="https://sketchfab.com/developers/viewer/functions">sketchfab.com/developers/viewer/functions</a></li>
+<li>DBE Annual Teaching Plans 2023/24, Grade 10 Mathematics (Term 4, Measurement) and Grade 10 Accounting: held in <code>preparation/docs/sources/dbe/curriculum/</code></li>
+<li>Stretch record: <code>the agreed scope</code> and <code>preparation/docs/research/voice-colleague-and-stretch.md</code> §2–3 on branch <code>docs/scope-voice-and-stretch</code> (unmerged)</li>
+<li>Measurements of 12 Nov: <code>docs/architecture/design/deployment-aws.md</code> §5.2, §6.2 and §10; the eval results in <code>services/core/eval/</code>; CloudWatch on the account.</li>
+<li class="small">AWS facts read 2026-11-10 by two research passes, and checked on the account on 11 Nov where deployment-aws.md §10 says so. Amazon MQ's RabbitMQ engine and pgvector 0.8.2 on RDS in af-south-1 are still unverified.</li>
+</ul>
+</section>
+
+</div>

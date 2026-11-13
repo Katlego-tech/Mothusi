@@ -1,6 +1,6 @@
 """Agent envelopes: the Brief one agent sends and the Result it gets back.
 
-Design: docs/design/marking-pipeline.md §6 and the agent contracts. The Planner speaks to every
+Design: docs/architecture/design/marking-pipeline.md §6 and the agent contracts. The Planner speaks to every
 other
 agent only through these two shapes, so a handoff is a visible, loggable thing.
 """

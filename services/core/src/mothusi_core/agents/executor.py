@@ -1,7 +1,7 @@
 """The approval gate and the Executor: the only path by which anything leaves Mothusi.
 
-Design: docs/design/marking-pipeline.md §4 steps 27-30, §5 and §6.1; the `executor` contract;
-docs/design/outputs-and-delivery.md §4. `executor_brief` is the only constructor of an Executor
+Design: docs/architecture/design/marking-pipeline.md §4 steps 27-30, §5 and §6.1; the `executor` contract;
+docs/architecture/design/outputs-and-delivery.md §4. `executor_brief` is the only constructor of an Executor
 Brief and refuses any state but `approved` (Non-negotiable I). `execute` calls no model: it checks
 the approval again, writes the bundle whole (`write_bundle`), then sends each message through the
 injected Mailer (MaildirMailer in the demo). Names join the notes here, in the teacher's files.

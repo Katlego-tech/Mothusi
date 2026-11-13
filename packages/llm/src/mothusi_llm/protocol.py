@@ -1,4 +1,4 @@
-"""The one interface every agent calls a model through. Design: docs/design/llm-seam.md §6.
+"""The one interface every agent calls a model through. Design: docs/architecture/design/llm-seam.md §6.
 
 Adapters (anthropic, ollama, replay) implement `Provider`; agents never import an SDK.
 """

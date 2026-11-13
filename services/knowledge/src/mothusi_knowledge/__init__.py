@@ -1,1 +1,1 @@
-"""Curriculum retrieval with page-exact citations. Design: docs/design/knowledge.md."""
+"""Curriculum retrieval with page-exact citations. Design: docs/architecture/design/knowledge.md."""

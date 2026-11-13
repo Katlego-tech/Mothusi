@@ -1,6 +1,6 @@
 """The Anthropic and Ollama adapters: structured output in, a contract model and Usage out.
 
-Design: docs/design/llm-seam.md §4, §6. HTTP is mocked with each SDK's own transport, so these run
+Design: docs/architecture/design/llm-seam.md §4, §6. HTTP is mocked with each SDK's own transport, so these run
 offline. The `live` tests call the real services and are skipped without credentials.
 """
 

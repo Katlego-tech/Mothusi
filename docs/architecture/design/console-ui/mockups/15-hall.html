@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mothusi · exhibition hall</title>
+<link rel="stylesheet" href="console.css">
+<style>
+/* Hall additions (exhibition-hall.md; the app moves these into its stylesheet). */
+.hall { max-width: 1040px; margin: 0 auto; padding: 32px var(--pad) 64px; display: grid; gap: 20px; }
+.hall-head { display: grid; gap: 4px; }
+.hall-head h1 { font-size: 26px; line-height: 32px; margin: 0; }
+.exhibit { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.vitrine { position: relative; border-radius: 10px; background: radial-gradient(120% 90% at 50% 35%, #1c564b 0%, var(--teal) 70%); color: #e6f0ed; aspect-ratio: 4 / 3; display: grid; place-items: center; overflow: hidden; }
+.vitrine svg { width: 72%; height: auto; }
+.vitrine .stop-tag { position: absolute; left: 14px; top: 12px; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; opacity: .85; }
+.vitrine .orbit { position: absolute; right: 14px; bottom: 12px; font-size: 12px; opacity: .8; }
+.credit { font-size: 12px; color: var(--muted); margin: 6px 2px 0; }
+.label { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px 20px; display: grid; gap: 10px; }
+.label h2 { font-size: 18px; line-height: 24px; margin: 0; }
+.label p { margin: 0; line-height: 1.55; }
+.cite { justify-self: start; font-size: 12px; color: var(--code); background: var(--code-soft); border-radius: 4px; padding: 3px 8px; }
+.play { display: flex; align-items: center; gap: 10px; }
+.stops { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.stops li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: baseline; padding: 8px 10px; border-radius: 6px; border: 1px solid transparent; }
+.stops li .n { font-variant-numeric: tabular-nums; color: var(--muted); font-weight: 600; }
+.stops li.now { background: var(--teal-soft); border-color: var(--teal-edge); }
+.stops li.now .n { color: var(--teal); }
+.gaps-note { font-size: 12px; color: var(--muted); }
+@media (max-width: 720px) { .exhibit { grid-template-columns: minmax(0, 1fr); } .hall { padding: 20px 16px 48px; } }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wordmark">Mothusi<span>.</span></div>
+  <div class="run-title"><strong>Exhibition hall</strong><span class="muted">Grade 10 · Mathematics and Accounting</span></div>
+</header>
+<main class="hall">
+  <div class="hall-head">
+    <span class="small muted">Mathematics · Term 4, weeks 1–2</span>
+    <h1>Measurement: volume and surface area</h1>
+  </div>
+  <section class="exhibit">
+    <div>
+      <div class="vitrine" role="img" aria-label="A cylinder with a hemisphere on one end and a cone on the other">
+        <span class="stop-tag">Stop 5 of 5</span>
+        <svg viewBox="0 0 320 160" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <ellipse cx="110" cy="80" rx="14" ry="40"/>
+          <path d="M110 40 H220 M110 120 H220"/>
+          <path d="M220 40 A14 40 0 0 1 220 120" />
+          <path d="M220 40 A14 40 0 0 0 220 120" stroke-dasharray="4 4" opacity=".6"/>
+          <path d="M110 40 A40 40 0 0 0 110 120" />
+          <path d="M220 40 L270 80 L220 120" />
+          <path d="M150 80 H220" stroke-dasharray="3 5" opacity=".7"/>
+          <text x="180" y="74" font-size="11" fill="currentColor" stroke="none">r = 2 cm</text>
+          <text x="140" y="140" font-size="11" fill="currentColor" stroke="none">h = 10 cm</text>
+          <text x="240" y="104" font-size="11" fill="currentColor" stroke="none">2 cm</text>
+        </svg>
+        <span class="orbit">Drag to turn · pinch to zoom</span>
+      </div>
+      <p class="credit">Model: "Composite solid" by A. Author, CC BY 4.0 · served by Mothusi, nothing loads from elsewhere</p>
+    </div>
+    <div class="label">
+      <span class="small muted">Stop 5 · The composite solid</span>
+      <h2>A cylinder, a hemisphere and a cone</h2>
+      <p>The curriculum's own example: a cylinder 10 cm high with a 2 cm radius, a hemisphere on one end and a cone 2 cm high on the other. Find the volume to the nearest cm³ and the surface area to the nearest cm².</p>
+      <span class="cite">CAPS FET Mathematics, PDF p 33</span>
+      <div class="play"><button type="button" class="btn primary">Play the narration (0:34)</button><span class="small muted">Captions stay on</span></div>
+      <ol class="stops" aria-label="Stops">
+        <li><span class="n">1</span><span>Where this sits in the year</span></li>
+        <li><span class="n">2</span><span>Prisms and cylinders</span></li>
+        <li><span class="n">3</span><span>Scaling every side by k</span></li>
+        <li><span class="n">4</span><span>Spheres, pyramids and cones</span></li>
+        <li class="now" aria-current="step"><span class="n">5</span><span>The composite solid</span></li>
+      </ol>
+      <p class="gaps-note">Every fact here comes from the DBE page on its chip; the teacher approved the wording.</p>
+    </div>
+  </section>
+</main>
+</body>
+</html>

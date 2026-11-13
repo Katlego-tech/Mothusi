@@ -1,4 +1,4 @@
-"""Eval result contracts from docs/design/eval.md §6."""
+"""Eval result contracts from docs/architecture/design/eval.md §6."""
 
 from datetime import date
 from decimal import Decimal

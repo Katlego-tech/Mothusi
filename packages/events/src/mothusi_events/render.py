@@ -1,4 +1,4 @@
-"""One line per event, for the console and the terminal. Design: docs/design/event-log.md §6."""
+"""One line per event, for the console and the terminal. Design: docs/architecture/design/event-log.md §6."""
 
 from __future__ import annotations
 
