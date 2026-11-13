@@ -17,7 +17,7 @@ memos) is the Intake agent in [marking-pipeline.md](marking-pipeline.md) and is 
 | Kind | Where |
 | --- | --- |
 | The entities produced | [domain-model.md](domain-model.md) §3 (`Memo`, `MemoItem`, `Script`, `Answer`) |
-| The memo this format mirrors | `preparation/docs/sources/dbe/exams/NSC Nov 2025 Mathematics P1 Memo.pdf` (question ids like 1.1, 1.2.3; marks per item; notes) |
+| The memo this format mirrors | *NSC Nov 2025 Mathematics P1 Memo* (question ids like 1.1, 1.2.3; marks per item; notes) |
 | POPIA and blind marking | [marking-pipeline.md](marking-pipeline.md) §4 step 3; the project’s grounding rules §6 |
 | Existing code to match | `packages/intake/src/mothusi_intake/pseudonyms.py`, `packages/rules/src/mothusi_rules/pack.py` (TOML loading style) |
 
@@ -112,7 +112,7 @@ pseudonymise(names: Sequence[str]) -> dict[str, str]     (exists)
 | script_id | Equals the pseudonym at intake | A separate id: two identifiers for one learner with nothing to tell apart |
 | Pseudonym order | Class-list order | Sorted by name: leaks the alphabetical position, which with a class list is the name |
 
-Deviations from architecture-defaults.md: none.
+Deviations from the architecture defaults: none.
 
 ## 9. How this is verified
 
@@ -348,7 +348,7 @@ read_script(brief: Brief, provider: Provider) -> Result
 | `services/core/src/mothusi_core/graph/` | change | the `reading_check` state and question |
 | `services/core/src/mothusi_core/main.py` | change | the upload and pages-ready endpoints |
 | `apps/web/src/` | change | photo/PDF upload; the reading-check question |
-| `services/core/fixtures/gr10-maths-t1-photos/` | new | synthetic photographed set: photos + `manifest.toml` in the schema of [eval.md](eval.md) §6 |
+| `services/core/fixtures/gr10-maths-t1-photos/` | to be built | synthetic photographed set: photos + `manifest.toml` in the schema of [eval.md](eval.md) §6 |
 
 **As built (the page-reader implementation, 2026-11-10).** Two deliberate simplifications for this build, each reversible:
 

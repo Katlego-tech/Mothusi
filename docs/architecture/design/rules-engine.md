@@ -19,8 +19,8 @@ anything. It does not cover who calls them or when ([marking-pipeline.md](markin
 | --- | --- |
 | The contracts these functions take and return | `packages/contracts/src/mothusi_contracts/models.py` |
 | Pack data | `packs/dbe-caps/mathematics-gr10.toml` |
-| PoA weights and the annexure's known copy errors | `preparation/docs/research/dbe-teachers-site.md` §1 |
-| Existing code to match | `packages/rules/src/mothusi_rules/arithmetic.py` (style, `CheckResult` wording) |
+| PoA weights and the annexure's known copy errors | The DBE research (source note not in this repo) |
+| Existing code to match | `CheckResult` (`packages/contracts/src/mothusi_contracts/models.py`) for wording; `packages/rules/src/mothusi_rules/arithmetic.py` for style |
 
 ## 3. Domain model
 
@@ -346,7 +346,7 @@ name listed there.
 | Numeric equivalence | sympy, exact for symbols, 1e-9 for numbers | String comparison: "1/2" and "0.5" are the same answer; a model's judgement: the whole point is that code decides |
 | Reports | Deterministic markdown renderers for the moderation report and class sheet | Letting the Writer draft them: the numbers in them must be the computed ones, never re-typed by a model |
 
-Deviations from architecture-defaults.md: none.
+Deviations from the architecture defaults: none.
 
 ## 9. How this is verified
 

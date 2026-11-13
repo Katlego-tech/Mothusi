@@ -32,7 +32,7 @@ Retrieval adds sources to what agents write. It never decides a mark, a week or 
 | Kind | Where |
 | --- | --- |
 | Decision | [ADR 0001](../../adr/0001-aws-cape-town-open-models.md): bge-m3 on CPU in `services/knowledge`, RDS PostgreSQL 17 + pgvector 0.8.2 on AWS |
-| Sources (held, gitignored) | `preparation/docs/sources/dbe/` (index: `MANIFEST.tsv`); `preparation/RATP Mathematics Grade 10 - 2024.pdf` (the ATP the fixture's `atp-weeks.toml` cites) |
+| Sources (held, gitignored) | DBE curriculum PDFs listed in §6.3; *RATP Mathematics Grade 10 - 2024* (the ATP the fixture's `atp-weeks.toml` cites) |
 | Existing code to match | `mothusi_rules.check_catch_up` (`packages/rules/src/mothusi_rules/catchup.py`); Support (`services/core/src/mothusi_core/agents/support.py`); `providers.py`'s wrapper style |
 | Local database | `docker-compose.yml`: `pgvector/pgvector:0.8.7-pg17-trixie` (to be pinned to 0.8.2 to match RDS, the architecture plan Data layer) |
 | Model card | `BAAI/bge-m3` on Hugging Face (MIT; 1024-dimension dense vectors). Two unverified points, checked at the start of the knowledge implementation: whether queries need an instruction prefix, and which pinned `sentence-transformers` version loads it |
@@ -246,7 +246,7 @@ def pack_passages(pack_path: Path) -> tuple[tuple[str, str], ...]
 
 ```toml
 [[source]]
-path = "preparation/docs/sources/dbe/curriculum/CAPS FET Mathematics.pdf"
+# path is supplied locally for the held PDF; it is not a repository reference
 title = "CAPS FET Mathematics"
 kind = "caps"
 subject = "Mathematics"          # optional; omitted = cross-subject
@@ -255,16 +255,16 @@ subject = "Mathematics"          # optional; omitted = cross-subject
 
 First entries, all held on 2026-11-10:
 
-| Path | kind | subject | grade |
+| Source title or repository path | kind | subject | grade |
 | --- | --- | --- | --- |
-| `preparation/docs/sources/dbe/curriculum/CAPS FET Mathematics.pdf` | `caps` | Mathematics | |
-| `preparation/docs/sources/dbe/curriculum/CAPS FET Accounting.pdf` | `caps` | Accounting | |
-| `preparation/docs/sources/dbe/curriculum/ATP 2023-24 Gr 10 Mathematics (DBE).pdf` | `atp` | Mathematics | 10 |
-| `preparation/docs/sources/dbe/curriculum/ATP 2023-24 Gr 10 Accounting (DBE).pdf` | `atp` | Accounting | 10 |
-| `preparation/RATP Mathematics Grade 10 - 2024.pdf` | `atp` | Mathematics | 10 |
-| `preparation/docs/sources/dbe/circulars/Circular S8 of 2023 Annexure.pdf` | `poa` | | |
-| `preparation/docs/sources/dbe/circulars/Circular S19 of 2025 Retention of 2023-24 ATPs with exclusions.pdf` | `circular` | | |
-| `preparation/docs/sources/dbe/assessment-policy/National Protocol for Assessment Gr R-12.pdf` | `policy` | | |
+| *CAPS FET Mathematics* | `caps` | Mathematics | |
+| *CAPS FET Accounting* | `caps` | Accounting | |
+| *ATP 2023-24 Gr 10 Mathematics (DBE)* | `atp` | Mathematics | 10 |
+| *ATP 2023-24 Gr 10 Accounting (DBE)* | `atp` | Accounting | 10 |
+| *RATP Mathematics Grade 10 - 2024* | `atp` | Mathematics | 10 |
+| *Circular S8 of 2023 Annexure* | `poa` | | |
+| *Circular S19 of 2025 Retention of 2023-24 ATPs with exclusions* | `circular` | | |
+| *National Protocol for Assessment Gr R-12* | `policy` | | |
 | `packs/dbe-caps/mathematics-gr10.toml` | `pack` | Mathematics | 10 |
 | `packs/dbe-caps/accounting-gr10.toml` | `pack` | Accounting | 10 |
 
@@ -403,7 +403,7 @@ it is empty.
 | `services/knowledge/src/mothusi_knowledge/chunk.py` | new | §6.2, pure |
 | `services/knowledge/src/mothusi_knowledge/extract.py` | new | `pdftotext -layout` per page (subprocess, argument list, no shell) |
 | `services/knowledge/src/mothusi_knowledge/embed.py` | new | `Embedder`, `BgeM3Embedder` |
-| `services/knowledge/src/mothusi_knowledge/store.py` | new | `ensure_schema`, `load_snapshot`, `search` (psycopg + pgvector) |
+| `services/knowledge/src/mothusi_knowledge/store.py` | new | `ensure_schema`, `load`, `search` (psycopg + pgvector) |
 | `services/knowledge/src/mothusi_knowledge/api.py` | new | FastAPI app, §6.6 |
 | `services/knowledge/src/mothusi_knowledge/__main__.py` | new | the `ingest` / `load` CLI, §6.4 |
 | `services/knowledge/sources.toml` | new | §6.3 |

@@ -185,7 +185,7 @@ a{color:var(--sa)}
   <div class="col">
     <div class="eyebrow">03 · Stretch features</div>
     <h2>The learner section: practice tests and the exhibition hall</h2>
-    <p>Both were recorded as stretch on 8 Nov (the agreed scope and <code>voice-colleague-and-stretch.md</code> §2–3 on the unmerged voice branch). Today's changes: the exhibition hall narrows to Mathematics and Accounting, uses 3D models sourced from Sketchfab, and is narrated by ElevenLabs. The same record also lists approved-feedback PDFs for learners and WhatsApp delivery.</p>
+    <p>Both were recorded as stretch on 8 Nov (the agreed scope and the voice-and-stretch note §2–3 on the unmerged voice branch) (source note not in this repo). Today's changes: the exhibition hall narrows to Mathematics and Accounting, uses 3D models sourced from Sketchfab, and is narrated by ElevenLabs. The same record also lists approved-feedback PDFs for learners and WhatsApp delivery.</p>
     <h3>Learner sign-in</h3>
     <p>Learners sign in with a code and PIN that the teacher hands out. The account name is the learner's pseudonym code, so Cognito holds no name, email or phone number, and the class list that maps codes to names stays inside Mothusi. A learner account is still a child's personal information, so it needs a parent's consent first (POPIA s35(1)(a)).</p>
   </div>
@@ -808,7 +808,7 @@ a{color:var(--sa)}
     <span><i class="sw learner"></i>Learner side</span>
     <span><i class="sw later"></i>Fallback or optional</span>
     <span><i class="ln"></i>People's data crossing the border</span>
-    <span><span class="pill">D4</span>Returning row from the dropped-technologies audit</span>
+    <span><span class="pill">D4</span>Returning row from the technology audit</span>
   </div>
 </section>
 
@@ -946,7 +946,7 @@ a{color:var(--sa)}
   <div class="col">
     <div class="eyebrow">07 · Components</div>
     <h2>Component, type and AWS home (option A)</h2>
-    <p>"Today" is what exists on 12 Nov: built on <code>main</code>, and deployed to af-south-1 where it says so. "D" numbers point to the rows of <code>docs/dropped-technologies.md</code>.</p>
+    <p>"Today" is what exists on 12 Nov: built on <code>main</code>, and deployed to af-south-1 where it says so. "D" numbers point to the rows of the technology audit (source note not in this repo).</p>
   </div>
   <div class="tbl"><table>
     <thead><tr><th>Component</th><th>Type</th><th>AWS home</th><th>Today</th><th>From</th></tr></thead>
@@ -1124,8 +1124,8 @@ a{color:var(--sa)}
   <div class="eyebrow">11 · Sources</div>
   <h2>Where the facts come from</h2>
 <ul class="tight">
-<li>Repo: <code>the architecture plan</code> (Technical Context), <code>the agreed scope</code>, <code>docs/architecture/design/marking-pipeline.md</code>, <code>docs/architecture/design/llm-seam.md</code> §10, <code>docs/dropped-technologies.md</code>.</li>
-<li><code>preparation/docs/research/google-cloud-deployment.md</code> §4 (AWS comparison, read 2026-11-08) and <code>preparation/PROJECT-ARSENAL.md</code> §9.2.</li>
+<li>Repo: <code>the architecture plan</code> (Technical Context), <code>the agreed scope</code>, <code>docs/architecture/design/marking-pipeline.md</code>, <code>docs/architecture/design/llm-seam.md</code> §10.</li>
+<li>the Google Cloud deployment note §4 (AWS comparison, read 2026-11-08) and the project arsenal §9.2 (source note not in this repo).</li>
 <li>AWS, Bedrock model Region compatibility (Global only from af-south-1): <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/models-region-compatibility.html">docs.aws.amazon.com/bedrock/…/models-region-compatibility</a></li>
 <li>AWS, cross-Region inference ("any supported AWS commercial Region worldwide"; CloudTrail <code>inferenceRegion</code>): <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html">…/cross-region-inference</a></li>
 <li>AWS endpoints: <a href="https://docs.aws.amazon.com/general/latest/gr/bedrock.html">Bedrock</a> (no Data Automation or Knowledge Bases in af-south-1; no runtime row either, which conflicts with the model page, so we test it with a live call), <a href="https://docs.aws.amazon.com/general/latest/gr/textract.html">Textract</a> (no af-south-1), <a href="https://docs.aws.amazon.com/general/latest/gr/ses.html">SES</a>, <a href="https://docs.aws.amazon.com/general/latest/gr/sagemaker.html">SageMaker</a>, <a href="https://docs.aws.amazon.com/general/latest/gr/transcribe.html">Transcribe</a>, <a href="https://docs.aws.amazon.com/general/latest/gr/pol.html">Polly</a></li>
@@ -1142,8 +1142,8 @@ a{color:var(--sa)}
 <li>Model cards: <a href="https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct">Qwen3-VL-8B</a>, <a href="https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct">Qwen2.5-VL-7B</a>, <a href="https://huggingface.co/allenai/olmOCR-2-7B-1025">olmOCR-2-7B</a>, <a href="https://huggingface.co/Qwen/Qwen3-14B-AWQ">Qwen3-14B</a>, <a href="https://huggingface.co/microsoft/phi-4">Phi-4</a>, <a href="https://huggingface.co/BAAI/bge-m3">bge-m3</a>; Gemma 3 in fp16: <a href="https://docs.unsloth.ai/basics/gemma-3-how-to-run-and-fine-tune">Unsloth notes</a></li>
 <li>Bedrock models by Region (EU open-weight models): <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/models-region-compatibility.html">…/models-region-compatibility</a>; Free Tier credits: <a href="https://aws.amazon.com/blogs/aws/aws-free-tier-update-new-customers-can-get-started-and-explore-aws-with-up-to-200-in-credits/">AWS blog</a></li>
 <li>Sketchfab terms (§1.4: under-18s may not use the Services; §5: watermark and embed options): <a href="https://sketchfab.com/terms">sketchfab.com/terms</a>; Viewer API functions: <a href="https://sketchfab.com/developers/viewer/functions">sketchfab.com/developers/viewer/functions</a></li>
-<li>DBE Annual Teaching Plans 2023/24, Grade 10 Mathematics (Term 4, Measurement) and Grade 10 Accounting: held in <code>preparation/docs/sources/dbe/curriculum/</code></li>
-<li>Stretch record: <code>the agreed scope</code> and <code>preparation/docs/research/voice-colleague-and-stretch.md</code> §2–3 on branch <code>docs/scope-voice-and-stretch</code> (unmerged)</li>
+<li>DBE Annual Teaching Plans 2023/24, Grade 10 Mathematics (Term 4, Measurement) and Grade 10 Accounting: held in local curriculum PDFs outside this repo</li>
+<li>Stretch record: <code>the agreed scope</code> and the voice-and-stretch note §2–3 on branch <code>docs/scope-voice-and-stretch</code> (unmerged) (source note not in this repo)</li>
 <li>Measurements of 12 Nov: <code>docs/architecture/design/deployment-aws.md</code> §5.2, §6.2 and §10; the eval results in <code>services/core/eval/</code>; CloudWatch on the account.</li>
 <li class="small">AWS facts read 2026-11-10 by two research passes, and checked on the account on 11 Nov where deployment-aws.md §10 says so. Amazon MQ's RabbitMQ engine and pgvector 0.8.2 on RDS in af-south-1 are still unverified.</li>
 </ul>

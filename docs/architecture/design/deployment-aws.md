@@ -35,7 +35,7 @@ This doc only provides the buckets, roles and environment variables those lanes 
 | Local stack this mirrors | `docker-compose.yml` (Postgres 17 + pgvector 0.8.7, RabbitMQ 4.3.7, Ollama 0.40.15) |
 | Env names the code reads today | `services/core/src/mothusi_core/providers.py` (`MOTHUSI_PROVIDER`, `OLLAMA_URL`, `MOTHUSI_OLLAMA_MODEL`), `services/core/src/mothusi_core/main.py` (`MOTHUSI_DATA`, `MOTHUSI_WEB_ORIGINS`), `graph/planner.py` (`MOTHUSI_TEACHER_EMAIL`), `POSTGRES_URL` |
 | Console API base | `apps/web/src/api/client.ts`: base `/api`, overridable by `VITE_API_URL` |
-| The one build script | the validation checks, run by `.github/workflows/ci.yml` |
+| The one build script | the validation checks, run by `.github/workflows/checks.yml` |
 
 Prices used below come from the AWS af-south-1 price lists published 2026-11-05 and read 2026-11-10:
 
@@ -129,7 +129,7 @@ hostname cannot be used as a back door.
 | `mothusi-intake-task` | ecs-tasks | `s3:GetObject/ListBucket` on `mothusi-uploads`; KMS decrypt |
 | `mothusi-knowledge-task` | ecs-tasks | its secrets, plus `s3:GetObject` on `mothusi-curriculum-<acct>` (the passage snapshot it loads at start, knowledge.md §4.1) and `kms:Decrypt` on `mothusi-data` with the condition `kms:ViaService = s3.af-south-1.amazonaws.com` (the bucket is SSE-KMS; the execution role's grant does not cover the task's own calls). The key policy names this task role |
 | `mothusi-model-host` | ec2 | `AmazonSSMManagedInstanceCore` (Session Manager, Run Command); `CloudWatchAgentServerPolicy` |
-| `mothusi-github-deploy` | the GitHub OIDC provider, `repo:<owner>/<repo>:ref:refs/heads/main` only | ECR push to the three repos; `cloudformation:*` on `Mothusi*` stacks through the CDK bootstrap roles (`sts:AssumeRole` on `cdk-*-af-south-1` roles); `ssm:GetParameter` on `parameter/mothusi/*` (deploy.yml reads the console bucket, distribution and Cognito values); `s3:ListBucket` on the `mothusi-console` bucket ARN and `s3:PutObject/DeleteObject` on its objects (`aws s3 sync --delete` lists first); `cloudfront:CreateInvalidation` on the distribution |
+| `mothusi-github-deploy` | the GitHub OIDC provider, `repo:<owner>/<repo>:ref:refs/heads/main` only | ECR push to the three repos; `cloudformation:*` on `Mothusi*` stacks through the CDK bootstrap roles (`sts:AssumeRole` on `cdk-*-af-south-1` roles); `ssm:GetParameter` on `parameter/mothusi/*` (release.yml reads the console bucket, distribution and Cognito values); `s3:ListBucket` on the `mothusi-console` bucket ARN and `s3:PutObject/DeleteObject` on its objects (`aws s3 sync --delete` lists first); `cloudfront:CreateInvalidation` on the distribution |
 
 ## 5. Flows and state
 
@@ -350,10 +350,10 @@ Filled by the model-host setup after the first pull (2026-11-11, `model-ready.sh
 | `qwen3:14b` | `bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8` |
 | `phi4:latest` | `ac896e5b8b34a1f4efa7b14d7520725140d5512484457fab45d2a4ea14c69dba` |
 
-### 6.8 CI: `.github/workflows/deploy.yml`
+### 6.8 CI: `.github/workflows/release.yml`
 
 - **Trigger:** `workflow_dispatch` only. Deploys are deliberate and never run during judging.
-- **Job `gate`:** the same validation checks as `ci.yml`, which the deploy job needs to pass.
+- **Job `gate`:** the same validation checks as `checks.yml`, which the deploy job needs to pass.
 - **Job `deploy`:**
   1. Assume `mothusi-github-deploy` through OIDC.
   2. `docker buildx build --platform linux/amd64` for each service in `services=`, tagged `<git sha>`,
@@ -384,7 +384,7 @@ running.
 | `infra/tests/test_stacks.py` | new | CDK assertions (§9) |
 | `services/core/Dockerfile`, `services/core/docker-entrypoint.sh` | new | image for the core; composes `POSTGRES_URL` |
 | `services/core/src/mothusi_core/main.py` | changed | `/health`, the SSE ping, Cognito JWT check (§6.5) |
-| `.github/workflows/deploy.yml` | new | §6.8 |
+| `.github/workflows/release.yml` | new | §6.8 |
 | `pyproject.toml` (workspace) | changed | add `infra` to the uv workspace, or keep it a separate project (decided in the CDK implementation) |
 
 ## 8. Decisions & alternatives
@@ -401,8 +401,8 @@ running.
 | Teacher auth | Cognito JWT verified in the core | ALB `authenticate-cognito`: needs an HTTPS listener and so a certificate |
 | Cross-stack wiring | SSM parameters | CloudFormation exports: they block replacing `MothusiService` |
 
-Deviations from docs/architecture-defaults.md: RabbitMQ is not deployed
-(deferred, the architecture plan Messaging).
+Deviations from the architecture defaults: RabbitMQ is not deployed
+(deferred, the architecture plan Messaging) (source note not in this repo).
 
 ## 9. How this is verified
 
@@ -437,7 +437,7 @@ Deviations from docs/architecture-defaults.md: RabbitMQ is not deployed
 - [ ] **Amazon MQ's RabbitMQ engine in af-south-1** is unverified. It is deferred anyway (the architecture plan
   Messaging), so nothing here depends on it.
 - [x] **The G-instance quota:** granted 2026-11-11 (8 vCPUs, AWS's email to the project researcher; checked on the
-  account in docs/runbooks/live-testing.md step 1). The fallback below is not needed.
+  account, step 1 of the live-testing runbook) (source note not in this repo). The fallback below is not needed.
   Original note: the quota starts at 0 vCPUs on a new account. If it is not granted by Wed 11 Nov
   evening, `MothusiModelHost` is not deployed and ADR 0001's fallback (B or D) needs a new ADR and a new
   provider. Every other stack is unchanged.

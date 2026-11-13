@@ -32,7 +32,7 @@ and IAM (the deployment design), or the console's download buttons (console-ui.m
 | Kind | Where |
 | --- | --- |
 | What a mark sheet and a teacher file hold | `docs/evidence/sa-teacher-documents.md` (mark sheets, moderation reports, learner evidence rows) |
-| Three-part notes and self-assessment | `preparation/docs/idea.md` "Quality additions" items 1–2 |
+| Three-part notes and self-assessment | "Quality additions" items 1–2 (source note not in this repo) |
 | The computed inputs | `mothusi_rules.mark_sheet_csv`, `moderation_report_md`, `class_feedback_md`; `LearnerNote` and `Message` (contracts) |
 | Existing code to match | `packages/outputs/src/mothusi_outputs/notes.py`, `packages/delivery/src/mothusi_delivery/mailer.py` |
 | RFC 5322 and Maildir | Python's `email.message.EmailMessage`; a Maildir is `cur/ new/ tmp/` with one file per message |
@@ -405,7 +405,7 @@ Intake must read every rectangle from the manifest, never from these constants.
 | Where note pages are stored | **In the bundle, in S3 af-south-1**, read by the core route | A public static site: it could not check expiry, and the S3 objects would have to be public |
 | Answer-sheet coordinates | **Top-left origin, y down, mm, with every rectangle in the manifest** | ReportLab's native bottom-left origin in the manifest: intake works in image coordinates (top-left), and a flip is a classic off-by-a-page bug |
 
-Deviations from architecture-defaults.md: none.
+Deviations from the architecture defaults: none.
 
 ## 9. How this is verified
 

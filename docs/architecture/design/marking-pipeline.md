@@ -16,10 +16,10 @@ not cover the entities ([domain-model.md](domain-model.md)), the deterministic c
 
 | Kind | Where |
 | --- | --- |
-| The chain and its tiers | `preparation/docs/research/high-value-targets.md` §4 |
-| Proposed architecture and demo moments | `preparation/PROJECT-ARSENAL.md` §9.2 |
-| Supervisor pattern this follows | Alfred's `services/core/src/alfred_core/graph/` (guard → route → dispatch → wait → absorb → ask / approvals / halt / respond) |
-| Quality additions (growth mindset, three-part notes, language-load flag) | `preparation/docs/idea.md` "Quality additions from the full TALIS report" |
+| The chain and its tiers | The target research (source note not in this repo) |
+| Proposed architecture and demo moments | The project arsenal (source note not in this repo) |
+| Supervisor pattern this follows | Alfred's graph (guard → route → dispatch → wait → absorb → ask / approvals / halt / respond) (source note not in this repo) |
+| Quality additions (growth mindset, three-part notes, language-load flag) | "Quality additions from the full TALIS report" (source note not in this repo) |
 | Moderation practice | `docs/evidence/sa-teacher-documents.md` (pre- and post-moderation rows) |
 
 ## 3. Domain model
@@ -326,9 +326,9 @@ graph calls it only from the `approved` node.
 | Rules | In code, called by the Planner between agents | Asking a model to "double-check": it is the same kind of error as the first pass |
 | Delivery | Executor runs only after `approved` | Auto-send with an undo: a sent message to a parent cannot be unsent |
 
-Deviations from architecture-defaults.md: the Brief/Result bus is
+Deviations from the architecture defaults: the Brief/Result bus is
 in-process via the graph for the hackathon build; the RabbitMQ outbox from the defaults is kept for
-when agents run as separate services (noted in the architecture plan).
+when agents run as separate services (noted in the architecture plan) (source note not in this repo).
 
 ## 9. How this is verified
 

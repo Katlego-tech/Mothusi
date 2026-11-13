@@ -318,7 +318,7 @@ Bundle {
 | Path | New? | Responsibility |
 | --- | --- | --- |
 | `apps/web/src/api/client.ts` | new | typed calls for the seven HTTP endpoints in §6 |
-| `apps/web/src/api/events.ts` | new | `useEventStream(id)`: EventSource with Last-Event-ID, yields `Event` |
+| `apps/web/src/api/events.ts` | new | `useEventStream(id)`: EventSource with Last-Event-ID, yields the event type defined in `apps/web/src/api/types.ts` (`MothusiEvent`) |
 | `apps/web/src/run/reducer.ts` | new | `apply(RunView, Event)`: one case per kind; unit-tested |
 | `apps/web/src/screens/*` | new | the five screens below |
 | `apps/web/src/components/ui/*` | new | shadcn primitives, restyled with the §2 tokens |
@@ -407,8 +407,8 @@ grey on line 2. Nothing is dropped from a row; the page never scrolls sideways.
 | Pictures of the memo and the script | Typeset facsimiles of the memo item and the learner's answer, with a slot for a photographed page | A generated photograph as in the reference: the demo's scripts are typed (the product requirements non-goals), so a photo would show something Mothusi never saw |
 | Motion | Only on work happening (§2 Motion) | Entrances and decoration: the judges must read a pulse as "an agent is busy", so nothing else may pulse |
 
-Deviations from architecture-defaults.md: none (shadcn/ui with its
-own tokens, per §3).
+Deviations from the architecture defaults: none (shadcn/ui with its
+own tokens, per §3) (source note not in this repo).
 
 ## 9. How this is verified
 
@@ -671,9 +671,9 @@ stateDiagram-v2
 ## 14. The live run as a colleague at work (redesign, 12 Nov 2026, branch `web/agent-console`)
 
 **Why.** The project researcher, 12 Nov: "the user interface doesn't feel like that of an agent." The competition's own
-site (`preparation/docs/event/colleague-zero-2026-11-12.md`) shows what the judges picture: a goal,
+site shows what the judges picture: a goal,
 a plan, agents handing work to each other, a check that sends work back, a count of human
-interventions, and a feed of tagged lines. The 02 screen had all of that data, laid out as a dashboard
+interventions, and a feed of tagged lines (source note not in this repo). The 02 screen had all of that data, laid out as a dashboard
 of equal panels (a ring, four meters, a strip, a rail, a log, a grid), so nothing read as the loop.
 This section replaces §7's `RunScreen` composition. The desk idea of §2 stays: paper, the inks, one
 face, the class set and the evidence pair. What changes is the order of the screen and the shape of

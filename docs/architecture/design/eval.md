@@ -125,7 +125,8 @@ The meaning of each measurement is fixed here, so the slide cannot drift:
 
   `evidence` is the deciding event's seq and summary.
 - **`reader`** comes from the photographed set (§4.2), or is `None` with `reader_skipped` giving the
-  reason, for example "no photographed set at services/core/fixtures/gr10-maths-t1-photos".
+  reason, for example "no photographed set at services/core/fixtures/gr10-maths-t1-photos"
+  (the photographed fixture is to be built).
   - `cer` is the character error rate, the Levenshtein distance divided by the reference length,
     summed over all lines, after whitespace normalisation.
   - `line_exact_rate` is the share of lines equal after normalisation.
@@ -172,7 +173,8 @@ sequenceDiagram
 
 ### 4.2 The reader pass
 
-For each page in `services/core/fixtures/gr10-maths-t1-photos/manifest.toml`, the reader is called
+The photographed fixture and `services/core/fixtures/gr10-maths-t1-photos/manifest.toml` are to be built.
+For each page in that manifest, the reader is called
 through the same seam the intake uses. That contract is defined in intake.md, which the driver is
 revising, and the eval calls exactly that function. Its lines are compared with the manifest's
 reference lines. The reader runs only on the configured model host: on AWS that is the Cape Town G4dn
@@ -295,7 +297,7 @@ class StackPrice(Contract): usd_per_hour: Decimal (ge 0); source: str
 def instance_price(pricing: Pricing, name: str) -> InstancePrice   # unknown name: ValueError naming the known ones
 ```
 
-**Photographed set manifest** (`services/core/fixtures/gr10-maths-t1-photos/manifest.toml`; the team
+**Photographed set manifest to be built** (`services/core/fixtures/gr10-maths-t1-photos/manifest.toml`; the team
 fills it with the photos, row 11):
 
 ```toml
@@ -319,10 +321,10 @@ text = "(x-3)(x+2)=0"           # exactly what the team wrote, copied from scrip
 | `services/core/eval/results-<date>.json` | new, committed | each run's file |
 | `packages/llm/src/mothusi_llm/meter.py` | change | `InstancePrice`, `StackPrice`, `instance_price` |
 | `packages/llm/pricing.toml` | new | the driver writes it with the sources above |
-| `services/core/fixtures/gr10-maths-t1-photos/` | new | photos + `manifest.toml` (the team, row 11) |
+| `services/core/fixtures/gr10-maths-t1-photos/` | to be built | photos + `manifest.toml` (the team, row 11) |
 | the demo script step 8, the demo Q&A Q4 | change | quote the four summary lines with the file's name |
 
-The eval contract originally named `services/core/eval/run.py`. The module moves inside the package so it
+The eval module is `services/core/src/mothusi_core/eval/run.py`, inside the package so it
 is importable, type-checked and covered by the gate. The results directory stays
 `services/core/eval/`.
 

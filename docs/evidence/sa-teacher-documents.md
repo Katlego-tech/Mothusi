@@ -4,7 +4,7 @@ Research note for Mothusi (Colleague Zero, 13–14 Nov 2026). Written 2026-11-04
 
 **Mandated** = required by national policy (CAPS, the National Protocol for Assessment, SIAS, the QMS collective agreement, SASA) or by a standing provincial circular. **Practice** = universal in schools but shaped by the school or district. Items marked ⚠ need checking against the current year's circulars before Mothusi relies on their exact format.
 
-> **Update 2026-11-04:** the ⚠ items are settled for 2026 in dbe-teachers-site.md §1.
+> **Update 2026-11-04:** the ⚠ items are settled for 2026.
 > The 2023/24 ATPs are retained (Circular S19 of 2025) except for CAT and IT, which have an updated CAPS from
 > Jan 2026. FET PoA weightings come from Circular S8 of 2023. The 2021 exam guidelines remain valid until 2027.
 

@@ -17,8 +17,8 @@ scope:
 | Language | **English only** for the event build. |
 | In the demo | **One scripted beat** inside the golden path; the golden path still runs with voice off. |
 
-The limits recorded in `preparation/docs/research/voice-colleague-and-stretch.md` §1 hold, and this
-doc turns them into structure:
+The recorded limits hold, and this
+doc turns them into structure (source note not in this repo):
 
 1. **The voice never gives a mark or a curriculum fact itself.** Every sentence about a mark, a
    question, the class or the ATP is composed **in Mothusi's code** from run state and handed to the
@@ -40,7 +40,7 @@ screens are [console-ui.md](console-ui.md).
 | --- | --- |
 | Visual reference | [console-ui/02-live-run.png](console-ui/02-live-run.png) for the TopBar the mic sits in; the control is new and **producing its mockup is part of the voice implementation** (in `console-ui/mockups/`, re-rendered to a PNG) |
 | Design system / tokens | `docs/architecture/design/console-ui/mockups/console.css` (the console's tokens; the voice control uses the teacher's teal, not a new colour) |
-| Existing code this must match | `services/core/src/mothusi_core/main.py` (routes, `MemoAnswer`, `ScriptAnswer`, `BudgetAnswer`), `services/core/src/mothusi_core/graph/planner.py` (`_memo_question`, `_script_question`, `_budget_question`, `build_bundle`, `RunState`), `apps/web/src/components/chrome.tsx` (TopBar) |
+| Existing code this must match | `services/core/src/mothusi_core/main.py` (routes, `MemoAnswer`, `ScriptAnswer`, `BudgetAnswer`), `services/core/src/mothusi_core/graph/planner.py` (`_memo_question`, `_script_question`, `_budget_question`, `build_bundle`), `services/core/src/mothusi_core/graph/state.py` (`RunState`), `apps/web/src/components/chrome.tsx` (TopBar) |
 | Contracts it reads | `Mark`, `MarkedScript`, `ItemStat`, `CatchUpItem` in `packages/contracts/src/mothusi_contracts/models.py`; `EventKind.TEACHER` in `events.py` |
 | External | ElevenLabs Agents platform and React SDK (links in the research note's Sources); facts not yet checked are §10 |
 
@@ -228,7 +228,7 @@ class BudgetAnswer(BaseModel):
 The Planner copies `channel` into the `TEACHER` event payload (`{"topic": ..., "channel": "voice",
 ...}`) and the summary ends "(by voice)". `teacher_steps` counts a voice answer like any other.
 
-### 6.3 The agent's client tools (`apps/web/src/voice/tools.ts`)
+### 6.3 The agent's client tools (to be built in `apps/web/src/voice/tools.ts`)
 
 | Tool | Parameters | Calls | Returns to the agent |
 | --- | --- | --- | --- |
@@ -240,14 +240,16 @@ The Planner copies `channel` into the `TEACHER` event payload (`{"topic": ..., "
 
 There is no tool for approval, rejection, sending, starting a run or reading the bundle.
 
-### 6.4 The agent's prompt (configured in ElevenLabs; the text is committed at `apps/web/src/voice/agent-prompt.md`)
+### 6.4 The agent's prompt (configured in ElevenLabs; the text is to be written in `apps/web/src/voice/agent-prompt.md`)
 
-The committed prompt must say, in these words or stricter: read any `say` field verbatim and add
+The prompt to be written must say, in these words or stricter: read any `say` field verbatim and add
 nothing about marks, memo lines, curriculum, ATP weeks or learners that is not in it; never state a
 mark you did not get from `explain_mark`; ask for the L-number when the teacher names a learner;
 before `answer_question`, read the decision back and wait for a yes; approval is done on the screen.
 
 ## 7. Structure
+
+The new voice files below are to be built; they do not exist in this checkout.
 
 | Path | New? | Responsibility |
 | --- | --- | --- |
@@ -283,13 +285,13 @@ flowchart TD
 | Approval by voice | Not possible | Recorded limit: approval stays an explicit action on the screen. |
 | Budget raise by voice | Allowed, read back with the amount in rand | Excluding it: it is one of Mothusi's questions and the amount is read back before it is sent. |
 
-Deviations from docs/architecture-defaults.md: ElevenLabs is a new
+Deviations from the architecture defaults: ElevenLabs is a new
 external service (recorded in the architecture plan by the scope commit); the agent's conversation LLM runs at
-ElevenLabs, outside `mothusi_llm`, so its tokens are not on Mothusi's meter (§10).
+ElevenLabs, outside `mothusi_llm`, so its tokens are not on Mothusi's meter (§10) (source note not in this repo).
 
 ## 9. How this is verified
 
-- `test_voice.py`: for each endpoint, against the planted 6-script run in replay mode: the response
+- `services/core/tests/test_voice.py` (to be built): for each endpoint, against the planted 6-script run in replay mode: the response
   validates; `say` contains `awarded`, `max_marks` and the evidence quote verbatim (marks), or the
   weakest question ids (brief); **no learner name from `scripts.csv` appears anywhere in any voice
   response** (scan every string); 409/404 cases as in §6.1.

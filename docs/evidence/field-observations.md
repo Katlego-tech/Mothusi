@@ -1,7 +1,7 @@
 # Field observations: the project researcher's time as a BEEI curriculum assistant
 
 First-hand evidence, recorded 2026-11-04 from the project researcher's account. It sits beside the survey numbers
-(../idea.md, "How we treat evidence"). Learners, teachers and the school are not named. Open
+("How we treat evidence") (source note not in this repo). Learners, teachers and the school are not named. Open
 questions are in §5; answers will be added under each observation.
 
 ---
@@ -33,7 +33,7 @@ questions are in §5; answers will be added under each observation.
 
 ### O4. The work actually done, by subject
 
-| Subject | What he did | Against the official role (curriculum-assistant-role.md §2.1) |
+| Subject | What he did | Against the official role (source note not in this repo) |
 |---|---|---|
 | **Mathematics** | **Taught for a full week**, using content curated by the teacher | The manuals say assistants are "not required to teach" |
 | **Physical Sciences** | **Marked class exercises for 3 days** | Matches the manual (informal marking) |
@@ -69,7 +69,7 @@ questions are in §5; answers will be added under each observation.
    submissions → district. Mothusi's teacher-file bundle is the bottom of that chain. A natural extension is the
    **HOD roll-up** (all classes, all teachers in a subject) and the **principal's pack**. It's multi-agent in a
    way judges will recognise: a colleague per teacher, and one more that combines their outputs for the HOD. This
-   is a candidate new target for high-value-targets.md, pending Q3–Q4.
+   is a candidate new target, pending Q3–Q4 (source note not in this repo).
 2. **The school's own fix for "capture" is a design rule.** The school spread a scarce helper across everyone
    rather than letting one teacher keep it. Mothusi should run as a **shared, school-wide colleague**, with the
    Planner allocating capacity across teachers by deadline (PoA dates) and load. Each allocation decision is
@@ -77,7 +77,7 @@ questions are in §5; answers will be added under each observation.
 3. **Under stress the line bent for teaching but held for marking.** An assistant taught Maths for a full week,
    because the work had to be done. But marking kept the official split: assistants marked informal work, and
    **teachers marked formal tests and exams** (Q8, corrected). Mothusi follows the same split: formal marks stay
-   **proposals the teacher confirms**, as in curriculum-assistant-role.md §6. This
+   **proposals the teacher confirms** (source note not in this repo). This
    is how the school actually worked, not just the policy on paper.
 4. **The conversions story is the mentor's level A, done in the field.** A phone, Termux and a `while` loop cut a
    job from 3–4 people to 2. That's the demo's opening line: "I already automated the arithmetic with a phone.
@@ -129,7 +129,7 @@ questions are in §5; answers will be added under each observation.
     OCR and it didn't work on his phone. It's the mentor's test exactly (paper, every day, done by hand). It's a
     **candidate target: a daily cover planner** (read the timetable once, take today's absences, list the
     uncovered periods, propose who covers each, notify by WhatsApp, after approval). It's the same shared-capacity
-    Planner as implication 2. Provisionally scored in high-value-targets.md §3.
+    Planner as implication 2. Provisionally scored (source note not in this repo).
     TALIS backs the burden: 21% of SA teachers call "extra duties due to absent teachers" a stressor "a lot"
     (Figure 82, p. 150), and principals reported an average of 1.46 teachers absent on the sampled Tuesday
     (TALIS 2024 Country Report, school profile section).
@@ -144,7 +144,7 @@ questions are in §5; answers will be added under each observation.
     other half.
 20. **Sport rests on very few people.** Few teachers coached, and an assistant carried a whole code's admin.
     The sport admin work (team lists, consent, transport, results) is a fair "beyond the classroom" item for the
-    roadmap (curriculum-assistant-role.md §4).
+    roadmap (source note not in this repo).
 
 ### Added after the third round of answers (2026-11-04)
 
@@ -162,15 +162,15 @@ questions are in §5; answers will be added under each observation.
 ## 3. Social impact (for criterion 5, "serves education")
 
 - **Who:** teachers in public schools, already stretched, with assistants as the stop-gap. The assistant
-  programme is reported suspended in 2026 (curriculum-assistant-role.md §1).
+  programme is reported suspended in 2026 (source note not in this repo).
 - **What it costs today:** extra hands borrowed from wherever they can be found (assistants, student teachers,
   3–4 people for one calculation job), assistants pulled into teaching, and a principal's file handed to a
   first-week assistant.
 - **What changes:** the same cycle done faster, checked more consistently, and with the official boundary kept,
   so teachers spend their time on learners and coaching.
 - **Gauteng angle:** this happened in a fee-paying public school in North West, not in one of the poorest. Gauteng's own figures
-  (gauteng.md) show the same pressure at larger scale: 60–70 learners per teacher in township and
-  inner-city schools.
+  show the same pressure at larger scale: 60–70 learners per teacher in township and
+  inner-city schools (source note not in this repo).
 
 ## 3a. Story lines for the pitch (first person, school anonymous)
 
@@ -190,8 +190,8 @@ questions are in §5; answers will be added under each observation.
 
 ## 4. Links to the official record
 
-- Assistant duties and the formal-marking line: curriculum-assistant-role.md §2.1.
-- REAP found assistants reduced teacher workload, stress and burnout (dbe-teachers-site.md §2, item 12).
+- Assistant duties and the formal-marking line (source note not in this repo).
+- REAP found assistants reduced teacher workload, stress and burnout (source note not in this repo).
 - TALIS: marking and administration are where SA teachers exceed the OECD most ([talis-2024-findings.md](talis-2024-findings.md)).
 
 ## 5. Open questions (answers go under each)
@@ -201,8 +201,8 @@ See the list sent on 2026-11-04. Numbering is kept so answers can be filed here.
 1. School context: province, district, school type and quintile, rough size and class sizes; when, and for how long.
    - **Answer (2026-11-04):** **North West**. A **fee-paying** public school. Quintile "I think it was 3", not
      certain. ⚠ Quintiles 1–3 are normally **no-fee** schools, so either it was quintile 4–5, or it was
-     quintile 3 and charged no fees. The EMIS masterlist in `sources/dbe/school-admin/` has `Quintile` and
-     `NoFeeSchool` columns per school, so the project researcher can check privately. District, size, class sizes and dates
+     quintile 3 and charged no fees. The EMIS masterlist has `Quintile` and
+     `NoFeeSchool` columns per school, so the project researcher can check privately (source note not in this repo). District, size, class sizes and dates
      are still open.
    - **What the masterlist shows (2025 data, North West public schools):** every Q1–Q3 school is "No Fee"
      (Q1 486, Q2 298, Q3 480), and every fee-charging school is **Q4 (130) or Q5 (12)**. So a fee-paying North

@@ -1,9 +1,8 @@
 # TALIS 2024: what the full report adds to Mothusi
 
-Second pass over the DBE's *TALIS 2024 South Africa Country Report* (226 pages, saved as
-`TALIS 2024 Country Report.pdf`), read in full on 2026-11-04 by the project researcher (via Claude Code, second session).
-The first pass (high-value-targets.md §2.1) took the time-use tables, the stress
-headline, AI use and learning needs. This note records what that pass missed, and corrects two numbers the
+Second pass over the DBE's *TALIS 2024 South Africa Country Report* (226 pages), read in full on 2026-11-04 by the project researcher (via Claude Code, second session).
+The first pass took the time-use tables, the stress
+headline, AI use and learning needs (source note not in this repo). This note records what that pass missed, and corrects two numbers the
 report's own prose gets wrong. Page numbers are the printed ones (PDF page = printed page + 1).
 
 **Caveat that applies to every number:** TALIS surveys Grade 8–9 teachers (ISCED 2), self-reporting on their
@@ -32,8 +31,8 @@ The prose (para 24, p. 150, repeated in the executive summary para 56) says "exc
 and too much marking (44%)". Those are the marking and achievement rows, misread. The figure agrees with the
 executive summary's own Figure 10 (marking 72, achievement 70, admin 66), so **use the figure, not the prose**.
 
-What changes for us: high-value-targets.md §3 says lesson plans "have the top
-stressor (49%)". They don't: lesson preparation is 28% "a lot". Marking's lead over every other target widens.
+What changes for us: the earlier target research says lesson plans "have the top
+stressor (49%)" (source note not in this repo). They don't: lesson preparation is 28% "a lot". Marking's lead over every other target widens.
 The pitch line becomes: *marking is the task South African teachers most often call a heavy stressor (49%
 "a lot"), the task with the largest excess over the OECD (7.1 h a week against 4.4), and the one they use AI
 for least (50% of AI users).*
@@ -99,7 +98,7 @@ governance story for now.
    which, with the quote; the item analysis carries a **language-load flag** on questions where errors cluster at
    the reading step. (b) The pre-moderator checks stem readability and sentence length against the exam
    guideline. (c) Learner notes in the home language stay on the roadmap, now backed by the Eastern Cape
-   versioning prep papers in isiXhosa and Sesotho (dbe-teachers-site.md §2.13).
+   versioning prep papers in isiXhosa and Sesotho (source note not in this repo).
 
 5. **A young, under-mentored workforce.** 23% of teachers are under 30 (OECD 10%); over 30% have five or
    fewer years' experience; 37% came through a fast-track programme (paras 9, 11, 15). 42% of teachers have no
@@ -114,7 +113,7 @@ governance story for now.
    27% by changing requirements from authorities (Figure 82).
    **Addition:** Mothusi's outputs are the evidence file that answers the accountability question (teacher-file
    bundle, moderation report, intervention record), and Mothusi tracks which circular is current
-   (dbe-teachers-site.md §1) so the teacher doesn't have to.
+   so the teacher doesn't have to (source note not in this repo).
 
 7. **Special educational needs.** 73% cite modifying lessons for learners with SEN as a stressor (para 24);
    59% had no SEN training in the last year (Recommendation 2); it is the top professional-learning need (44%);
@@ -141,8 +140,7 @@ governance story for now.
 
 12. **Assistants reduced workload, and the DBE wants more of them.** Recommendation 7 (p. 221): expand the
     PYEI education-assistant programme and fund administrative support staff. This is the second official
-    basis, after the REAP report, for the line in curriculum-assistant-role.md
-    §6: Mothusi keeps that support going where the assistants have gone.
+    basis, after the REAP report, for the line: Mothusi keeps that support going where the assistants have gone (source note not in this repo).
 
 ---
 
@@ -164,6 +162,6 @@ governance story for now.
 
 ## 4. What to do with the first-pass note
 
-high-value-targets.md §2.1 carries the prose stress numbers (49% lesson preparation,
-44% marking) with a ⚠. The figure settles it (§1.1 above): swap the numbers and drop the "lesson plans have the
+The earlier target research carries the prose stress numbers (49% lesson preparation,
+44% marking) with a ⚠ (source note not in this repo). The figure settles it (§1.1 above): swap the numbers and drop the "lesson plans have the
 top stressor" argument in §3; the ranking doesn't change, the gap grows.

@@ -108,7 +108,7 @@ Pricing / meter
 | `packages/llm/src/mothusi_llm/ollama_provider.py` | new | `OllamaProvider` |
 | `packages/llm/src/mothusi_llm/replay.py` | new | `ReplayProvider`, `record` |
 | `packages/llm/src/mothusi_llm/meter.py` | new | `Pricing`, `load_pricing`, `price`, `Meter` |
-| `packages/llm/pricing.toml` | new (the driver, with the eval run's eval run; row 4 of docs/resources-to-fetch.md) | rates and per-model prices with sources and dates |
+| `packages/llm/pricing.toml` | new (the driver, with the eval run's eval run; row 4 of the resource-fetching note) (source note not in this repo) | rates and per-model prices with sources and dates |
 
 ## 8. Decisions & alternatives
 
@@ -120,7 +120,7 @@ Pricing / meter
 | Pricing in the adapters | An injected `Pricer` | Importing the meter: the provider implementation would wait on the usage meter, and tests would need a pricing file |
 | Anthropic JSON | Structured output (json_schema) and our own validation | Instruction only: a model can still wrap JSON in prose; `messages.parse` alone: its validation error would escape as a pydantic error, not a `ProviderError` |
 
-Deviations from architecture-defaults.md: none.
+Deviations from the architecture defaults: none.
 
 ## 9. How this is verified
 

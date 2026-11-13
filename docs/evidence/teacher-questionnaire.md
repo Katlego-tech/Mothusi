@@ -1,7 +1,6 @@
 # Teacher questionnaire (Google Form), for sending 2026-11-05
 
-Purpose: get the numbers and the stories Mothusi's pitch still lacks (high-value-targets.md
-§5; the mentor's "watch, measure" and "demo is not proof"). Every question below maps to something we will use.
+Purpose: get the numbers and the stories Mothusi's pitch still lacks (the mentor's "watch, measure" and "demo is not proof") (source note not in this repo). Every question below maps to something we will use.
 Nothing asks for learner names, marks or school names.
 
 **Design rules**
@@ -148,20 +147,20 @@ Closing text: *Thank you. If you said yes to a chat I'll message you within two 
 
 | Section | Answers | Where it lands |
 |---|---|---|
-| §1 | Who we're building for; the curriculum spread | curricula-and-subjects.md §1 |
+| §1 | Who we're building for; the curriculum spread | The curriculum research (source note not in this repo) |
 | §2–3 | The **baseline time** per script and per task; the admin chain | the mentor metric 1 (time) |
 | §4 | Realistic **planted errors**; the moderation rule the Moderator should copy | Demo script; Moderator design |
 | §5 | Feedback and self-assessment practice | TALIS Rec 6 comparison |
 | §6 | Intake/export formats; phone-first and offline needs | Executor and Intake design |
 | §7 | Local AI use and barriers against TALIS Fig 73 | Adoption argument |
-| §8 | **Target ranking from teachers themselves**; trust conditions; the boundary | high-value-targets.md §3; Reviewer rules |
+| §8 | **Target ranking from teachers themselves**; trust conditions; the boundary | The target research; Reviewer rules (source note not in this repo) |
 | §9 | Interviewees, demo documents, the missing Gauteng PoA, a pilot teacher | Everything still open |
 
 ## Analysis note
 
-Responses so far: teacher-responses.md (1 response, North West, 2026-11-12).
+Responses so far: 1 response, North West, 2026-11-12 (source note not in this repo).
 
 Export to Sheets. Two numbers to compute first: median minutes per script (2.3) × median scripts (2.2) against
 median reported total (2.4), as a sanity check on self-report; and the top three in 8.1 against the §3 scoring
-in high-value-targets.md. Write the results to a dated note in `docs/research/` with the response count and
+in the target research (source note not in this repo). Write the results to a dated note in `docs/research/` (to be created) with the response count and
 province split, and quote free-text answers (4.4, 8.4) without anything that identifies a school.

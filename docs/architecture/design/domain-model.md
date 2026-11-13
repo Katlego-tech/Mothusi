@@ -19,10 +19,10 @@ checks exist ([rules-engine.md](rules-engine.md)).
 
 | Kind | Where |
 | --- | --- |
-| Programme of assessment, Mathematics Gr 10–12 | DBE Circular S8 of 2023 Annexure §26, summarised in `preparation/docs/research/dbe-teachers-site.md` §1 |
+| Programme of assessment, Mathematics Gr 10–12 | DBE Circular S8 of 2023 Annexure §26 |
 | Cognitive levels, Mathematics | CAPS FET Mathematics §4 (20 / 35 / 30 / 15) |
 | Teacher documents and their formats | `docs/evidence/sa-teacher-documents.md` |
-| Curriculum-pack idea and the five subjects | `preparation/docs/research/curricula-and-subjects.md` §2–3 |
+| Curriculum-pack idea and the five subjects | The curriculum research (source note not in this repo) |
 | Pack data, first instance | `packs/dbe-caps/mathematics-gr10.toml` |
 
 ## 3. Domain model
@@ -249,7 +249,7 @@ The models are the contract: `from mothusi_contracts import ...`. Agents produce
 | Marks | `int` | `Decimal`: the memos we hold award whole marks; half marks would reopen every total check |
 | Learner identity | Pseudonym on the script | Names on the script: the Marker and Moderator must not see them (POPIA, blind marking) |
 
-Deviations from architecture-defaults.md: none. The contracts
+Deviations from the architecture defaults: none. The contracts
 package is the shared `contracts` package the defaults call for.
 
 ## 9. How this is verified

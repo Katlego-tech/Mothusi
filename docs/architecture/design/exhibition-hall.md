@@ -22,12 +22,15 @@ CloudFront distribution: never Sketchfab (its terms §1.4 bar users under 18) an
 | Kind | Where |
 | --- | --- |
 | Decision | `docs/adr/0004-learner-section-stretch.md` (sourcing, serving, narration, the two first exhibits) |
-| Curriculum sources (held, gitignored) | `preparation/docs/sources/dbe/curriculum/ATP 2023-24 Gr 10 Mathematics (DBE).pdf`, `CAPS FET Mathematics.pdf`, `ATP 2023-24 Gr 10 Accounting (DBE).pdf`, `CAPS FET Accounting.pdf` |
+| Curriculum sources (held, gitignored) | *ATP 2023-24 Gr 10 Mathematics (DBE)*, *CAPS FET Mathematics*, *ATP 2023-24 Gr 10 Accounting (DBE)*, *CAPS FET Accounting* |
 | Where the bucket is | `docs/architecture/design/deployment-aws.md` §6 (`mothusi-exhibits-<acct>` in MothusiData) |
 | Visual reference | none yet: producing `docs/architecture/design/console-ui/15-hall.png` is the first step of the build task (§11), in the console's tokens (console-ui.md §2) |
 | Viewer | `@google/model-viewer` 4.4.0 (Apache-2.0, released 2026-10-09), bundled into `apps/web` from npm |
 
 ## 3. Domain model
+
+The exhibit assets and manifests named in §3–6 are to be built and published; the paths show the
+planned layout, not files present in this checkout.
 
 ```mermaid
 classDiagram
@@ -61,7 +64,7 @@ classDiagram
         citations: Citation[]    "1..n; every fact in narration and caption"
     }
     class Citation {
-        document: str            "file name under preparation/docs/sources/dbe/"
+        document: str            "file name of the held DBE source PDF"
         pdf_page: int            "the PDF's page index, 1-based (printed page numbers differ)"
         quote: str               "the words on that page the fact rests on"
     }
@@ -121,7 +124,7 @@ stateDiagram-v2
 # packages/contracts/src/mothusi_contracts/exhibits.py (exported from mothusi_contracts). The contracts
 # take what a manifest says; check_exhibit is what refuses it, so a refusal names its reason.
 class Citation(Contract):
-    document: str = Field(min_length=1)       # file name under preparation/docs/sources/dbe/
+    document: str = Field(min_length=1)       # file name of the held DBE source PDF
     pdf_page: int = Field(ge=1)
     quote: str = Field(min_length=1)
 
@@ -180,8 +183,8 @@ after the learner taps "Open the exhibit", so the hall list itself stays under 1
 ## 7. The two first exhibits: what each stop may say
 
 Every row's fact is quoted from the page named. The "Needs" column is a fact the narration would
-want that **no held page states**: those are rows in docs/resources-to-fetch.md, and until fetched
-the stop says only what the cited pages say.
+want that **no held page states**: those are rows in the resource-fetching note, and until fetched
+the stop says only what the cited pages say (source note not in this repo).
 
 ### 7.1 Mathematics Grade 10: Measurement (`maths-gr10-measurement`)
 
@@ -228,7 +231,7 @@ stops show assets on one side, and owner's equity and liabilities on the other.
 ## 11. Build tasks this allows (proposed for the implementation plan)
 
 1. **Exhibit contracts and `check_exhibit`** (Codex-ready): §3 and §6 verbatim; tests per §9.
-2. **The two exhibit manifests** (Claude): `exhibits/maths-gr10-measurement/exhibit.toml` and `exhibits/acc-gr10-equation/exhibit.toml`, with the §7 citations. Both must pass `check_exhibit`. The models are picked from Sketchfab by a team member.
+2. **The two exhibit manifests to be built** (Claude): `exhibits/maths-gr10-measurement/exhibit.toml` and `exhibits/acc-gr10-equation/exhibit.toml`, with the §7 citations. Both must pass `check_exhibit`. The models are picked from Sketchfab by a team member.
 3. **The hall screens** (Claude, frontend): mockup `15-hall.png` first, then `/hall` and `/hall/<id>` with `<model-viewer>` 4.4.0, CloudFront `/exhibits/*` in MothusiFront.
 4. **Narration audio** (after the ElevenLabs decision): one TTS render per approved stop, uploaded with the model.
 

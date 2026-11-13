@@ -83,8 +83,7 @@ architecture page (§05) recomputes them.
 
 ## Also weighed
 
-- **Google Cloud** (Cloud Run, Cloud SQL, africa-south1): not used. See
-  `preparation/docs/research/google-cloud-deployment.md`.
+- **Google Cloud** (Cloud Run, Cloud SQL, africa-south1): not used (source note not in this repo).
 - **Anthropic's own API:** it uses the same `anthropic_provider.py`, but brings a second vendor contract
   and a bill outside AWS.
 - **SageMaker real-time endpoints on ml.g4dn in Cape Town** ($0.977/h): a managed variant of A.
