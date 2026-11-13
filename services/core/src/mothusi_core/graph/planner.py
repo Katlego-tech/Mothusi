@@ -22,6 +22,8 @@ from typing import Any, Literal, cast
 
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import END, START, StateGraph  # pyright: ignore[reportMissingTypeStubs]
+from langgraph.store.base import BaseStore
+from langgraph.store.memory import InMemoryStore
 from langgraph.types import Command, interrupt
 
 from mothusi_contracts import (
@@ -74,6 +76,7 @@ from mothusi_core.agents.support import plan_catch_up, support_brief
 from mothusi_core.agents.writer import ModerationReportData, write, writer_brief
 from mothusi_core.delivery import delivery_from_environment
 from mothusi_core.events import EventSink
+from mothusi_core.graph import inbox
 from mothusi_core.graph.router import check_transition
 from mothusi_core.graph.state import Json, RunState
 from mothusi_core.knowledge import Knowledge, KnowledgeError, NoKnowledge
@@ -111,6 +114,7 @@ class Planner:
     fallback: Provider | None
     data_dir: Path
     checkpointer: BaseCheckpointSaver[Any]
+    store: BaseStore = field(default_factory=InMemoryStore)
     teacher_email: str | None = None
     priced: bool = True
     knowledge: Knowledge = field(default_factory=NoKnowledge)
@@ -129,7 +133,7 @@ class Planner:
     def __post_init__(self) -> None:
         # Every role and assessment shares the one model host, so they share its slots.
         self.slots = Slots(self.batch_size)
-        self.graph = _build(self).compile(checkpointer=self.checkpointer)  # pyright: ignore[reportUnknownMemberType]
+        self.graph = _build(self).compile(checkpointer=self.checkpointer, store=self.store)  # pyright: ignore[reportUnknownMemberType]
 
     # ------------------------------------------------------------------ per-assessment parts
 
@@ -488,7 +492,61 @@ def _build(p: Planner) -> StateGraph[RunState]:
             return {**update, **_move(sink, s, S.DRAFT, "teacher amended the memo")}
         return {**update, **_move(sink, s, S.MARKING, "teacher kept the memo")}
 
+    def _apply_script_answer(s: RunState, sid: str, answer: Json) -> Update:
+        sink = p.sink(s["assessment_id"])
+        memo, script = _memo(s), next(x for x in _scripts(s) if x.script_id == sid)
+        pending = dict(s.get("pending", {}))
+        attempts = pending.pop(sid)
+        if answer["decision"] == "use_attempt":
+            row = attempts[int(answer["attempt"]) - 1]
+            if not attempt_is_complete(memo, row["marks"]):
+                raise ValueError(f"attempt {answer['attempt']} does not mark every memo question")
+            ms = MarkedScript(
+                script_id=sid,
+                marker="teacher",
+                marks=tuple(Mark.model_validate(m) for m in row["marks"]),
+                total=sum(int(m["awarded"]) for m in row["marks"]),
+            )
+            summary = f"{sid}: teacher used attempt {answer['attempt']}"
+        else:
+            ms = teacher_marks(memo, script, answer["marks"])
+            summary = f"{sid}: teacher set the marks ({ms.total}/{memo.total_marks})"
+            sink.decision("exempt from check_evidence", f"{sid}: marks are the teacher's decision")
+        sink.emit(EventKind.TEACHER, summary, {"topic": "script", **answer, "script_id": sid})
+        update: Update = {
+            "pending": pending,
+            "teacher_steps": s.get("teacher_steps", 0) + 1,
+            "question": None,
+        }
+        if (s.get("question") or {}).get("stage") == "moderation":
+            # The teacher's marks stand in for the blind second marking of this sampled script.
+            update["moderated"] = {**s.get("moderated", {}), sid: ms.model_dump(mode="json")}
+        else:
+            update["marked"] = {**s.get("marked", {}), sid: ms.model_dump(mode="json")}
+        if S(s["state"]) is S.RE_MARKING:
+            # A dispute the teacher settled is the teacher's, in the moderation report too.
+            awarded = {m.question_id: m.awarded for m in ms.marks}
+            resolutions = dict(s.get("resolutions", {}))
+            for key in [k for k in resolutions if k.startswith(f"{sid}/")]:
+                question = key.split("/", 1)[1]
+                resolutions[key] = f"teacher's decision: {awarded[question]}"
+            update["resolutions"] = resolutions
+        return update
+
+    async def apply_inbox(s: RunState) -> Update:
+        update: Update = {}
+        if S(s["state"]) is not S.MARKING:
+            return update
+        for sid, answer in (await inbox.take_all(p.store, s["assessment_id"])).items():
+            current = cast(RunState, {**s, **update})
+            if sid in current.get("pending", {}):
+                update.update(_apply_script_answer(current, sid, answer))
+                await p.store.adelete(("inbox", s["assessment_id"]), sid)
+        return update
+
     async def marking(s: RunState) -> Update:
+        if applied := await apply_inbox(s):
+            return applied
         sink = p.sink(s["assessment_id"])
         memo, pack, scripts = _memo(s), _pack(s), _scripts(s)
         provider = p.provider(s["assessment_id"])
@@ -515,7 +573,22 @@ def _build(p: Planner) -> StateGraph[RunState]:
             else:
                 sink.decision("to the teacher", outcome.reason)
                 pending[outcome.script_id] = _attempt_rows(outcome)
-        update = _usage(p, s, {"marked": marked, "pending": pending})
+                question = _script_question(s, outcome.script_id, pending[outcome.script_id])
+                sink.emit(EventKind.NEEDS_TEACHER, question["title"], question)
+        s = cast(RunState, {**s, "marked": marked, "pending": pending})
+        applied = await apply_inbox(s)
+        s = cast(RunState, {**s, **applied})
+        marked, pending = s.get("marked", {}), s.get("pending", {})
+        update = _usage(
+            p,
+            s,
+            {
+                "marked": marked,
+                "pending": pending,
+                "teacher_steps": s.get("teacher_steps", 0),
+                "question": None,
+            },
+        )
         if rest:
             spent, limit = Decimal(update["spent_zar"]), Decimal(s["budget_zar"])
             if p.priced and spent > limit:
@@ -526,7 +599,7 @@ def _build(p: Planner) -> StateGraph[RunState]:
             return {**update, **_ask(sink, _script_question(s, sid, pending[sid]))}
         return {
             **update,
-            **_move(sink, s, S.MODERATING, f"all {len(marked)} scripts pass the rules"),
+            **_move(sink, s, S.MODERATING, "every script settled"),
         }
 
     async def ask_budget(s: RunState) -> Update:
@@ -543,47 +616,22 @@ def _build(p: Planner) -> StateGraph[RunState]:
         }
 
     async def ask_script(s: RunState) -> Update:
-        q = cast(Json, s.get("question"))
-        answer = cast(Json, interrupt(q))
         sink = p.sink(s["assessment_id"])
+        q = cast(Json, s.get("question"))
+        update = await apply_inbox(s)
+        if update:
+            # Checkpoint applied answers before a later interrupt can suspend the node.
+            current = cast(RunState, {**s, **update})
+            pending = current.get("pending", {})
+            if pending:
+                sid = next(iter(pending))
+                return {**update, **_ask(sink, _script_question(current, sid, pending[sid]))}
+            return {**update, **_move(sink, s, S.MODERATING, "every script settled")}
+        answer = cast(Json, interrupt(q))
         sid = q["script_id"]
-        memo, script = _memo(s), next(x for x in _scripts(s) if x.script_id == sid)
-        pending = dict(s.get("pending", {}))
-        attempts = pending.pop(sid)
-        if answer["decision"] == "use_attempt":
-            row = attempts[int(answer["attempt"]) - 1]
-            if not attempt_is_complete(memo, row["marks"]):
-                raise ValueError(f"attempt {answer['attempt']} does not mark every memo question")
-            ms = MarkedScript(
-                script_id=sid,
-                marker="teacher",
-                marks=tuple(Mark.model_validate(m) for m in row["marks"]),
-                total=sum(int(m["awarded"]) for m in row["marks"]),
-            )
-            summary = f"{sid}: teacher used attempt {answer['attempt']}"
-        else:
-            ms = teacher_marks(memo, script, answer["marks"])
-            summary = f"{sid}: teacher set the marks ({ms.total}/{memo.total_marks})"
-            sink.decision("exempt from check_evidence", f"{sid}: marks are the teacher's decision")
-        sink.emit(EventKind.TEACHER, summary, {"topic": "script", **answer, "script_id": sid})
-        update: Update = {
-            "pending": pending,
-            "teacher_steps": s.get("teacher_steps", 0) + 1,
-            "question": None,
-        }
-        if q.get("stage") == "moderation":
-            # The teacher's marks stand in for the blind second marking of this sampled script.
-            update["moderated"] = {**s.get("moderated", {}), sid: ms.model_dump(mode="json")}
-        else:
-            update["marked"] = {**s.get("marked", {}), sid: ms.model_dump(mode="json")}
-        if S(s["state"]) is S.RE_MARKING:
-            # A dispute the teacher settled is the teacher's, in the moderation report too.
-            awarded = {m.question_id: m.awarded for m in ms.marks}
-            resolutions = dict(s.get("resolutions", {}))
-            for key in [k for k in resolutions if k.startswith(f"{sid}/")]:
-                question = key.split("/", 1)[1]
-                resolutions[key] = f"teacher's decision: {awarded[question]}"
-            update["resolutions"] = resolutions
+        update = _apply_script_answer(s, sid, answer)
+        await p.store.adelete(("inbox", s["assessment_id"]), sid)
+        pending = update["pending"]
         if pending:
             nxt = next(iter(pending))
             return {**update, **_ask(sink, _script_question(s, nxt, pending[nxt], q.get("stage")))}
