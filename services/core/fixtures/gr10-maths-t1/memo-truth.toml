@@ -1,0 +1,4 @@
+# traps.md, "The four planted traps": item 2.3 is the only planted memo error.
+[[errors]]
+question_id = "2.3"
+correct_answer = "x = -4"
