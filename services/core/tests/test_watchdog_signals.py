@@ -1,4 +1,4 @@
-"""The two log markers the infra watchdog alarms on (infra/mothusi_infra/watchdog.py)."""
+"""The two log markers the watchdog alarms on (infra/watchdog.sh)."""
 
 from __future__ import annotations
 
@@ -48,5 +48,5 @@ def test_ordinary_events_and_other_decisions_log_nothing(
 
 
 def test_the_markers_match_the_infra_watchdog() -> None:
-    # infra/mothusi_infra/watchdog.py pins the same two strings in its own tests.
+    # infra/watchdog.sh searches the core's log group for these two strings.
     assert (RUN_HALTED, NEEDS_TEACHER) == ("WATCHDOG_RUN_HALTED", "WATCHDOG_NEEDS_TEACHER")

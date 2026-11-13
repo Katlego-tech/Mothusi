@@ -22,8 +22,8 @@ from mothusi_events import EventLog
 
 type Clock = Callable[[], datetime]
 
-# The watchdog (infra/mothusi_infra/watchdog.py) counts these markers in the core's log group and
-# emails within a minute: a halted run, or a run waiting for the teacher, leaves the GPU idle.
+# The watchdog (infra/watchdog.sh) looks for these markers in the core's log group and alarms
+# within a minute: a halted run, or a run waiting for the teacher, leaves the GPU idle.
 RUN_HALTED = "WATCHDOG_RUN_HALTED"
 NEEDS_TEACHER = "WATCHDOG_NEEDS_TEACHER"
 watchdog_log = logging.getLogger("mothusi.watchdog")
