@@ -125,7 +125,7 @@ check_gpu_host() {
     cid="$(aws_ ssm send-command --instance-ids "$host" --document-name AWS-RunShellScript \
         --parameters "commands=[\"nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits\",\"journalctl -u ollama --since '-$(( interval + 30 )) s' --no-pager | grep -c -i -E 'error loading model|load failed|panic' || true\"]" \
         --query Command.CommandId --output text 2>/dev/null)" || return 0
-    sleep 4
+    sleep "${WATCHDOG_SSM_WAIT_S:-4}"
     out="$(aws_ ssm get-command-invocation --command-id "$cid" --instance-id "$host" --query StandardOutputContent --output text 2>/dev/null)" || return 0
     util="$(sed -n 1p <<<"$out" | tr -dc 0-9)"
     loads="$(sed -n 2p <<<"$out" | tr -dc 0-9)"
