@@ -19,8 +19,11 @@ class MothusiCi(Stack):
             self,
             "GitHubRepository",
             type="String",
-            allowed_pattern=r"[\w.-]+/[\w.-]+",
-            description="GitHub owner/repository whose release environment may deploy.",
+            # GitHub's immutable subject carries the numeric IDs (owner@id/repo@id), so a renamed or
+            # recreated repository can't take the role over. Read the repository's prefix with:
+            #   gh api repos/<owner>/<repo>/actions/oidc/customization/sub
+            allowed_pattern=r"[\w.-]+(@\d+)?/[\w.-]+(@\d+)?",
+            description="The repository part of GitHub's OIDC subject: owner@id/repo@id.",
         )
         # An account holds one OIDC provider per URL. Katlego's account already has GitHub's
         # (checked 2026-11-10), so it is imported by ARN unless createGithubOidcProvider=true.
