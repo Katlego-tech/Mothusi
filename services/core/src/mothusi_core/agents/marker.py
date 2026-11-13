@@ -51,9 +51,18 @@ Rules you never break:
    not in the memo is refused. principle names the marking
    principle in a few words (for example "answer matches memo", "method mark", "CA marking:
    follows the learner's earlier error", "no attempt").
+   Keep every field as short as these rules allow: evidence_quote is the shortest exact substring
+   that earns the mark, memo_line the shortest memo line that applies, principle 2 to 6 words.
 4. A question the learner did not answer gets 0, principle "no attempt", empty evidence_quote.
 5. The learner is identified only by the pseudonym given. Never guess or use a name.
 6. Reply with JSON only, matching the requested schema. No prose outside the JSON."""
+
+
+# The most a Marker or Moderator reply may run to. A reply is about 500 tokens for nine questions;
+# 1500 leaves room for long working and still ends in about 160 s at the T4's ~9.5 tokens/s with
+# four replies decoding at once, inside the 180 s client timeout. Without it a reply ran to 2175
+# tokens and three calls hit the timeout in the 2026-11-13 eval.
+REPLY_BUDGET_TOKENS = 1500
 
 
 class MarkerReply(Contract):
@@ -279,7 +288,7 @@ async def mark_script(
     *,
     assessment_id: str,
     max_attempts: int = 3,
-    budget_tokens: int | None = None,
+    budget_tokens: int | None = REPLY_BUDGET_TOKENS,
     role: AgentRole = AgentRole.MARKER,
     moderation: tuple[MarkedScript, MarkedScript] | None = None,
     on_brief: Callable[[Brief], None] | None = None,

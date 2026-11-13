@@ -256,7 +256,12 @@ class PreRunError(RuntimeError):
     """Setup failed before any Planner execution could be measured."""
 
 
-async def evaluate(fixture: Path, instance: str, pricing_path: Path) -> EvalResult:
+async def evaluate(
+    fixture: Path,
+    instance: str,
+    pricing_path: Path,
+    events_to: list[Event] | None = None,
+) -> EvalResult:
     """Run all fixture scripts; failures after start remain measured results."""
     with ExitStack() as resources:
         try:
@@ -368,6 +373,8 @@ async def evaluate(fixture: Path, instance: str, pricing_path: Path) -> EvalResu
                 snapshot = None
             state["halted"] = f"{type(error).__name__}: {error}"
         events = planner.sink(ASSESSMENT).read()
+        if events_to is not None:  # the run's folder is deleted on exit; the caller keeps the log
+            events_to.extend(events)
     compared = state.get("questions_compared", 0)
     differences = len(state.get("disagreements", []))
     cost = (
@@ -418,6 +425,18 @@ def write_result(result: EvalResult, out: Path) -> Path:
             suffix += 1
 
 
+def write_events(events: Sequence[Event], result_path: Path) -> Path:
+    """The run's whole event log beside its result (results-X.json -> events-X.jsonl), so every
+    disagreement, check and teacher question can be read after the run."""
+    path = result_path.with_name(result_path.name.replace("results-", "events-", 1)).with_suffix(
+        ".jsonl"
+    )
+    with path.open("x") as stream:
+        for event in events:
+            stream.write(event.model_dump_json() + "\n")
+    return path
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pricing", type=Path, required=True)
@@ -426,11 +445,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--out", type=Path, default=ROOT / "services/core/eval")
     args = parser.parse_args(argv)
     try:
-        result = asyncio.run(evaluate(args.fixture, args.instance, args.pricing))
+        events: list[Event] = []
+        result = asyncio.run(evaluate(args.fixture, args.instance, args.pricing, events))
     except PreRunError as error:
         print(error, file=sys.stderr)
         return 2
     path = write_result(result, args.out)
+    log = write_events(events, path)
+    print(f"events: {log}")
     if result.halted:
         print(f"halted: {result.halted}; result: {path}", file=sys.stderr)
     for latency in result.latency:
