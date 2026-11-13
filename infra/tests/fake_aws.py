@@ -14,7 +14,11 @@ state.setdefault("calls", []).append([kind, *args])
 
 
 def save():
-    path.write_text(json.dumps(state))
+    # Atomic: ops.sh's step deadline kills this process on purpose in the timeout tests, and a
+    # kill between write_text's truncate and its write left the test an empty state file.
+    partial = path.with_suffix(f".{os.getpid()}.tmp")
+    partial.write_text(json.dumps(state))
+    os.replace(partial, path)
 
 
 def option(name):
