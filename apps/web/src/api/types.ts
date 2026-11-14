@@ -293,7 +293,27 @@ export interface MessagePayload {
   text: string;
 }
 
-export type Skill = "run_status" | "explain_mark" | "send_feedback" | "fallback";
+export type Skill =
+  | "run_status"
+  | "run_report"
+  | "run_walls"
+  | "explain_mark"
+  | "send_feedback"
+  | "memo_item"
+  | "poa"
+  | "atp"
+  | "curriculum"
+  | "lesson_plan"
+  | "cannot"
+  | "open"
+  | "deferred"
+  | "fallback" | "deferred";
+
+/** Something on the screen the colleague opens beside its reply (conversation.md §14). */
+export interface UiAction {
+  open: "script" | "note" | "stats" | "approval" | "desk" | "new";
+  script_id: string | null;
+}
 
 /** One learner's note offered for sending before the whole set (conversation.md §5). */
 export interface NoteCard {
@@ -311,6 +331,7 @@ export interface ReplyPayload {
   say: string;
   card: NoteCard | null;
   promise: string | null;
+  action?: UiAction | null;
 }
 
 export interface NoteSentPayload {
@@ -396,6 +417,7 @@ export interface Bundle {
   };
   mark_sheet: {
     learner: string;
+    pseudonym?: string;
     raw: number;
     out_of: number;
     sba_points: string;
@@ -409,6 +431,7 @@ export interface Bundle {
   catch_up_plan_md: string;
   learner_notes: {
     learner: string;
+    pseudonym?: string; // conversation.md §14: lets the colleague open this learner's card
     outcome: string;
     mark_with_quote: string;
     next_task: string;

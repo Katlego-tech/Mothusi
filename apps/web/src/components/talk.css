@@ -116,3 +116,16 @@ body.talk-resizing { cursor: col-resize; user-select: none; }
 .withtalk-main .run-title > * { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .withtalk-main .topbar .chip { white-space: nowrap; }
 @media (max-width: 1280px) { .withtalk-main .steps li { padding: 6px 8px; } }
+
+/* The voice (conversation.md §12) and the colleague's hands on the screen (§14). */
+.voice { display: inline-flex; align-items: center; gap: 6px; position: relative; }
+.mic { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px; border: 1px solid var(--teal-edge); border-radius: 999px; background: var(--teal-soft); color: var(--teal); font-weight: 600; font-size: 13px; cursor: pointer; }
+.mic:hover { background: var(--surface); }
+.mic.on { background: var(--teal); color: #fff; border-color: var(--teal); }
+.mic.on.speaking svg { animation: talk-dot 1s infinite ease-in-out; }
+.mic:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.mic .mic-label { white-space: nowrap; }
+.voice-problem { position: absolute; bottom: calc(100% + 6px); right: 0; width: 240px; font-size: 12px; color: var(--marker); background: var(--surface); border: 1px solid var(--marker); border-radius: var(--radius-control); padding: 6px 8px; }
+.open-again { align-self: flex-start; font-size: 12px; margin-top: 2px; }
+.pointed { outline: 2px solid var(--teal); outline-offset: 2px; transition: outline-color 0.4s; }
+@media (prefers-reduced-motion: reduce) { .mic.on.speaking svg { animation: none; } }

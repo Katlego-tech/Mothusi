@@ -5,6 +5,9 @@
 // The teacher can widen, narrow or fold the box; the voice control joins the input row later.
 import { useMutation } from "@tanstack/react-query";
 import {
+  lazy,
+  Suspense,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -19,8 +22,13 @@ import type { NoteCard as Card, ReplyPayload } from "../api/types";
 import { clock } from "../lib/utils";
 import type { RunView } from "../run/reducer";
 import { sentNotes, threadOf, type ThreadItem } from "../run/thread";
+import { actionLabel, openOnScreen } from "../lib/ui-actions";
 import { Button } from "./ui/button";
 import "./talk.css";
+
+// The voice (conversation.md §12) loads only when the box is shown: the SDK and its audio code stay
+// out of the first paint and out of the tests' way.
+const VoiceControl = lazy(() => import("./voice").then((m) => ({ default: m.VoiceControl })));
 
 const MAX = 1000;
 const ENDED = new Set(["delivered"]);
@@ -68,11 +76,18 @@ interface Talk {
   thinking: boolean;
   ended: boolean;
   send: (text: string) => void;
+  /** The same path as typing, awaited: what the voice reads aloud (conversation.md §12). */
+  ask: (text: string) => Promise<string>;
   retry: (o: Outgoing) => void;
   sent: Map<string, string>;
   start: string | null;
   run: RunView | null;
 }
+
+const ASK_WAIT_MS = 60_000;
+const STILL_WORKING = "I'm still working on that. The answer will appear in the box when it's ready.";
+const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const spoken = (say: string, ask: string | null | undefined) => (ask ? `${say}${say ? "\n\n" : ""}${ask}` : say);
 
 /** The run's thread: the stream carries both sides; local copies cover the gap until the echo. */
 function useRunTalk(run: RunView | undefined): Talk | null {
@@ -80,6 +95,10 @@ function useRunTalk(run: RunView | undefined): Talk | null {
   const sent = useMemo(() => (run ? sentNotes(run.events) : new Map<string, string>()), [run]);
   const [outgoing, setOutgoing] = useState<Outgoing[]>([]);
   const nextKey = useRef(1);
+  const events = useRef<RunView["events"]>([]);
+  useEffect(() => {
+    events.current = run?.events ?? [];
+  }, [run]);
   const post = useMutation({
     mutationFn: ({ body }: { key: number; body: string }) => api.postMessage(run?.assessmentId ?? "", body),
     onSuccess: (r, { key }) =>
@@ -91,6 +110,11 @@ function useRunTalk(run: RunView | undefined): Talk | null {
   const echoed = new Set(thread.flatMap((i) => (i.kind === "message" ? [i.messageId] : [])));
   const waiting = outgoing.filter((o) => !(o.messageId && echoed.has(o.messageId)));
   const answered = new Set(thread.flatMap((i) => (i.kind === "reply" && i.messageId ? [i.messageId] : [])));
+  const queue = (body: string) => {
+    const key = nextKey.current++;
+    setOutgoing((all) => [...all, { key, text: body, status: "sending" }]);
+    return key;
+  };
   return {
     thread,
     waiting,
@@ -98,10 +122,20 @@ function useRunTalk(run: RunView | undefined): Talk | null {
       thread.some((i) => i.kind === "message" && !answered.has(i.messageId)) ||
       waiting.some((o) => o.status !== "failed"),
     ended: ENDED.has(run.state) || run.halted !== null,
-    send: (body) => {
-      const key = nextKey.current++;
-      setOutgoing((all) => [...all, { key, text: body, status: "sending" }]);
-      post.mutate({ key, body });
+    send: (body) => post.mutate({ key: queue(body), body }),
+    ask: async (body) => {
+      let id: string;
+      try {
+        id = (await post.mutateAsync({ key: queue(body), body })).message_id;
+      } catch (e) {
+        return reason(e);
+      }
+      for (let waited = 0; waited < ASK_WAIT_MS; waited += 300) {
+        const reply = events.current.find((e) => e.kind === "reply" && e.payload.message_id === id);
+        if (reply?.kind === "reply") return reply.payload.say;
+        await pause(300);
+      }
+      return STILL_WORKING;
     },
     retry: (o) => {
       setOutgoing((all) => all.map((x) => (x.key === o.key ? { ...x, status: "sending", reason: undefined } : x)));
@@ -113,50 +147,85 @@ function useRunTalk(run: RunView | undefined): Talk | null {
   };
 }
 
-/** Off a run (§11.2): this session's thread; each message is answered in the response. */
+type DeskAnswer = Awaited<ReturnType<typeof api.colleague>>;
+
+/** Off a run (§11.2): this session's thread; each message is answered in the response, or later (§13). */
 function useDeskTalk(): Talk {
   const [thread, setThread] = useState<ThreadItem[]>([]);
   const [outgoing, setOutgoing] = useState<Outgoing[]>([]);
+  const [deferred, setDeferred] = useState<{ id: string; messageId: string }[]>([]);
   const [start] = useState(() => new Date().toISOString());
   const lesson = useRef<LessonSlots | null>(null);
   const seq = useRef(0);
   const nextKey = useRef(1);
+
+  const replyItem = (messageId: string, r: Pick<DeskAnswer, "reply" | "ask">): ThreadItem => {
+    const reply: ReplyPayload = r.reply;
+    return {
+      kind: "reply",
+      seq: seq.current++,
+      at: new Date().toISOString(),
+      messageId,
+      skill: reply.skill,
+      say: spoken(reply.say, r.ask),
+      card: reply.card,
+      promise: reply.promise,
+      action: reply.action ?? null,
+    };
+  };
+
   const ask = useMutation({
     mutationFn: ({ body }: { key: number; body: string }) =>
       api.colleague(body, lesson.current ? { lesson: lesson.current } : {}),
     onSuccess: (r, { key, body }) => {
       lesson.current = r.lesson;
-      const at = new Date().toISOString();
       const messageId = `local-${key}`;
-      const reply: ReplyPayload = r.reply;
-      setThread((all) => [
-        ...all,
-        { kind: "message", seq: seq.current++, at, messageId, text: body },
-        {
-          kind: "reply",
-          seq: seq.current++,
-          at,
-          messageId,
-          skill: reply.skill,
-          say: r.ask ? `${reply.say}${reply.say ? "\n\n" : ""}${r.ask}` : reply.say,
-          card: reply.card,
-          promise: reply.promise,
-        },
-      ]);
+      const message: ThreadItem = { kind: "message", seq: seq.current++, at: new Date().toISOString(), messageId, text: body };
+      setThread((all) => [...all, message, replyItem(messageId, r)]);
       setOutgoing((all) => all.filter((o) => o.key !== key));
+      const id = r.deferred_id;
+      if (id) setDeferred((all) => [...all, { id, messageId }]);
     },
     onError: (e, { key }) =>
       setOutgoing((all) => all.map((o) => (o.key === key ? { ...o, status: "failed", reason: reason(e) } : o))),
   });
+
+  // §13: a request deferred while Mothusi was at capacity is answered here when the GPU frees.
+  useEffect(() => {
+    if (deferred.length === 0) return;
+    const timer = setInterval(() => {
+      for (const d of deferred) {
+        api
+          .deferredReply(d.id)
+          .then((r) => {
+            if (!("reply" in r)) return;
+            setThread((all) => [...all, replyItem(d.messageId, r)]);
+            setDeferred((all) => all.filter((x) => x.id !== d.id));
+          })
+          .catch(() => setDeferred((all) => all.filter((x) => x.id !== d.id)));
+      }
+    }, 10_000);
+    return () => clearInterval(timer);
+  }, [deferred]);
+
+  const queue = (body: string) => {
+    const key = nextKey.current++;
+    setOutgoing((all) => [...all, { key, text: body, status: "sending" }]);
+    return key;
+  };
   return {
     thread,
     waiting: outgoing,
     thinking: outgoing.some((o) => o.status === "sending"),
     ended: false,
-    send: (body) => {
-      const key = nextKey.current++;
-      setOutgoing((all) => [...all, { key, text: body, status: "sending" }]);
-      ask.mutate({ key, body });
+    send: (body) => ask.mutate({ key: queue(body), body }),
+    ask: async (body) => {
+      try {
+        const r = await ask.mutateAsync({ key: queue(body), body });
+        return spoken(r.reply.say, r.ask);
+      } catch (e) {
+        return reason(e);
+      }
     },
     retry: (o) => {
       setOutgoing((all) => all.map((x) => (x.key === o.key ? { ...x, status: "sending", reason: undefined } : x)));
@@ -188,6 +257,21 @@ export function TalkBox({ run }: { run?: RunView }) {
     talk.send(clean);
     setText("");
   };
+
+  // §14: carry out a reply's action when it first arrives, never for replies already there on load.
+  const acted = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    const keyOf = (i: ThreadItem) => `${i.kind}-${i.seq}-${i.at}`;
+    if (acted.current === null) {
+      acted.current = new Set(onRun ? thread.map(keyOf) : []);
+      return;
+    }
+    for (const item of thread) {
+      if (item.kind !== "reply" || !item.action || acted.current.has(keyOf(item))) continue;
+      acted.current.add(keyOf(item));
+      openOnScreen(item.action);
+    }
+  }, [thread, onRun]);
 
   const count = thread.length + waiting.length;
   useLayoutEffect(() => {
@@ -389,6 +473,11 @@ export function TalkBox({ run }: { run?: RunView }) {
                     : "Ask about the ATP or the PoA, or ask for a lesson plan"
               }
             />
+            {!ended && (
+              <Suspense fallback={null}>
+                <VoiceControl ask={talk.ask} />
+              </Suspense>
+            )}
             <Button type="submit" variant="primary" disabled={ended || !text.trim()}>
               Send
             </Button>
@@ -426,6 +515,11 @@ function Line({ item, talk }: { item: ThreadItem; talk: Talk }) {
       <span className="who">Mothusi · {at}</span>
       <p>{item.say}</p>
       {item.promise && !item.card && <p className="promise">I'll come back to you about {item.promise} here.</p>}
+      {item.action && (
+        <button type="button" className="linkish open-again" onClick={() => item.action && openOnScreen(item.action)}>
+          {actionLabel(item.action)}
+        </button>
+      )}
       {item.card && talk.run && (
         <NoteCard
           card={item.card}

@@ -217,8 +217,12 @@ describe("TalkBox", () => {
   it("exposes the narrow-screen Talk to Mothusi toggle and updates aria-expanded on open and close", async () => {
     const user = userEvent.setup();
     show(runAt("marking"));
-    const toggle = screen.getByRole("button", { name: /Talk to Mothusi/ });
+    const toggle = screen.getByRole("button", { name: /^Talk to Mothusi/, expanded: false });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(toggle).toHaveAttribute("aria-controls", "talk");
+    const box = screen.getByRole("complementary", { name: "Talk to Mothusi" });
+    expect(within(box).getByRole("button", { name: "Fold the conversation away" })).toBeInTheDocument();
+    expect(within(box).getByRole("separator", { name: "Resize the conversation" })).toHaveAttribute("aria-orientation", "vertical");
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     await user.click(screen.getByRole("button", { name: "Close the conversation" }));

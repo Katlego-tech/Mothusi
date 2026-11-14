@@ -188,6 +188,7 @@ describe("threadOf and sentNotes", () => {
         say: reply.say,
         card,
         promise: null,
+        action: null,
       },
       {
         kind: "update",

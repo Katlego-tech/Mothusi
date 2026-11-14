@@ -88,7 +88,20 @@ export const api = {
   colleague: (
     text: string,
     context: { lesson?: LessonSlots; pack_id?: string; subject?: string; assessment_id?: string },
-  ) => call<{ reply: ReplyPayload; ask: string | null; lesson: LessonSlots | null }>("/colleague/messages", json({ text, context })),
+  ) =>
+    call<{ reply: ReplyPayload; ask: string | null; lesson: LessonSlots | null; deferred_id?: string | null }>(
+      "/colleague/messages",
+      json({ text, context }),
+    ),
+
+  /** conversation.md §13: 202 {state: "waiting"} while at capacity, then the answer. */
+  deferredReply: (id: string) =>
+    call<{ state: "waiting" } | { reply: ReplyPayload; ask: string | null; lesson: LessonSlots | null }>(
+      `/colleague/deferred/${encodeURIComponent(id)}`,
+    ),
+
+  /** conversation.md §12: a signed link for one ElevenLabs session; 503 says why voice is off. */
+  voiceSession: () => call<{ signed_url: string }>("/voice/session"),
 
   /** conversation.md §6.2: accepted at once (202); the reply arrives on the event stream. */
   postMessage: (assessmentId: string, text: string) =>

@@ -11,6 +11,7 @@ import { TopBar } from "../components/chrome";
 import { EventLog } from "../components/log";
 import { GoalBand, LoopStrip } from "../components/loop";
 import { NowPanel } from "../components/now";
+import { useOpenOnScreen } from "../lib/ui-actions";
 import { stateName } from "../lib/utils";
 import type { RunView } from "../run/reducer";
 
@@ -42,6 +43,10 @@ export function markingBegun(run: RunView): boolean {
 
 export function RunScreen({ run, connection }: { run: RunView; connection: Connection }) {
   const [selected, setSelected] = useState<string | null>(null);
+  // conversation.md §14: the colleague opens a learner's script in the class set.
+  useOpenOnScreen((a) => {
+    if ((a.open === "script" || a.open === "note") && a.script_id) setSelected(a.script_id);
+  });
   const weight = useTaskWeight(run);
   const waiting = run.pending !== null;
   const withSet = markingBegun(run);

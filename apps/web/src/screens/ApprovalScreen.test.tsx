@@ -148,7 +148,10 @@ describe("approval details beyond the existing screen tests", () => {
     show();
     await loaded();
     expect(screen.getByText("Class total · 0 learners")).toBeInTheDocument();
-    expect(screen.getByText("not metered")).toBeInTheDocument();
+    const summary = screen.getByLabelText("Summary of the run");
+    expect(summary).toHaveTextContent("Your steps");
+    expect(summary).toHaveTextContent("answers you gave");
+    expect(summary).not.toHaveTextContent(/cost|metered|R\s?\d/i);
     expect(screen.queryByText(/NaN|Infinity/)).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("tab", { name: /^Item analysis/ }));
     expect(screen.getByText("No item needs re-teaching, so there is no misconception to name.")).toBeInTheDocument();

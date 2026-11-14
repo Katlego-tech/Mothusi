@@ -1,7 +1,7 @@
 // The communication box's thread (conversation.md §1, §7): the teacher's messages, Mothusi's replies
 // and its updates, folded from the run's own events so a reload rebuilds the same conversation.
 // The feed stays the full log; this is the conversation about it.
-import type { MothusiEvent, NoteCard, Skill } from "../api/types";
+import type { MothusiEvent, NoteCard, Skill, UiAction } from "../api/types";
 
 export type ThreadItem =
   | {
@@ -28,6 +28,7 @@ export type ThreadItem =
       say: string;
       card: NoteCard | null;
       promise: string | null;
+      action?: UiAction | null;
     };
 
 const STAGE: Partial<Record<string, string>> = {
@@ -130,6 +131,7 @@ export function threadOf(events: readonly MothusiEvent[]): ThreadItem[] {
         say: p.say,
         card: p.card,
         promise: p.promise,
+        action: p.action ?? null,
       });
     } else if (e.kind === "needs_teacher" && e.payload.topic === "script") {
       const id = e.payload.script_id;
