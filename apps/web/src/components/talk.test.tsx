@@ -25,9 +25,7 @@ function required<T>(value: T | undefined): T {
   return value;
 }
 function runAt(state: AssessmentState): RunView {
-  const end = planted.findIndex(
-    (e) => e.kind === "state" && e.payload.to === state,
-  );
+  const end = planted.findIndex((e) => e.kind === "state" && e.payload.to === state);
   if (end < 0) throw new Error(`Missing planted ${state}`);
   return planted.slice(0, end + 1).reduce(apply, emptyRun(assessmentId));
 }
@@ -51,14 +49,15 @@ const messageEvent = (run: RunView): MothusiEvent => ({
   kind: "message",
   payload: message,
 });
-const replyEvent = (
-  run: RunView,
-  payload: ReplyPayload = reply,
-): MothusiEvent => ({ ...base, seq: run.lastSeq + 1, kind: "reply", payload });
+const replyEvent = (run: RunView, payload: ReplyPayload = reply): MothusiEvent => ({
+  ...base,
+  seq: run.lastSeq + 1,
+  kind: "reply",
+  payload,
+});
 const note = required(bundle.learner_notes[0]);
 const created = planted.find((e) => e.kind === "created");
-if (created?.kind !== "created")
-  throw new Error("Missing planted created event");
+if (created?.kind !== "created") throw new Error("Missing planted created event");
 const card: NoteCard = {
   script_id: required(created.payload.script_ids[0]),
   learner: note.learner,
@@ -107,9 +106,7 @@ const response = (status: number, body: unknown) =>
     headers: { "Content-Type": "application/json" },
   });
 function answerWith(status: number, body: unknown) {
-  const fetch = vi.fn<(url: string, init?: RequestInit) => Promise<Response>>(
-    async () => response(status, body),
-  );
+  const fetch = vi.fn<(url: string, init?: RequestInit) => Promise<Response>>(async () => response(status, body));
   vi.stubGlobal("fetch", fetch);
   return fetch;
 }
@@ -145,12 +142,8 @@ describe("TalkBox", () => {
         }),
       }),
     );
-    await act(async () =>
-      accept(response(202, { message_id: message.message_id })),
-    );
-    await waitFor(() =>
-      expect(screen.queryByText("Sending…")).not.toBeInTheDocument(),
-    );
+    await act(async () => accept(response(202, { message_id: message.message_id })));
+    await waitFor(() => expect(screen.queryByText("Sending…")).not.toBeInTheDocument());
     expect(screen.getAllByText(message.text)).toHaveLength(1);
     run = apply(run, messageEvent(run));
     rerun(run);
@@ -158,9 +151,7 @@ describe("TalkBox", () => {
     expect(screen.getByLabelText("Mothusi is replying")).toBeInTheDocument();
     rerun(apply(run, replyEvent(run)));
     expect(screen.getByText(reply.say)).toBeInTheDocument();
-    expect(
-      screen.queryByLabelText("Mothusi is replying"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Mothusi is replying")).not.toBeInTheDocument();
   });
 
   it("inserts a newline on Shift+Enter without posting", async () => {
@@ -182,32 +173,24 @@ describe("TalkBox", () => {
     await user.type(input(), message.text);
     await user.keyboard("{Enter}");
     expect(await screen.findByRole("alert")).toHaveTextContent(reason);
-    expect(
-      screen.queryByLabelText("Mothusi is replying"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Mothusi is replying")).not.toBeInTheDocument();
     fetch.mockResolvedValueOnce(response(202, { message_id: "m-1" }));
     await user.click(screen.getByRole("button", { name: "Send again" }));
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
     expect(fetch.mock.calls[1]).toEqual(fetch.mock.calls[0]);
-    await waitFor(() =>
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
     expect(screen.getAllByText(message.text)).toHaveLength(1);
   });
 
   it("shows the typing indicator for a streamed unanswered message until its reply arrives", () => {
     const run = runAt("marking");
     const { rerun } = show(run);
-    expect(
-      screen.queryByLabelText("Mothusi is replying"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Mothusi is replying")).not.toBeInTheDocument();
     const asked = apply(run, messageEvent(run));
     rerun(asked);
     expect(screen.getByLabelText("Mothusi is replying")).toBeInTheDocument();
     rerun(apply(asked, replyEvent(asked)));
-    expect(
-      screen.queryByLabelText("Mothusi is replying"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Mothusi is replying")).not.toBeInTheDocument();
   });
 
   it("fills the input from a suggestion chip without sending", async () => {
@@ -217,14 +200,10 @@ describe("TalkBox", () => {
     const suggestions = screen.getByRole("group", {
       name: "Things you can ask",
     });
-    await user.click(
-      within(suggestions).getByRole("button", { name: message.text }),
-    );
+    await user.click(within(suggestions).getByRole("button", { name: message.text }));
     expect(input()).toHaveValue(message.text);
     expect(fetch).not.toHaveBeenCalled();
-    expect(
-      screen.queryByLabelText("Mothusi is replying"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Mothusi is replying")).not.toBeInTheDocument();
   });
 
   it("disables the input when the run is delivered", () => {
@@ -242,9 +221,7 @@ describe("TalkBox", () => {
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
-    await user.click(
-      screen.getByRole("button", { name: "Close the conversation" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Close the conversation" }));
     expect(toggle).toHaveAttribute("aria-expanded", "false");
   });
 });
@@ -278,25 +255,15 @@ describe("NoteCard in the thread", () => {
       expect.objectContaining({ method: "POST" }),
     );
     expect(fetch.mock.calls[0]?.[1]?.body).toBeUndefined();
-    await waitFor(() =>
-      expect(
-        within(region).getByRole("button", { name: "Releasing…" }),
-      ).toBeDisabled(),
-    );
-    expect(
-      within(region).queryByText("Released", { exact: true }),
-    ).not.toBeInTheDocument();
+    await waitFor(() => expect(within(region).getByRole("button", { name: "Releasing…" })).toBeDisabled());
+    expect(within(region).queryByText("Released", { exact: true })).not.toBeInTheDocument();
     const payload: NoteSentPayload = {
       script_id: card.script_id,
       written: [`notes/${card.script_id}.md`],
       sent: [card.learner],
     };
-    rerun(
-      apply(run, { ...base, seq: run.lastSeq + 1, kind: "note_sent", payload }),
-    );
-    expect(
-      within(region).getByText("Released", { exact: true }),
-    ).toBeInTheDocument();
+    rerun(apply(run, { ...base, seq: run.lastSeq + 1, kind: "note_sent", payload }));
+    expect(within(region).getByText("Released", { exact: true })).toBeInTheDocument();
     expect(within(region).getByRole("status")).toHaveTextContent("Released at");
     expect(within(region).queryByRole("button")).not.toBeInTheDocument();
   });
@@ -320,8 +287,6 @@ describe("NoteCard in the thread", () => {
         name: `Approve and release ${card.learner}'s note`,
       }),
     ).toBeEnabled();
-    expect(
-      within(region).queryByText("Released", { exact: true }),
-    ).not.toBeInTheDocument();
+    expect(within(region).queryByText("Released", { exact: true })).not.toBeInTheDocument();
   });
 });

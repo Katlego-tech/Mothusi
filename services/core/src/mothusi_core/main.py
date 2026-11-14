@@ -40,6 +40,7 @@ from mothusi_contracts import (
     AssessmentState,
     AtpWeek,
     ClassGroup,
+    Event,
     EventKind,
     LearnerAccount,
     Memo,
@@ -57,7 +58,8 @@ from mothusi_core.auth import (
     needs_token,
     verifier_from_environment,
 )
-from mothusi_core.colleague import Intent, compose, respond
+from mothusi_core.colleague import AnswerBody, Intent, Lesson, compose, entries, respond
+from mothusi_core.colleague import answer as colleague_answer
 from mothusi_core.delivery import delivery_from_environment, store_from_environment
 from mothusi_core.events import follow, frame, with_pings
 from mothusi_core.graph import inbox
@@ -336,6 +338,44 @@ def create_app(
     @app.exception_handler(HTTPException)
     async def _detail_as_body(request: Request, error: HTTPException) -> JSONResponse:  # pyright: ignore[reportUnusedFunction]
         return JSONResponse(error.detail, status_code=error.status_code)
+
+    @app.post("/colleague/messages")
+    async def colleague_message(request: Request, body: ColleagueMessageBody) -> AnswerBody:
+        r = runs(request)
+        context = body.context
+        state = None
+        events: tuple[Event, ...] = ()
+        early_sent: set[str] = set()
+        text = body.text
+        if context.assessment_id is not None:
+            if not r.known(context.assessment_id):
+                raise HTTPException(404, {"message": f"no assessment {context.assessment_id}"})
+            state = await r.planner.snapshot(context.assessment_id)
+            sent = await entries(r.planner, "early_sent", context.assessment_id)
+            early_sent = set(sent)
+            state = {
+                **state,
+                "observed_at": r.planner.clock().isoformat(),
+                "early_sent_at": {sid: item["sent_at"] for sid, item in sent.items()},
+            }
+            text = pseudonymise_text(text, state["names"])
+            events = tuple(r.planner.sink(context.assessment_id).read())
+        path = None
+        if context.pack_id is not None and state is None:
+            path = pack_files().get(context.pack_id)
+            if path is None:
+                raise HTTPException(404, {"message": f"no pack {context.pack_id}"})
+        return await colleague_answer(
+            text,
+            state=state,
+            events=events,
+            subject=context.subject,
+            pack_path=path,
+            lesson=context.lesson,
+            early_sent=early_sent,
+            knowledge=r.planner.knowledge,
+            packs_dir=packs_dir,
+        )
 
     @app.post("/assessments/{assessment_id}/messages", status_code=202)
     async def message(request: Request, assessment_id: str, body: MessageBody) -> dict[str, str]:
@@ -1463,6 +1503,17 @@ class MessageBody(BaseModel):
     @classmethod
     def strip_text(cls, value: Any) -> Any:
         return value.strip() if isinstance(value, str) else value
+
+
+class ColleagueContext(BaseModel):
+    pack_id: str | None = None
+    subject: str | None = None
+    assessment_id: str | None = None
+    lesson: Lesson | None = None
+
+
+class ColleagueMessageBody(MessageBody):
+    context: ColleagueContext = Field(default_factory=ColleagueContext)
 
 
 app = create_app()

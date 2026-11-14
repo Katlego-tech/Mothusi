@@ -326,6 +326,28 @@ export interface PackTask {
   weight_percent: string;
 }
 
+/** One run on the desk (desk.md §6): from its event log, never the bundle (no names). */
+export interface RunSummary {
+  assessment_id: string;
+  title: string;
+  state: AssessmentState;
+  waiting: boolean;
+  halted: string | null;
+  started_at: string;
+  scripts: number;
+  subject: string;
+  grade: number;
+}
+
+/** One teaching week of the ATP, with the DBE page it comes from (desk.md §6). */
+export interface AtpRow {
+  week: number;
+  term: number;
+  term_week: number;
+  topic: string;
+  source: string;
+}
+
 export interface Pack {
   pack_id: string;
   subject: string;

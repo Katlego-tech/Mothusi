@@ -11,7 +11,7 @@ import { TopBar } from "../components/chrome";
 import { Button } from "../components/ui/button";
 import { Input, Textarea } from "../components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { clock, rand } from "../lib/utils";
+import { clock } from "../lib/utils";
 import type { RunView } from "../run/reducer";
 
 /** From "## Worked corrections" on: the part of the class sheet the item table does not show. */
@@ -58,11 +58,6 @@ export function StatStrip({ b, run }: { b: Bundle; run: RunView }) {
         <span className="kpi-label">Time</span>
         <span className="kpi">{clock(s.elapsed_s)}</span>
         <span className="kpi-note">upload to bundle</span>
-      </div>
-      <div>
-        <span className="kpi-label">Cost</span>
-        <span className="kpi">{s.priced ? rand(s.cost_zar) : "not metered"}</span>
-        <span className="kpi-note">{s.priced ? `${rand(s.per_script_zar)} a script` : "no sourced prices yet"}</span>
       </div>
       <div>
         <span className="kpi-label">Your steps</span>
