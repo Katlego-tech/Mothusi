@@ -26,12 +26,13 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Annotated, Any, Literal, cast
 
+import httpx
 import jwt
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from langgraph.checkpoint.memory import InMemorySaver
-from langgraph.store.base import BaseStore
+from langgraph.store.base import BaseStore, Item
 from langgraph.store.memory import InMemoryStore
 from pydantic import BaseModel, Field, ValidationError, field_validator
 
@@ -49,7 +50,7 @@ from mothusi_contracts import (
     ResultStatus,
     Script,
 )
-from mothusi_core import health
+from mothusi_core import health, voice
 from mothusi_core.agents.executor import Approval, execute, executor_brief
 from mothusi_core.agents.setter import MEMO_DRAFT_LIMIT, memo_too_long
 from mothusi_core.auth import (
@@ -58,7 +59,17 @@ from mothusi_core.auth import (
     needs_token,
     verifier_from_environment,
 )
-from mothusi_core.colleague import AnswerBody, Intent, Lesson, compose, entries, respond
+from mothusi_core.colleague import (
+    AnswerBody,
+    Intent,
+    Lesson,
+    colleague_provider,
+    compose,
+    deferred_reply,
+    entries,
+    respond,
+    route_rules,
+)
 from mothusi_core.colleague import answer as colleague_answer
 from mothusi_core.delivery import delivery_from_environment, store_from_environment
 from mothusi_core.events import follow, frame, with_pings
@@ -154,7 +165,9 @@ class DeskAtpWeek(BaseModel):
 class Runs:
     """The background task per assessment, so a teacher answer never races a running node."""
 
-    def __init__(self, planner: Planner) -> None:
+    def __init__(self, planner: Planner, packs_dir: Path = PACKS) -> None:
+        self.packs_dir = packs_dir
+        self._drain_lock = asyncio.Lock()
         self.planner = planner
         self.tasks: dict[str, asyncio.Task[Any]] = {}
         self._locks: dict[str, asyncio.Lock] = {}
@@ -169,6 +182,68 @@ class Runs:
     def busy(self, assessment_id: str) -> bool:
         task = self.tasks.get(assessment_id)
         return task is not None and not task.done() and assessment_id not in self._idle
+
+    async def busy_run(self) -> tuple[str, str] | None:
+        for aid in tuple(self.tasks):
+            if self.busy(aid):
+                state = await self.planner.snapshot(aid)
+                if self.busy(aid):
+                    return aid, state["title"]
+        return None
+
+    async def defer(
+        self,
+        scope: str,
+        message_id: str | None,
+        text: str,
+        context: dict[str, Any] | None = None,
+    ) -> str:
+        deferred_id = str(uuid.uuid4())
+        await self.planner.store.aput(
+            ("deferred", scope),
+            deferred_id,
+            {"message_id": message_id, "text": text, "context": context, "answer": None},
+        )
+        if await self.busy_run() is None:
+            self.drain()
+        return deferred_id
+
+    def drain(self) -> None:
+        task = asyncio.create_task(self.process_deferred())
+        self.replies.add(task)
+        task.add_done_callback(self.replies.discard)
+
+    async def process_deferred(self) -> None:
+        try:
+            async with self._drain_lock:
+                pending: list[Item] = []
+                while page := await self.planner.store.asearch(
+                    ("deferred",), limit=100, offset=len(pending)
+                ):
+                    pending.extend(page)
+                for entry in pending:
+                    if await self.busy_run() is not None:
+                        return
+                    item = entry.value
+                    scope = entry.namespace[1]
+                    if item.get("answer") is not None:
+                        continue
+                    try:
+                        if scope == "desk":
+                            body = ColleagueMessageBody.model_validate(
+                                {"text": item["text"], "context": item["context"] or {}}
+                            )
+                            result = await desk_answer(self, body, self.packs_dir)
+                            await self.planner.store.aput(
+                                entry.namespace, entry.key, {**item, "answer": result}
+                            )
+                        else:
+                            await respond(self.planner, scope, item["message_id"], item["text"])
+                            await self.planner.store.adelete(entry.namespace, entry.key)
+                    except Exception:
+                        log.exception("deferred colleague request failed: %s", entry.key)
+        except Exception:
+            log.exception("could not process deferred colleague requests")
 
     def launch(self, assessment_id: str, work: Any) -> None:
         self._idle.discard(assessment_id)
@@ -194,6 +269,9 @@ class Runs:
             except Exception as error:  # a crashed node is logged for the teacher, never hidden
                 log.exception("run %s stopped", assessment_id)
                 self.planner.sink(assessment_id).decision("halt", f"the run stopped: {error}")
+            finally:
+                self._idle.add(assessment_id)
+                self.drain()
 
         self.tasks[assessment_id] = asyncio.create_task(guarded())
 
@@ -223,6 +301,7 @@ def create_app(
     verifier: TokenVerifier | None = None,
     *,
     auth_from_environment: bool = True,
+    voice_client: httpx.AsyncClient | None = None,
 ) -> FastAPI:
     """The core API. With no `verifier`, Cognito auth comes from the environment (off when
     COGNITO_USER_POOL_ID is unset); pass `auth_from_environment=False` to force it off."""
@@ -232,7 +311,7 @@ def create_app(
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
         if planner is not None:
-            app.state.runs = Runs(planner)
+            app.state.runs = Runs(planner, packs_dir)
             yield
             return
         url = os.environ.get("POSTGRES_URL")
@@ -246,11 +325,13 @@ def create_app(
             ):
                 await saver.setup()
                 await store.setup()
-                app.state.runs = Runs(_planner_from_environment(saver, store))
+                app.state.runs = Runs(_planner_from_environment(saver, store), packs_dir)
                 yield
         else:
             log.warning("POSTGRES_URL not set: checkpoints are in memory and end with the process")
-            app.state.runs = Runs(_planner_from_environment(InMemorySaver(), InMemoryStore()))
+            app.state.runs = Runs(
+                _planner_from_environment(InMemorySaver(), InMemoryStore()), packs_dir
+            )
             yield
 
     app = FastAPI(title="Mothusi", lifespan=lifespan)
@@ -362,38 +443,47 @@ def create_app(
     @app.post("/colleague/messages")
     async def colleague_message(request: Request, body: ColleagueMessageBody) -> AnswerBody:
         r = runs(request)
-        context = body.context
-        state: RunState | None = None
-        events: tuple[Event, ...] = ()
-        early_sent: set[str] = set()
         text = body.text
-        if context.assessment_id is not None:
-            if not r.known(context.assessment_id):
-                raise HTTPException(404, {"message": f"no assessment {context.assessment_id}"})
-            state = await r.planner.snapshot(context.assessment_id)
-            sent = await entries(r.planner, "early_sent", context.assessment_id)
-            early_sent = set(sent)
-            state = state.copy()
-            state["observed_at"] = r.planner.clock().isoformat()
-            state["early_sent_at"] = {sid: item["sent_at"] for sid, item in sent.items()}
+        if body.context.assessment_id is not None:
+            aid = body.context.assessment_id
+            if not r.known(aid):
+                raise HTTPException(404, {"message": f"no assessment {aid}"})
+            state = await r.planner.snapshot(aid)
             text = pseudonymise_text(text, state["names"])
-            events = tuple(r.planner.sink(context.assessment_id).read())
-        path = None
-        if context.pack_id is not None and state is None:
-            path = pack_files().get(context.pack_id)
-            if path is None:
-                raise HTTPException(404, {"message": f"no pack {context.pack_id}"})
-        return await colleague_answer(
-            text,
-            state=state,
-            events=events,
-            subject=context.subject,
-            pack_path=path,
-            lesson=context.lesson,
-            early_sent=early_sent,
-            knowledge=r.planner.knowledge,
-            packs_dir=packs_dir,
-        )
+        if body.context.pack_id is not None and body.context.pack_id not in pack_files():
+            raise HTTPException(404, {"message": f"no pack {body.context.pack_id}"})
+        if route_rules(text, body.context.lesson) is None and (busy := await r.busy_run()):
+            did = await r.defer("desk", None, text, body.context.model_dump(mode="json"))
+            return {
+                "reply": deferred_reply(busy[1]),
+                "ask": None,
+                "lesson": None,
+                "deferred_id": did,
+            }
+        return await desk_answer(r, body, packs_dir)
+
+    @app.get("/colleague/deferred/{deferred_id}")
+    async def deferred(request: Request, deferred_id: str) -> JSONResponse:
+        item = await runs(request).planner.store.aget(("deferred", "desk"), deferred_id)
+        if item is None:
+            raise HTTPException(404, {"message": "unknown deferred request"})
+        if item.value["answer"] is None:
+            return JSONResponse({"state": "waiting"}, status_code=202)
+        result = dict(item.value["answer"])
+        result.pop("deferred_id", None)
+        return JSONResponse(result)
+
+    @app.get("/voice/session")
+    async def voice_session() -> JSONResponse:
+        try:
+            if voice_client is not None:
+                url = await voice.signed_url(voice_client)
+            else:
+                async with httpx.AsyncClient() as client:
+                    url = await voice.signed_url(client)
+        except voice.VoiceOff as error:
+            return JSONResponse({"message": f"Voice is off: {error}"}, status_code=503)
+        return JSONResponse({"signed_url": url})
 
     @app.post("/assessments/{assessment_id}/messages", status_code=202)
     async def message(request: Request, assessment_id: str, body: MessageBody) -> dict[str, str]:
@@ -408,7 +498,9 @@ def create_app(
         message_id = f"m-{n}"
         text = pseudonymise_text(body.text, state["names"])
         sink.emit(EventKind.MESSAGE, text[:80], {"message_id": message_id, "text": text})
-        task = asyncio.create_task(respond(r.planner, assessment_id, message_id, body.text))
+        task = asyncio.create_task(
+            respond(r.planner, assessment_id, message_id, body.text, capacity=r)
+        )
         r.replies.add(task)
         task.add_done_callback(r.replies.discard)
         return {"message_id": message_id}
@@ -1622,6 +1714,42 @@ class ColleagueContext(BaseModel):
 
 class ColleagueMessageBody(MessageBody):
     context: ColleagueContext = Field(default_factory=ColleagueContext)
+
+
+async def desk_answer(r: Runs, body: ColleagueMessageBody, packs_dir: Path) -> AnswerBody:
+    context = body.context
+    state: RunState | None = None
+    events: tuple[Event, ...] = ()
+    early_sent: set[str] = set()
+    text = body.text
+    if context.assessment_id is not None:
+        if not r.known(context.assessment_id):
+            raise HTTPException(404, {"message": f"no assessment {context.assessment_id}"})
+        state = await r.planner.snapshot(context.assessment_id)
+        sent = await entries(r.planner, "early_sent", context.assessment_id)
+        early_sent = set(sent)
+        state = state.copy()
+        state["observed_at"] = r.planner.clock().isoformat()
+        state["early_sent_at"] = {sid: item["sent_at"] for sid, item in sent.items()}
+        text = pseudonymise_text(text, state["names"])
+        events = tuple(r.planner.sink(context.assessment_id).read())
+    path = None
+    if context.pack_id is not None and state is None:
+        path = {pack_ref(p): p for p in sorted(packs_dir.glob("*/*.toml"))}.get(context.pack_id)
+        if path is None:
+            raise HTTPException(404, {"message": f"no pack {context.pack_id}"})
+    return await colleague_answer(
+        text,
+        state=state,
+        events=events,
+        subject=context.subject,
+        pack_path=path,
+        lesson=context.lesson,
+        early_sent=early_sent,
+        knowledge=r.planner.knowledge,
+        packs_dir=packs_dir,
+        provider=colleague_provider(r.planner, context.assessment_id or "desk"),
+    )
 
 
 app = create_app()

@@ -307,7 +307,7 @@ export type Skill =
   | "cannot"
   | "open"
   | "deferred"
-  | "fallback" | "deferred";
+  | "fallback";
 
 /** Something on the screen the colleague opens beside its reply (conversation.md §14). */
 export interface UiAction {

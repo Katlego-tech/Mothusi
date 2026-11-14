@@ -20,12 +20,14 @@ from mothusi_llm import Provider
 
 if TYPE_CHECKING:
     from mothusi_core.graph.planner import Planner
+    from mothusi_core.main import Runs
 
 Skill = Literal[
     "run_status",
     "explain_mark",
     "send_feedback",
     "fallback",
+    "deferred",
     "run_report",
     "run_walls",
     "memo_item",
@@ -138,6 +140,32 @@ def match_rules(text: str) -> Intent | None:
     return None
 
 
+def route_rules(text: str, lesson: Lesson | None = None) -> Intent | None:
+    intent = match_rules(text)
+    if (
+        lesson is not None
+        and not lesson_complete(lesson)
+        and (intent is None or intent.skill in {"fallback", "atp"})
+    ):
+        return Intent(skill="lesson_plan")
+    return intent
+
+
+def colleague_provider(planner: Planner, scope: str) -> Provider | None:
+    return planner.provider(scope) if os.environ.get("MOTHUSI_PROVIDER") == "ollama" else None
+
+
+def deferred_reply(title: str, message_id: str | None = None) -> ReplyBody:
+    return {
+        "message_id": message_id,
+        "skill": "deferred",
+        "say": f"I'm at capacity: I'm marking {title} on my GPU right now. "
+        "I'll attend to this as soon as that's done, and answer here.",
+        "card": None,
+        "promise": None,
+    }
+
+
 async def understand(
     text: str,
     provider: Provider | None,
@@ -151,8 +179,9 @@ async def understand(
         if intent is None:
             if provider is None:
                 return Intent(skill="fallback")
+            skills = tuple(s for s in get_args(Skill) if s != "deferred")
             intent, _ = await provider.complete(
-                f"Choose only one skill from {get_args(Skill)}. "
+                f"Choose only one skill from {skills}. "
                 "Return Intent JSON only. Chat never approves sending. "
                 f"Valid script ids: {sorted(script_ids or [])}. "
                 f"Valid question ids: {sorted(question_ids or [])}.",
@@ -160,6 +189,8 @@ async def understand(
                 Intent,
             )
             intent = Intent.model_validate(intent)
+            if intent.skill == "deferred":
+                return Intent(skill="fallback")
         if intent.script_id is not None:
             sid = intent.script_id.upper()
             if not re.fullmatch(r"L-\d{3}", sid) or (
@@ -396,22 +427,34 @@ async def _reply(
             await keep_promises(planner, aid, latest)
 
 
-async def respond(planner: Planner, assessment_id: str, message_id: str, text: str) -> None:
+async def respond(
+    planner: Planner,
+    assessment_id: str,
+    message_id: str,
+    text: str,
+    *,
+    capacity: Runs | None = None,
+) -> None:
     from mothusi_core.graph.planner import pseudonymise_text
 
     state = await planner.snapshot(assessment_id)
     text = pseudonymise_text(text, state["names"])
-    provider = (
-        planner.provider(assessment_id) if os.environ.get("MOTHUSI_PROVIDER") == "ollama" else None
-    )
+    provider = colleague_provider(planner, assessment_id)
     saved = await planner.store.aget(("lesson", assessment_id), "slots")
     lesson = Lesson.model_validate(saved.value) if saved else None
-    intent = await understand(
-        text,
-        provider,
-        script_ids={s["script_id"] for s in state["scripts"]},
-        question_ids={q["question_id"] for q in state["memo"]["items"]},
-    )
+    intent = route_rules(text, lesson)
+    if intent is None and capacity is not None and (busy := await capacity.busy_run()):
+        await capacity.defer(assessment_id, message_id, text)
+        body = deferred_reply(busy[1], message_id)
+        planner.sink(assessment_id).emit(EventKind.REPLY, body["say"][:80], body)
+        return
+    if intent is None or intent.skill != "lesson_plan":
+        intent = await understand(
+            text,
+            provider,
+            script_ids={s["script_id"] for s in state["scripts"]},
+            question_ids={q["question_id"] for q in state["memo"]["items"]},
+        )
     if lesson is not None and not lesson_complete(lesson) and intent.skill in {"fallback", "atp"}:
         intent = Intent(skill="lesson_plan")
     await _reply(
@@ -805,6 +848,7 @@ class AnswerBody(TypedDict):
     reply: ReplyBody
     ask: str | None
     lesson: dict[str, Any] | None
+    deferred_id: str | None
 
 
 async def passages(query: str, subject: str | None, knowledge: Knowledge) -> str:
@@ -835,9 +879,17 @@ async def answer(
     packs_dir: Path = PACKS,
     promises: set[str] | None = None,
     early_sent: set[str] | None = None,
+    provider: Provider | None = None,
 ) -> AnswerBody:
     if intent is None:
-        intent = await understand(text, None)
+        intent = route_rules(text, lesson)
+        if intent is None or intent.skill != "lesson_plan":
+            intent = await understand(
+                text,
+                provider,
+                script_ids={s["script_id"] for s in state["scripts"]} if state else set(),
+                question_ids={q["question_id"] for q in state["memo"]["items"]} if state else set(),
+            )
         if (
             lesson is not None
             and not lesson_complete(lesson)
@@ -867,7 +919,7 @@ async def answer(
         pack_path=pack_path,
         packs_dir=packs_dir,
     )
-    result: AnswerBody = {"reply": reply, "ask": None, "lesson": None}
+    result: AnswerBody = {"reply": reply, "ask": None, "lesson": None, "deferred_id": None}
     if intent.skill == "curriculum":
         reply["say"] = await passages(
             text or intent.topic or "",
