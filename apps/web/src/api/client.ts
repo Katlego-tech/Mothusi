@@ -67,6 +67,14 @@ const json = (body: unknown): RequestInit => ({
 export const api = {
   packs: () => call<Pack[]>("/packs"),
 
+  /** conversation.md §6.2: accepted at once (202); the reply arrives on the event stream. */
+  postMessage: (assessmentId: string, text: string) =>
+    call<{ message_id: string }>(`/assessments/${assessmentId}/messages`, json({ text })),
+
+  /** The teacher's click on a note card is the approval for that one learner (conversation.md §5). */
+  sendNote: (assessmentId: string, scriptId: string) =>
+    call<{ state: string }>(`/assessments/${assessmentId}/notes/${scriptId}/send`, { method: "POST" }),
+
   create: (form: {
     goal: string;
     memo: File;

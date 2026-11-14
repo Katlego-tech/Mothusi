@@ -100,7 +100,9 @@ def _md(text: str) -> str:
     return text.rstrip("\n") + "\n"
 
 
-def execute(brief: Brief, mailer: Mailer, delivery: Delivery | str) -> Result:
+def execute(
+    brief: Brief, mailer: Mailer, delivery: Delivery | str, *, publish_prefix: str | None = None
+) -> Result:
     """Write, publish, then send. Without a valid approval, or without the note key and public
     URL (`delivery` is then the sentence saying what is missing), nothing is written or sent.
 
@@ -152,7 +154,9 @@ def execute(brief: Brief, mailer: Mailer, delivery: Delivery | str) -> Result:
         return refuse(brief, role, f"bundle not written, nothing sent: {error}")
     paths = [str(p) for p in written]
     try:
-        publish_bundle(Path(b.root), delivery.store, f"{brief.assessment_id}/bundle")
+        publish_bundle(
+            Path(b.root), delivery.store, publish_prefix or f"{brief.assessment_id}/bundle"
+        )
     except Exception as error:  # any storage failure (S3 AccessDenied, a lost connection) blocks
         return Result(
             brief_id=brief.brief_id,

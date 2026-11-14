@@ -75,6 +75,7 @@ from mothusi_core.agents.reviewer import review, reviewer_brief
 from mothusi_core.agents.setter import sit_test
 from mothusi_core.agents.support import plan_catch_up, support_brief
 from mothusi_core.agents.writer import ModerationReportData, write, writer_brief
+from mothusi_core.colleague import entries, keep_promises
 from mothusi_core.delivery import delivery_from_environment
 from mothusi_core.events import EventSink
 from mothusi_core.graph import inbox
@@ -997,11 +998,9 @@ def _build(p: Planner) -> StateGraph[RunState]:
             )
         full = {**s, **update}
         bundle = build_bundle(p, cast(RunState, full))
-        return {
-            **update,
-            "bundle": bundle,
-            **_move(sink, s, S.AWAITING_APPROVAL, "every draft reviewed"),
-        }
+        moved = _move(sink, s, S.AWAITING_APPROVAL, "every draft reviewed")
+        await keep_promises(p, s["assessment_id"], cast(RunState, {**full, **moved}))
+        return {**update, "bundle": bundle, **moved}
 
     async def ask_approval(s: RunState) -> Update:
         answer = cast(Json, interrupt({"topic": "approval"}))
@@ -1039,8 +1038,16 @@ def _build(p: Planner) -> StateGraph[RunState]:
     async def approved(s: RunState) -> Update:
         sink = p.sink(s["assessment_id"])
         approval = Approval.model_validate(s.get("approval"))
-        bundle = _executor_bundle(p, s)
-        messages = _messages(p, s, bundle)
+        early_sent = await entries(p, "early_sent", s["assessment_id"])
+        bundle = executor_bundle(p, s)
+        bundle = bundle.model_copy(
+            update={
+                "learner_notes": tuple(
+                    n for n in bundle.learner_notes if n.note.pseudonym not in early_sent
+                )
+            }
+        )
+        messages = teacher_messages(p, s, bundle)
         brief = executor_brief(s["assessment_id"], S(s["state"]), approval, bundle, messages)
         sink.brief(brief)
         result = await asyncio.to_thread(
@@ -1069,7 +1076,8 @@ def _build(p: Planner) -> StateGraph[RunState]:
         )
         sink.emit(
             EventKind.DELIVERED,
-            f"{len(delivered['written'])} files, {len(delivered['sent'])} messages",
+            f"{len(delivered['written'])} files, {len(delivered['sent'])} messages; "
+            f"{len(early_sent)} sent earlier",
             delivered,
             AgentRole.EXECUTOR,
         )  # the last event of a run: the SSE stream ends after it
@@ -1342,7 +1350,7 @@ def build_bundle(p: Planner, s: RunState) -> Json:
     }
 
 
-def _executor_bundle(p: Planner, s: RunState) -> Bundle:
+def executor_bundle(p: Planner, s: RunState) -> Bundle:
     names = s["names"]
     drafts = cast(Json, s.get("drafts"))
     pack = _pack(s)
@@ -1364,7 +1372,7 @@ def _executor_bundle(p: Planner, s: RunState) -> Bundle:
     )
 
 
-def _messages(p: Planner, s: RunState, bundle: Bundle) -> list[Message]:
+def teacher_messages(p: Planner, s: RunState, bundle: Bundle) -> list[Message]:
     """Only the bundle notice to the teacher; nothing goes to learners or parents (§6.2)."""
     if not p.teacher_email:
         return []
