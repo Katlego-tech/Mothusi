@@ -11,9 +11,9 @@ next to the design, so what the voice may do is reviewed like any other code:
   returns Mothusi's answer, composed in code, to be read aloud verbatim;
 - no tool that approves, releases or sends anything;
 - authentication on: only the signed links from GET /voice/session can start a conversation;
-- names kept out by asking for L-numbers (the prompt and the box's notice) and by Mothusi's
-  answers carrying only pseudonyms. Transcript redaction needs an ElevenLabs enterprise plan,
-  so it is not set.
+- the agent states its limitation itself: the plan can't redact names from stored conversations
+  (an enterprise feature), so it says so in its first line and whenever a name comes up, and
+  asks for L-numbers. Mothusi's answers carry only pseudonyms.
 """
 
 from __future__ import annotations
@@ -26,15 +26,25 @@ from dotenv import load_dotenv
 from elevenlabs import ElevenLabs
 
 NAME = "Mothusi - assessment colleague"
-FIRST_MESSAGE = "Hi, I'm Mothusi. What can I do for you?"
+# The plan can't redact names from stored conversations, so the agent says so up front
+# instead of the platform hiding it (Katlego, 2026-11-14).
+FIRST_MESSAGE = (
+    "Hi, I'm Mothusi. One thing first: I can't remove names from what's said here, "
+    "so please use learner numbers like L-014, not names. What can I do for you?"
+)
 PROMPT = (
     "You are Mothusi's voice: a colleague who helps a South African Grade 10 teacher with "
     "their assessment work. For every request, call ask_mothusi with the teacher's words and "
     "read its answer aloud exactly as given. Never add marks, quotes, curriculum facts or "
     "learner details of your own. If ask_mothusi says it is at capacity, say so and that the "
     "answer will appear in the box. If asked to approve or release something, say that is "
-    "done on the screen. Ask the teacher to say learner numbers like L-014, not names. "
-    "Keep your own words short."
+    "done on the screen. Keep your own words short.\n\n"
+    "Your limitations, which you state plainly whenever they matter: this conversation is "
+    "stored by the voice service, and you cannot remove names from it. If the teacher says a "
+    "learner's name, do not repeat it: say you can't keep names out of the recording and ask "
+    "for the learner's number, like L-014, instead. If asked what you can't do, say: you "
+    "can't remove names from the recording, you can't approve, release or send anything, and "
+    "you only know what Mothusi tells you."
 )
 ASK_MOTHUSI: dict[str, Any] = {
     "type": "client",
