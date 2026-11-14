@@ -1293,6 +1293,7 @@ def build_bundle(p: Planner, s: RunState) -> Json:
         (
             {
                 "learner": names[k],
+                "pseudonym": k,
                 "raw": c.raw,
                 "out_of": c.out_of,
                 "sba_points": str(c.sba_points),
@@ -1310,6 +1311,7 @@ def build_bundle(p: Planner, s: RunState) -> Json:
         notes.append(
             {
                 "learner": names[note["pseudonym"]],
+                "pseudonym": note["pseudonym"],
                 "outcome": note["outcome"],
                 "mark_with_quote": note["mark_with_quote"],
                 "next_task": note["next_task"],

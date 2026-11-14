@@ -172,6 +172,8 @@ class MothusiService(Stack):
                     elevenlabs = parameter("secret/elevenlabs-arn")
                     secret_values["ELEVENLABS_API_KEY"] = elevenlabs
                     readable.append(elevenlabs)
+                    # The agent id is not a secret: an SSM String filled by hand beside the key.
+                    env["ELEVENLABS_AGENT_ID"] = parameter("elevenlabs-agent-id")
                 execution.add_to_policy(
                     iam.PolicyStatement(
                         actions=["secretsmanager:GetSecretValue"], resources=readable

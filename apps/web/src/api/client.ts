@@ -1,7 +1,7 @@
 // Typed calls for the HTTP endpoints of docs/architecture/design/console-ui.md §6.
 // The base is /api (Vite proxies it to the core service in development); VITE_API_URL overrides.
 import { authHeader, onUnauthorized } from "../auth/session";
-import type { Bundle, FieldError, MemoDraftView, PageGaps, Pack, ReadingAnswer, ReadingItem, UploadTarget } from "./types";
+import type { AtpRow, Bundle, FieldError, MemoDraftView, PageGaps, Pack, ReadingAnswer, ReplyPayload, ReadingItem, RunSummary, UploadTarget } from "./types";
 
 export const API = (import.meta.env.VITE_API_URL as string | undefined) ?? "/api";
 
@@ -58,6 +58,16 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T;
 }
 
+/** A lesson plan's details gathered so far (conversation.md §11.1). */
+export interface LessonSlots {
+  subject?: string;
+  weeks?: number[];
+  topic?: string;
+  lessons?: number;
+  minutes?: number;
+  notes?: string;
+}
+
 const json = (body: unknown): RequestInit => ({
   method: "POST",
   headers: { "Content-Type": "application/json" },
@@ -66,6 +76,32 @@ const json = (body: unknown): RequestInit => ({
 
 export const api = {
   packs: () => call<Pack[]>("/packs"),
+
+  /** desk.md §6: every run, newest first. */
+  runs: () => call<RunSummary[]>("/assessments"),
+
+  /** desk.md §6: the subject's ATP rows, each with its DBE source. */
+  atp: (packId: string, subject: string) =>
+    call<AtpRow[]>(`/packs/${packId}/atp?subject=${encodeURIComponent(subject)}`),
+
+  /** conversation.md §11.2: the colleague off a run; answered in the response. */
+  colleague: (
+    text: string,
+    context: { lesson?: LessonSlots; pack_id?: string; subject?: string; assessment_id?: string },
+  ) =>
+    call<{ reply: ReplyPayload; ask: string | null; lesson: LessonSlots | null; deferred_id?: string | null }>(
+      "/colleague/messages",
+      json({ text, context }),
+    ),
+
+  /** conversation.md §13: 202 {state: "waiting"} while at capacity, then the answer. */
+  deferredReply: (id: string) =>
+    call<{ state: "waiting" } | { reply: ReplyPayload; ask: string | null; lesson: LessonSlots | null }>(
+      `/colleague/deferred/${encodeURIComponent(id)}`,
+    ),
+
+  /** conversation.md §12: a signed link for one ElevenLabs session; 503 says why voice is off. */
+  voiceSession: () => call<{ signed_url: string }>("/voice/session"),
 
   /** conversation.md §6.2: accepted at once (202); the reply arrives on the event stream. */
   postMessage: (assessmentId: string, text: string) =>

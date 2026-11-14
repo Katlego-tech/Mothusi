@@ -73,7 +73,7 @@ export function SignInCallback() {
       live = false;
     };
   }, [navigate]);
-  if (session.state === "off") return <Navigate to="/new" replace />;
+  if (session.state === "off") return <Navigate to="/" replace />;
   if (error) return <SignInScreen notice={error} />;
   return (
     <p className="compose muted" role="status">

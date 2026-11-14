@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import type { CheckPayload, MothusiEvent } from "../api/types";
-import { clock, rand, stateName } from "../lib/utils";
+import { clock, stateName } from "../lib/utils";
 import { agentLabel, inkOf } from "./chrome";
 import { EvidencePair } from "./papers";
 
@@ -59,7 +59,7 @@ function Ev({
   );
 }
 
-function Body({ row, priced }: { row: Row; priced: boolean }): ReactNode {
+function Body({ row }: { row: Row }): ReactNode {
   const { event } = row;
   switch (event.kind) {
     case "created":
@@ -95,14 +95,13 @@ function Body({ row, priced }: { row: Row; priced: boolean }): ReactNode {
             <span>{p.summary}</span>
           )}
           {p.status !== "done" && <span className="detail">{p.reason}</span>}
-          {(row.passed.length > 0 || (priced && Number(p.cost_zar) > 0)) && (
+          {row.passed.length > 0 && (
             <span className="tags">
               {row.passed.map((c) => (
                 <span key={c.check} className="tag pass">
                   {c.check.replace("_", " ")}
                 </span>
               ))}
-              {priced && Number(p.cost_zar) > 0 && <span className="cost">{rand(p.cost_zar)}</span>}
             </span>
           )}
         </>
@@ -151,6 +150,8 @@ function Body({ row, priced }: { row: Row; priced: boolean }): ReactNode {
         </>
       );
     }
+    case "usage":
+      return <span>{event.payload.input_tokens + event.payload.output_tokens} tokens processed</span>;
     case "teacher":
       return <span>{event.summary}</span>;
     case "delivered":
@@ -193,14 +194,12 @@ function whoOf(row: Row): { who: string; ink: string } {
 export function EventLog({
   events,
   start,
-  priced,
   title = "What Mothusi is doing",
   note = "newest at the bottom · follows live",
   footer,
 }: {
   events: MothusiEvent[];
   start: string | null;
-  priced: boolean;
   title?: string;
   note?: string;
   footer?: ReactNode;
@@ -242,7 +241,7 @@ export function EventLog({
         const fresh = settled !== null && row.event.seq > settled;
         return (
           <Ev key={row.event.seq} event={row.event} start={start} className={`${rowClass(row)} ${fresh ? "arrive" : ""}`} who={who} ink={ink}>
-            <Body row={row} priced={priced} />
+            <Body row={row} />
           </Ev>
         );
       })}

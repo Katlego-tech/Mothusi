@@ -3,7 +3,7 @@ import type { MothusiEvent } from "../api/types";
 import { apply, emptyRun } from "../run/reducer";
 import plantedLog from "../run/__fixtures__/planted-events.jsonl?raw";
 import { AgentStrip, Ring, RunHeader, StateRail, TopBar } from "./chrome";
-import { clock, rand, stateName } from "../lib/utils";
+import { clock, stateName } from "../lib/utils";
 
 function required<T>(value: T | null | undefined, description: string): T {
   if (value === null || value === undefined) throw new Error(description);
@@ -53,13 +53,8 @@ describe("the console chrome", () => {
     expect(screen.getByRole("heading", { name: `${finished.settled} of ${finished.cells.size} scripts settled` })).toBeInTheDocument();
     expect(screen.getByText((_, el) => el?.tagName === "P" && el.textContent === finished.finding)).toBeInTheDocument();
     expect(screen.getByText(clock(finished.elapsedS))).toBeInTheDocument();
-    expect(screen.getAllByText(rand(finished.costZar)).length).toBeGreaterThan(0);
-  });
-
-  it("says when cost is not metered", () => {
-    render(<RunHeader run={{ ...finished, priced: false }} />);
-    expect(screen.getByText("not metered")).toBeInTheDocument();
-    expect(screen.getByText("—")).toBeInTheDocument();
+    expect(screen.queryByText(/R\s?\d/)).not.toBeInTheDocument();
+    expect(screen.queryByText("Cost")).not.toBeInTheDocument();
   });
 
   it("lists agents still waiting before any briefs", () => {

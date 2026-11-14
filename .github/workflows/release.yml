@@ -104,7 +104,7 @@ jobs:
           set -euo pipefail
           npm ci --no-audit --no-fund
           npx cdk deploy "$STACK" --exclusively \
-            -c "imageTag=$GITHUB_REF_NAME" -c "services=$SERVICES" --require-approval never
+            -c "imageTag=$GITHUB_REF_NAME" -c "services=$SERVICES" -c voice=true --require-approval never
 
       - id: publish
         uses: ./.github/actions/publish-console

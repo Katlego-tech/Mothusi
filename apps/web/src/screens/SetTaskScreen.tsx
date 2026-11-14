@@ -1,5 +1,4 @@
-// Set the task (01-set-task.png): the instruction, the memo and scripts, the pack and task, the
-// spending limit, then "Start marking". POST /assessments; a 422 names the file and its sentence.
+// Set the task (01-set-task.png): the instruction, the memo and scripts, the pack and task, then "Start marking". POST /assessments; a 422 names the file and its sentence.
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
@@ -9,7 +8,7 @@ import type { Pack } from "../api/types";
 import { TopBar } from "../components/chrome";
 import { MemoDraftPanel } from "../components/memo-draft";
 import { Button } from "../components/ui/button";
-import { Input, Textarea } from "../components/ui/input";
+import { Textarea } from "../components/ui/input";
 
 const DEMO_GOAL = "Mark my Grade 10 Term 1 Maths test and get it ready for my HOD.";
 
@@ -132,7 +131,6 @@ export function SetTaskScreen() {
   const [classList, setClassList] = useState<Slot>({ file: null, facts: null });
   const [atp, setAtp] = useState<Slot>({ file: null, facts: null });
   const [choice, setChoice] = useState("");
-  const [budget, setBudget] = useState("40.00");
   const [draftId, setDraftId] = useState<string | null>(null);
 
   const options = useMemo(
@@ -209,14 +207,14 @@ export function SetTaskScreen() {
         atp: atp.file,
         pack_id: selected.pack.pack_id,
         poa_task: selected.task.name,
-        budget_zar: budget,
+        budget_zar: "40.00",
       });
     },
     onSuccess: (r) => navigate(`/runs/${r.assessment_id}`),
   });
   const fieldError = (field: string) =>
     start.error instanceof ApiError ? start.error.errors.find((e) => e.field === field)?.message : undefined;
-  const ready = goal.trim() && memo.file && (mode === "pages" ? classList.file : scripts.file) && selected && Number(budget) > 0;
+  const ready = goal.trim() && memo.file && (mode === "pages" ? classList.file : scripts.file) && selected;
   const rule = selected?.pack.moderation;
 
   return (
@@ -315,15 +313,6 @@ export function SetTaskScreen() {
           )}
           {fieldError("pack_id") && <span className="error">{fieldError("pack_id")}</span>}
           {fieldError("poa_task") && <span className="error">{fieldError("poa_task")}</span>}
-        </div>
-
-        <div className="field">
-          <label htmlFor="budget">Spending limit</label>
-          <div className="row">
-            <span>Stop and ask me if this costs more than R</span>
-            <Input id="budget" className="num" value={budget} onChange={(e) => setBudget(e.target.value)} inputMode="decimal" />
-          </div>
-          {fieldError("budget_zar") && <span className="error">{fieldError("budget_zar")}</span>}
         </div>
 
         <section className="next" aria-labelledby="next-h">
