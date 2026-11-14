@@ -63,7 +63,7 @@ Needs-you and approval flows do that), reprioritising.
 
 | Kind | Where |
 | --- | --- |
-| Visual reference / mockup | [console-ui/mockups/conversation.html](console-ui/mockups/conversation.html) (the communication box docked right on the live run) |
+| Visual reference / mockup | [console-ui/19-communication-box.png](console-ui/19-communication-box.png): the box as built and reviewed with Katlego on 2026-11-14 (drawn from the build, not before it: the freeze left no time for a separate mockup) |
 | Design system / tokens | `apps/web/src/index.css`, `console.css`, `agent.css` (the console's own tokens) |
 | Existing code this must match | `services/core/src/mothusi_core/main.py` (`script_answer`: snapshot, 202, inbox); `apps/web/src/run/reducer.ts` (`apply`); `components/needs-you.tsx` (a side queue that never pauses the run) |
 | Shared skills | [voice-colleague.md](voice-colleague.md) §6.1, §6.3 (`run_status`, `explain_mark`; same `say` rules) |

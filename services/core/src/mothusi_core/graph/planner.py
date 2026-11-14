@@ -1039,7 +1039,7 @@ def _build(p: Planner) -> StateGraph[RunState]:
         sink = p.sink(s["assessment_id"])
         approval = Approval.model_validate(s.get("approval"))
         early_sent = await entries(p, "early_sent", s["assessment_id"])
-        bundle = _executor_bundle(p, s)
+        bundle = executor_bundle(p, s)
         bundle = bundle.model_copy(
             update={
                 "learner_notes": tuple(
@@ -1047,7 +1047,7 @@ def _build(p: Planner) -> StateGraph[RunState]:
                 )
             }
         )
-        messages = _messages(p, s, bundle)
+        messages = teacher_messages(p, s, bundle)
         brief = executor_brief(s["assessment_id"], S(s["state"]), approval, bundle, messages)
         sink.brief(brief)
         result = await asyncio.to_thread(
@@ -1350,7 +1350,7 @@ def build_bundle(p: Planner, s: RunState) -> Json:
     }
 
 
-def _executor_bundle(p: Planner, s: RunState) -> Bundle:
+def executor_bundle(p: Planner, s: RunState) -> Bundle:
     names = s["names"]
     drafts = cast(Json, s.get("drafts"))
     pack = _pack(s)
@@ -1372,7 +1372,7 @@ def _executor_bundle(p: Planner, s: RunState) -> Bundle:
     )
 
 
-def _messages(p: Planner, s: RunState, bundle: Bundle) -> list[Message]:
+def teacher_messages(p: Planner, s: RunState, bundle: Bundle) -> list[Message]:
     """Only the bundle notice to the teacher; nothing goes to learners or parents (§6.2)."""
     if not p.teacher_email:
         return []

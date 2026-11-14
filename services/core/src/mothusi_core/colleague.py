@@ -6,7 +6,7 @@ import os
 import re
 from datetime import datetime
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Literal, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, TypedDict, cast
 
 from mothusi_contracts import Contract, EventKind
 from mothusi_core.graph.state import RunState
@@ -169,9 +169,12 @@ def compose(intent: Intent, state: RunState, promises: set[str], early_sent: set
             )
         reply["promise"] = sid
     else:
-        verdict = next((v for v in state.get("verdicts", []) if v["pseudonym"] == sid), {})
+        empty: dict[str, Any] = {}
+        verdict = next((v for v in state.get("verdicts", []) if v["pseudonym"] == sid), empty)
+        drafts = state.get("drafts") or {}
+        notes = cast(list[dict[str, Any]], drafts.get("learner_notes", []))
         note = next(
-            (n for n in state.get("drafts", {}).get("learner_notes", []) if n["pseudonym"] == sid),
+            (n for n in notes if n["pseudonym"] == sid),
             None,
         )
         if not verdict.get("passed") or note is None:

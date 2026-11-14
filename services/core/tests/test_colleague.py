@@ -4,7 +4,7 @@ import asyncio
 from copy import deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from fastapi.testclient import TestClient
@@ -13,10 +13,11 @@ from langgraph.checkpoint.memory import InMemorySaver
 from mothusi_contracts import EventKind
 from mothusi_core.colleague import Intent, compose, keep_promises, match_rules, respond, understand
 from mothusi_core.graph.planner import Planner
-from mothusi_core.main import create_app
+from mothusi_core.graph.state import RunState
+from mothusi_core.main import Runs, create_app
 from mothusi_core.providers import free
 from mothusi_core.smoke import PLANTED, REPLAY
-from mothusi_llm import ReplayProvider
+from mothusi_llm import Provider, ReplayProvider
 
 from .test_graph import start_small
 
@@ -34,6 +35,7 @@ from .test_graph import start_small
 )
 def test_rules(text: str, skill: str) -> None:
     intent = match_rules(text)
+    assert intent is not None
     assert intent.skill == skill
     if skill == "explain_mark":
         assert intent.script_id == "L-014"
@@ -82,7 +84,7 @@ def test_grounded_explanation_and_status(planted: tuple[Planner, Any]) -> None:
             "provisional"
             not in compose(
                 Intent(skill="explain_mark", script_id="L-014", question_id=mark["question_id"]),
-                final,
+                cast(RunState, final),
                 set(),
                 set(),
             )["say"]
@@ -100,12 +102,13 @@ def test_every_send_feedback_row(planted: tuple[Planner, Any]) -> None:
     _, state = planted
     intent = Intent(skill="send_feedback", script_id="L-001")
     reply = compose(intent, state, set(), set())
+    assert reply["card"] is not None
     assert reply["card"]["script_id"] == "L-001" and reply["promise"] is None
     before = dict(state, state="marking")
-    reply = compose(intent, before, set(), set())
+    reply = compose(intent, cast(RunState, before), set(), set())
     assert "provisional" in reply["say"] and "blind sample" in reply["say"]
     assert reply["promise"] == "L-001" and reply["card"] is None
-    reply = compose(intent, dict(before, marked={}), set(), set())
+    reply = compose(intent, cast(RunState, dict(before, marked={})), set(), set())
     assert "isn't marked yet" in reply["say"] and reply["promise"] == "L-001"
     failed = deepcopy(state)
     failed["verdicts"] = [{"pseudonym": "L-001", "passed": False, "reason": "unhelpful tone"}]
@@ -113,10 +116,10 @@ def test_every_send_feedback_row(planted: tuple[Planner, Any]) -> None:
     assert "unhelpful tone" in reply["say"] and reply["card"] is None
     assert (
         "went out with the set"
-        in compose(intent, dict(state, state="delivered"), set(), set())["say"]
+        in compose(intent, cast(RunState, dict(state, state="delivered")), set(), set())["say"]
     )
     sent_state = dict(state, early_sent_at={"L-001": "2026-11-14T04:12:00+02:00"})
-    released = compose(intent, sent_state, set(), {"L-001"})["say"]
+    released = compose(intent, cast(RunState, sent_state), set(), {"L-001"})["say"]
     assert released == "L-001's note was released at 04:12."
     assert (
         compose(Intent(skill="send_feedback", script_id="L-999"), state, set(), set())["say"]
@@ -135,9 +138,11 @@ def test_promises_kept_once_and_names_are_mapped(planted: tuple[Planner, Any]) -
         await respond(p, "chat", "m-3", "why L-001 question 999?")
 
     asyncio.run(run())
-    replies = [e.payload for e in p.sink("chat").read() if e.kind is EventKind.REPLY]
+    replies = [
+        cast(dict[str, Any], e.payload) for e in p.sink("chat").read() if e.kind is EventKind.REPLY
+    ]
     assert len([r for r in replies if r["message_id"] == "m-1"]) == 1
-    assert replies[-2]["card"]["script_id"] == "L-001"
+    assert cast(dict[str, Any], replies[-2]["card"])["script_id"] == "L-001"
     assert replies[-1]["skill"] == "fallback"
 
 
@@ -152,8 +157,10 @@ def test_send_requires_card_and_skips_early_sent_at_delivery(planted: tuple[Plan
 
         # Wait for background replies using the application's own retained tasks.
         async def wait() -> None:
-            await asyncio.gather(*client.app.state.runs.replies)
+            runs = cast(Runs, cast(Any, client.app).state.runs)
+            await asyncio.gather(*runs.replies)
 
+        assert client.portal is not None
         client.portal.call(wait)
         sent = client.post(path + "/notes/L-001/send")
         assert sent.status_code == 202, sent.text
@@ -312,7 +319,9 @@ def test_invalid_model_output_and_exceptions_fall_back(result: Any) -> None:
             return result, None
 
     intent = asyncio.run(
-        understand("could you help?", Model(), script_ids={"L-001"}, question_ids={"2.1"})
+        understand(
+            "could you help?", cast(Provider, Model()), script_ids={"L-001"}, question_ids={"2.1"}
+        )
     )
     assert intent.skill == "fallback"
 
@@ -326,7 +335,7 @@ def test_ollama_intent_model_receives_only_pseudonyms(
     from mothusi_llm import Usage
 
     p, state = planted
-    seen = []
+    seen: list[str] = []
 
     class Model:
         name = "ollama-test"
@@ -338,12 +347,13 @@ def test_ollama_intent_model_receives_only_pseudonyms(
             )
 
     p.primary = Model()
-    p._providers.clear()
+    p._providers.clear()  # pyright: ignore[reportPrivateUsage]
     monkeypatch.setenv("MOTHUSI_PROVIDER", "ollama")
     name = state["names"]["L-001"]
     asyncio.run(respond(p, "chat", "m-4", f"please bring {name}'s thoughts"))
     assert len(seen) == 1 and name not in seen[0] and "L-001" in seen[0]
-    assert p.sink("chat").read()[-1].payload["card"]["script_id"] == "L-001"
+    payload = cast(dict[str, Any], p.sink("chat").read()[-1].payload)
+    assert cast(dict[str, Any], payload["card"])["script_id"] == "L-001"
 
 
 def test_a_failed_review_keeps_the_promise_with_its_reason(planted: tuple[Planner, Any]) -> None:
@@ -358,7 +368,8 @@ def test_a_failed_review_keeps_the_promise_with_its_reason(planted: tuple[Planne
     asyncio.run(run())
     replies = [e for e in p.sink("chat").read() if e.kind is EventKind.REPLY]
     assert len(replies) == 1
-    assert replies[0].payload["card"] is None and "unsupported praise" in replies[0].payload["say"]
+    payload = cast(dict[str, Any], replies[0].payload)
+    assert payload["card"] is None and "unsupported praise" in payload["say"]
 
 
 def test_a_halted_run_refuses_new_messages(planted: tuple[Planner, Any]) -> None:

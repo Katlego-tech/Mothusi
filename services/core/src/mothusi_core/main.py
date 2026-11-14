@@ -63,15 +63,15 @@ from mothusi_core.events import follow, frame, with_pings
 from mothusi_core.graph import inbox
 from mothusi_core.graph.planner import (
     Planner,
-    _executor_bundle,
-    _messages,
     apply_readings,
     attempt_is_complete,
     check_memo_fits,
+    executor_bundle,
     new_run,
     pack_ref,
     pseudonymise_text,
     teacher_email,
+    teacher_messages,
 )
 from mothusi_core.graph.state import RunState
 from mothusi_core.knowledge import knowledge_from_environment
@@ -369,10 +369,15 @@ def create_app(
                 raise conflict("the note is not settled; wait for awaiting_approval")
             if await p.store.aget(("early_sent", assessment_id), script_id):
                 raise conflict("the note was already sent")
+
+            def offers(card: object) -> bool:
+                return (
+                    isinstance(card, dict)
+                    and cast(dict[str, Any], card).get("script_id") == script_id
+                )
+
             offered = any(
-                e.kind is EventKind.REPLY
-                and isinstance(e.payload.get("card"), dict)
-                and e.payload["card"].get("script_id") == script_id
+                e.kind is EventKind.REPLY and offers(e.payload.get("card"))
                 for e in p.sink(assessment_id).read()
             )
             if not offered:
@@ -380,7 +385,7 @@ def create_app(
             reply = compose(Intent(skill="send_feedback", script_id=script_id), state, set(), set())
             if reply["card"] is None:
                 raise conflict(reply["say"])
-            bundle = _executor_bundle(p, state)
+            bundle = executor_bundle(p, state)
             bundle = bundle.model_copy(
                 update={
                     "root": str(p.data_dir / assessment_id / "early" / script_id),
@@ -395,7 +400,7 @@ def create_app(
                 AssessmentState.APPROVED,
                 approval,
                 bundle,
-                _messages(p, state, bundle),
+                teacher_messages(p, state, bundle),
             )
             result = await asyncio.to_thread(
                 execute,
