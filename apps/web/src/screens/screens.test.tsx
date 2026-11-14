@@ -12,8 +12,10 @@ import { apply, emptyRun, type RunView } from "../run/reducer";
 import bundleJson from "../run/__fixtures__/planted-bundle.json";
 import plantedLog from "../run/__fixtures__/planted-events.jsonl?raw";
 import { ApprovalScreen } from "./ApprovalScreen";
+import { DeliveredScreen } from "./DeliveredScreen";
+import { RunHeader } from "../components/chrome";
 import { RunScreen } from "./RunScreen";
-import { memoFacts, scriptFacts } from "./SetTaskScreen";
+import { SetTaskScreen, memoFacts, scriptFacts } from "./SetTaskScreen";
 import demoMemo from "../../../../services/core/fixtures/gr10-maths-t1/memo.toml?raw";
 import demoScripts from "../../../../services/core/fixtures/gr10-maths-t1/scripts.csv?raw";
 
@@ -162,5 +164,73 @@ describe("after approval (Codex review)", () => {
     expect(await screen.findByText("Delivery stopped.")).toBeInTheDocument();
     expect(screen.getByText(/bundle root is not empty/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Approve the bundle" })).toBeNull();
+  });
+});
+
+function expectNoMoney() {
+  expect(screen.queryByText(/R\s?\d/)).toBeNull();
+  expect(screen.queryByText(/Cost|Spending limit/i)).toBeNull();
+  expect(screen.queryByText(/not metered/i)).toBeNull();
+}
+
+describe("console without money displays", () => {
+  it("shows the live run without money", () => {
+    mockFetch({ "/packs": [] });
+    wrap(<RunScreen run={foldUntil((e) => e.kind === "disagreement")} connection="live" />);
+    expectNoMoney();
+  });
+  it("shows the approval summary without money", async () => {
+    mockFetch({ "/bundle": bundle });
+    wrap(<ApprovalScreen run={foldUntil((e) => e.kind === "state" && e.payload.to === "awaiting_approval")} />);
+    await screen.findByText("Class average");
+    expect(screen.getByLabelText("Summary of the run").children).toHaveLength(6);
+    expectNoMoney();
+  });
+  it("shows the delivered summary and log without money", async () => {
+    mockFetch({ "/bundle": bundle });
+    wrap(<DeliveredScreen run={planted.reduce(apply, emptyRun("gr10-maths-t1-planted"))} />);
+    await waitFor(() => expect(screen.getByText("Moderator agreed").parentElement).not.toHaveTextContent("—"));
+    expect(screen.getByLabelText("The run in numbers").children).toHaveLength(3);
+    expectNoMoney();
+  });
+  it("sets the task without money fields and retains the backend guard", async () => {
+    const { api } = await import("../api/client");
+    mockFetch({ "/packs": [{ pack_id: "dbe-caps/mathematics-gr10", subject: "Mathematics", grade: 10,
+      moderation: { min_scripts: 1, sample_percent: "10", spread: "low-middle-high" },
+      tasks: [{ name: "Test", term: 1, max_marks: 50, weight_percent: "25" }] }] });
+    const create = vi.spyOn(api, "create").mockResolvedValue({ assessment_id: "new-run", state: "draft" });
+    try {
+      wrap(<SetTaskScreen />);
+      const demo = screen.getByRole("button", { name: "Load the demo class set" });
+      await waitFor(() => expect(demo).toBeEnabled());
+      await userEvent.click(demo);
+      const start = screen.getByRole("button", { name: "Start marking" });
+      await waitFor(() => expect(start).toBeEnabled());
+      expectNoMoney();
+      await userEvent.click(start);
+      await waitFor(() => expect(create).toHaveBeenCalledWith(expect.objectContaining({ budget_zar: "40.00" })));
+    } finally {
+      create.mockRestore();
+    }
+  });
+  it("reflows the run header around its remaining KPIs", () => {
+    const { container } = wrap(<RunHeader run={emptyRun("a1")} />);
+    expect(container.querySelectorAll(".strip > div")).toHaveLength(2);
+    expectNoMoney();
+  });
+  it.each([0, 4])("asks to carry on with %i scripts left and posts the suggested raise", async (left) => {
+    const calls = mockFetch({});
+    wrap(<NeedsTeacherCard assessmentId="a1" questions={[]} question={{
+      topic: "budget", title: "Budget R40", spent_zar: "35", limit_zar: "40",
+      scripts_total: 6, scripts_settled: 6 - left,
+      spent: [{ stage: "marking", zar: "35" }], estimate: [{ stage: "marking", zar: "10" }],
+    }} />);
+    expect(screen.getByRole("heading", { name: "This set is taking longer than planned" })).toBeInTheDocument();
+    expect(screen.getByText(left ? `Carry on marking the last ${left} scripts?` : "Carry on?")).toBeInTheDocument();
+    expect(screen.getByText("Or leave it paused; nothing is lost.")).toBeInTheDocument();
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+    expectNoMoney();
+    await userEvent.click(screen.getByRole("button", { name: /^Carry on$/ }));
+    await waitFor(() => expect(calls).toContainEqual({ url: "/api/assessments/a1/budget", body: { raise_to_zar: "60.00" } }));
   });
 });

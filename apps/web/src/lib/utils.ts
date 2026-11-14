@@ -6,9 +6,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-/** "13.02" -> "R 13.02", as the mockups set rand. */
-export const rand = (zar: string | number) => `R ${Number(zar).toFixed(2)}`;
-
 /** Seconds -> "06:42" (the run's clock). */
 export const clock = (s: number) =>
   `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(Math.floor(s % 60)).padStart(2, "0")}`;

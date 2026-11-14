@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 import type { Bundle } from "../api/types";
 import bundleJson from "../run/__fixtures__/planted-bundle.json";
 import { DeliveredScreen } from "./DeliveredScreen";
-import { clock, rand } from "../lib/utils";
+import { clock } from "../lib/utils";
 
 function required<T>(value: T | null | undefined, description: string): T {
   if (value === null || value === undefined) throw new Error(description);
@@ -39,7 +39,7 @@ describe("the delivered run", () => {
     const numbers = screen.getByLabelText("The run in numbers");
     await waitFor(() => expect(numbers).toHaveTextContent(`${bundle.summary.questions_agreed} of ${bundle.summary.questions_compared}`));
     expect(numbers).toHaveTextContent(clock(bundle.summary.elapsed_s));
-    expect(numbers).toHaveTextContent(rand(bundle.summary.per_script_zar));
+    expect(numbers).not.toHaveTextContent(/R\s?\d/);
     expect(numbers).toHaveTextContent(String(finished.teacherSteps));
     expect(screen.getByRole("banner")).toHaveTextContent(finished.title);
     expect(screen.getByRole("banner")).toHaveTextContent(/approved by you at .* · delivered/);
@@ -99,7 +99,9 @@ describe("the delivered run", () => {
     const numbers = screen.getByLabelText("The run in numbers");
     expect(numbers).toHaveTextContent(clock(finished.elapsedS));
     expect(numbers).toHaveTextContent("— of —");
-    expect(numbers).toHaveTextContent("no sourced prices yet");
+    expect(numbers).toHaveTextContent(`Your steps${finished.teacherSteps}`);
+    expect(numbers).toHaveTextContent("answers you gave, the approval included");
+    expect(numbers).not.toHaveTextContent(/cost|prices|R\s?\d/i);
   });
 
   it("keeps the delivery evidence visible when the bundle request fails", async () => {
@@ -108,13 +110,6 @@ describe("the delivered run", () => {
     await waitFor(() => expect(client.getQueryState(["bundle", id, "delivered"])?.status).toBe("error"));
     expect(screen.getByRole("region", { name: "Written to disk" })).toHaveTextContent("mark-sheet.csv");
     expect(screen.getByLabelText("The run in numbers")).toHaveTextContent("— of —");
-  });
-
-  it("says when costs are not metered", async () => {
-    respond(200, { ...bundle, summary: { ...bundle.summary, priced: false } });
-    wrap(<DeliveredScreen run={finished} />);
-    expect(await screen.findByText("not metered")).toBeInTheDocument();
-    expect(screen.getByText("no sourced prices yet")).toBeInTheDocument();
   });
 
   it("handles no delivery payload or scripts without dividing by zero", async () => {

@@ -1,0 +1,51 @@
+/* The teacher's desk (desk.md): one action, the runs, then the term from the sources. */
+.desk { max-width: 1080px; margin: 0 auto; padding: 36px var(--pad) 64px; display: flex; flex-direction: column; gap: var(--gap); }
+
+.desk-hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding-bottom: 8px; }
+.desk-hero h1 { font-size: 28px; line-height: 36px; }
+.desk-hero .lede { margin-top: 6px; max-width: 60ch; color: var(--muted); font-size: 15px; line-height: 22px; }
+.desk-cta { flex: 0 0 auto; padding: 12px 22px; font-size: 15px; text-decoration: none; }
+
+.desk-note { padding: 12px var(--card-pad) 18px; color: var(--muted); font-size: 14px; }
+.desk-source { padding: 4px var(--card-pad) 16px; color: var(--muted); font-size: 12px; }
+
+.runlist { list-style: none; padding: 8px 0 8px; }
+.runlist a {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name state" "meta state";
+  gap: 2px 16px; align-items: center; padding: 12px var(--card-pad); color: inherit; text-decoration: none; border-top: 1px solid var(--rule);
+}
+.runlist li:first-child a { border-top: 0; }
+.runlist a:hover { background: var(--raised); }
+.runlist a:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+.run-name { grid-area: name; font-weight: 600; font-size: 14px; }
+.run-meta { grid-area: meta; color: var(--muted); font-size: 12px; }
+.run-state { grid-area: state; font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: var(--radius-chip); white-space: nowrap; }
+.run-state.wait { background: var(--teal); color: #fff; }
+.run-state.work { background: var(--raised); color: var(--text); }
+.run-state.done { background: var(--moderator-soft); color: var(--moderator); }
+.run-state.stop { background: var(--marker-soft); color: var(--marker); }
+
+.desk-sources { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: var(--gap); align-items: start; }
+.desk-subject select { border: 1px solid var(--control); border-radius: var(--radius-control); padding: 4px 8px; background: var(--surface); font-size: 13px; }
+
+.terms { display: flex; gap: 4px; padding: 10px var(--card-pad) 4px; }
+.terms button { border: 1px solid var(--control); background: var(--surface); border-radius: 999px; padding: 4px 12px; font-size: 12px; cursor: pointer; color: var(--muted); }
+.terms button[aria-pressed="true"] { background: var(--teal); border-color: var(--teal); color: #fff; font-weight: 600; }
+.terms button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+.weeks { list-style: none; padding: 8px 0 4px; }
+.weeks li { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; padding: 7px var(--card-pad); border-top: 1px solid var(--rule); font-size: 14px; }
+.weeks li:first-child { border-top: 0; }
+.weeks .wk { font: 500 12px/20px var(--font-mono); color: var(--muted); }
+
+.poa { width: calc(100% - 2 * var(--card-pad)); margin: 8px var(--card-pad) 4px; border-collapse: collapse; font-size: 13px; }
+.poa th { text-align: left; font: 500 10px/16px var(--font-mono); letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); padding: 6px 0; border-bottom: 1px solid var(--border); }
+.poa td { padding: 7px 0; border-bottom: 1px solid var(--rule); }
+.poa .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 1100px) { .desk-sources { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 720px) {
+  .desk { padding: 20px var(--pad) 96px; }
+  .desk-hero { flex-direction: column; align-items: stretch; }
+  .desk-cta { text-align: center; }
+}

@@ -14,7 +14,6 @@ import type {
   ReadingQuestion,
   ScriptQuestion,
 } from "../api/types";
-import { rand } from "../lib/utils";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { MemoPage, ScriptPage } from "./papers";
@@ -268,86 +267,27 @@ export function ScriptDecisionForm({
 
 function BudgetForm({ id, q }: { id: string; q: BudgetQuestion }) {
   const suggested = (Number(q.spent_zar) + q.estimate.reduce((s, e) => s + Number(e.zar), 0)) * 1.25;
-  const [limit, setLimit] = useState(Math.max(Math.ceil(suggested / 10) * 10, Number(q.limit_zar) + 10).toFixed(2));
-  const [stopped, setStopped] = useState(false);
+  const limit = Math.max(Math.ceil(suggested / 10) * 10, Number(q.limit_zar) + 10).toFixed(2);
   const send = useMutation({ mutationFn: (to: string) => api.budget(id, to) });
   const left = q.scripts_total - q.scripts_settled;
   return (
     <>
       <div className="ask-head">
-        <h3 id="ask-title">
-          Raise the spending limit{left > 0 ? ` to finish the last ${left} scripts` : " to go on"}?
-        </h3>
-        <span className="small muted">Needs your decision · {q.scripts_settled} marked scripts are kept either way</span>
+        <h3 id="ask-title">This set is taking longer than planned</h3>
       </div>
-      <div className="papers">
-        <figure className="paper">
-          <div className="paper-head">
-            <span>
-              <b>Spent so far</b>
-            </span>
-            <span>
-              {q.scripts_settled} of {q.scripts_total} scripts
-            </span>
-          </div>
-          <div className="lines">
-            {q.spent.map((s) => (
-              <div className="line" key={s.stage}>
-                <span>{s.stage}</span>
-                <span className="mk grey">{rand(s.zar)}</span>
-              </div>
-            ))}
-          </div>
-          <div className="paper-foot">
-            <span className="muted">your limit</span>
-            <span>{rand(q.limit_zar)}</span>
-          </div>
-        </figure>
-        <figure className="paper script">
-          <div className="paper-head">
-            <span>
-              <b>Still to do</b>
-            </span>
-            <span>at this run's rate so far</span>
-          </div>
-          <div className="lines">
-            {q.estimate.map((s) => (
-              <div className="line" key={s.stage}>
-                <span>{s.stage}</span>
-                <span className="mk grey">about {rand(s.zar)}</span>
-              </div>
-            ))}
-          </div>
-        </figure>
-      </div>
-      {stopped ? (
-        <p className="notice">
-          Stopped. Everything marked so far is kept, and the run waits here: raise the limit later to go on.{" "}
-          <Button size="small" onClick={() => setStopped(false)}>
-            Change my mind
-          </Button>
-        </p>
-      ) : (
-        <form
-          className="choices"
-          onSubmit={(e) => {
-            e.preventDefault();
-            send.mutate(limit);
-          }}
-        >
-          <span className="row">
-            <label htmlFor="limit">Raise the limit to R</label>
-            <Input id="limit" className="num" value={limit} onChange={(e) => setLimit(e.target.value)} inputMode="decimal" />
-          </span>
-          <Button variant="primary" type="submit" disabled={send.isPending}>
-            Raise it and continue
-          </Button>
-          <Button type="button" onClick={() => setStopped(true)}>
-            Leave it; stop here
-          </Button>
-          <span className="note">Stopping keeps every marked script.</span>
-        </form>
-      )}
+      <p>{left > 0 ? `Carry on marking the last ${left} scripts?` : "Carry on?"}</p>
+      <form
+        className="choices"
+        onSubmit={(e) => {
+          e.preventDefault();
+          send.mutate(limit);
+        }}
+      >
+        <Button variant="primary" type="submit" disabled={send.isPending}>
+          Carry on
+        </Button>
+        <span className="note">Or leave it paused; nothing is lost.</span>
+      </form>
       <Problem error={send.error} />
     </>
   );

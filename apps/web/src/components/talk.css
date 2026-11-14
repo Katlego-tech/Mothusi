@@ -1,15 +1,31 @@
 /* The communication box (conversation.md §1): docked right on the live run, full height; a sheet on
    a phone. Built from console.css's tokens: paper for Mothusi, the teacher's teal for the teacher. */
-.runshell { display: grid; grid-template-columns: minmax(0, 1fr) 368px; align-items: start; }
-.runshell > .canvas { min-width: 0; }
-/* The top bar stays put on the run screen, so the box can take exactly the rest of the height. */
-.topbar:has(+ .runshell) { position: sticky; top: 0; z-index: 20; }
+/* Every page: the page on the left, the box on the right at the teacher's chosen width. */
+.withtalk { display: flex; align-items: flex-start; min-height: 100dvh; }
+.withtalk-main { flex: 1 1 auto; min-width: 0; }
 
 .talk {
-  position: sticky; top: var(--topbar); height: calc(100dvh - var(--topbar)); display: flex; flex-direction: column;
-  background: var(--surface); border-left: 1px solid var(--border);
+  position: sticky; top: 0; flex: 0 0 auto; height: 100dvh; display: flex; flex-direction: column;
+  background: var(--surface); border-left: 1px solid var(--border); max-width: 60vw;
 }
-.talk-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 20px 14px; border-bottom: 1px solid var(--rule); }
+.talk.folded { display: none; }
+.talk-resize { position: absolute; left: -4px; top: 0; bottom: 0; width: 8px; cursor: col-resize; z-index: 2; }
+.talk-resize:hover, .talk-resize:focus-visible { background: linear-gradient(90deg, transparent 3px, var(--teal-edge) 3px, var(--teal-edge) 5px, transparent 5px); outline: none; }
+body.talk-resizing { cursor: col-resize; user-select: none; }
+.talk-fold { border: 0; background: none; font-size: 18px; line-height: 1; padding: 2px 6px; color: var(--muted); cursor: pointer; border-radius: var(--radius-control); }
+.talk-fold:hover { background: var(--raised); color: var(--text); }
+.talk-fold:focus-visible, .talk-rail:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+/* Folded: a slim rail that keeps the unread count in view. */
+.talk-rail {
+  position: sticky; top: 0; flex: 0 0 44px; height: 100dvh; display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding-top: 18px; background: var(--surface); border: 0; border-left: 1px solid var(--border); cursor: pointer; color: var(--teal);
+}
+.talk-rail .rail-label { writing-mode: vertical-rl; transform: rotate(180deg); font-weight: 600; font-size: 13px; letter-spacing: 0.02em; }
+.talk-rail .count { background: var(--teal); color: #fff; border-radius: 999px; min-width: 20px; padding: 0 6px; font-size: 12px; line-height: 20px; text-align: center; }
+
+.talk-head { display: flex; align-items: flex-start; gap: 8px; padding: 0 16px 0 20px; min-height: var(--topbar); padding-top: 9px; padding-bottom: 9px; border-bottom: 1px solid var(--border); }
+.talk-head > div { flex: 1; min-width: 0; }
 .talk-head h2 { font-size: var(--fs-section); font-weight: 600; line-height: 22px; }
 .talk-head p { font-size: var(--fs-small); color: var(--muted); margin-top: 2px; }
 .talk-close { display: none; border: 0; background: none; font-size: 22px; line-height: 1; padding: 2px 6px; color: var(--muted); cursor: pointer; }
@@ -24,17 +40,17 @@
 .t-empty p { font-size: 13px; line-height: 19px; color: var(--muted); }
 
 /* The teacher: right, in the teacher's teal. */
-.t-me { align-self: flex-end; max-width: 86%; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.t-me { align-self: flex-end; max-width: min(86%, 520px); display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .t-me p { background: var(--teal); color: #fff; padding: 9px 12px; border-radius: 10px 10px 2px 10px; font-size: var(--fs-body); line-height: 20px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .t-me.sending p { opacity: 0.7; }
 .t-me.failed p { background: var(--marker-soft); color: var(--text); border: 1px solid var(--marker); }
 .t-me .meta { font-size: 11px; color: var(--muted); display: inline-flex; gap: 4px; align-items: baseline; }
 
 /* Mothusi: left, on paper. */
-.t-mothusi { max-width: 94%; display: flex; flex-direction: column; gap: 4px; }
+.t-mothusi { max-width: min(96%, 640px); display: flex; flex-direction: column; gap: 4px; }
 .t-mothusi .who, .t-thinking .who { font: 500 11px/16px var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--text); }
 .t-mothusi .who time { font-size: 11px; }
-.t-mothusi > p { background: var(--raised); padding: 9px 12px; border-radius: 10px 10px 10px 2px; font-size: var(--fs-body); line-height: 20px; overflow-wrap: anywhere; }
+.t-mothusi > p { white-space: pre-line; background: var(--raised); padding: 9px 12px; border-radius: 10px 10px 10px 2px; font-size: var(--fs-body); line-height: 20px; overflow-wrap: anywhere; }
 .t-mothusi > p.promise { background: none; padding: 0 2px; font-size: 12px; color: var(--muted); }
 
 .meta.fail { color: var(--marker); font-size: 12px; }
@@ -75,14 +91,11 @@
 
 .talk-toggle { display: none; }
 
-@media (max-width: 1180px) {
-  .runshell { grid-template-columns: minmax(0, 1fr) 320px; }
-}
-
 /* A phone or a narrow window: the box is a sheet opened from a button, so the run keeps the width. */
 @media (max-width: 900px) {
-  .runshell { grid-template-columns: minmax(0, 1fr); }
-  .talk { display: none; position: fixed; inset: auto 0 0 0; height: min(86dvh, 720px); z-index: 30; border-left: 0; border-top: 1px solid var(--border); border-radius: 14px 14px 0 0; box-shadow: 0 -12px 32px rgb(39 47 45 / 0.18); }
+  .withtalk { display: block; }
+  .talk-resize, .talk-fold, .talk-rail { display: none !important; }
+  .talk, .talk.folded { width: auto !important; max-width: none; display: none; position: fixed; inset: auto 0 0 0; height: min(86dvh, 720px); z-index: 30; border-left: 0; border-top: 1px solid var(--border); border-radius: 14px 14px 0 0; box-shadow: 0 -12px 32px rgb(39 47 45 / 0.18); }
   .talk.open { display: flex; }
   .talk-close { display: block; }
   .talk-toggle {
@@ -96,3 +109,23 @@
 @media (prefers-reduced-motion: reduce) {
   .dots i { animation: none; opacity: 0.6; }
 }
+
+/* Beside the box the page is narrower: the top bar keeps one line, and the title gives way first. */
+.withtalk-main .steps li { white-space: nowrap; }
+.withtalk-main .run-title { min-width: 0; overflow: hidden; }
+.withtalk-main .run-title > * { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.withtalk-main .topbar .chip { white-space: nowrap; }
+@media (max-width: 1280px) { .withtalk-main .steps li { padding: 6px 8px; } }
+
+/* The voice (conversation.md §12) and the colleague's hands on the screen (§14). */
+.voice { display: inline-flex; align-items: center; gap: 6px; position: relative; }
+.mic { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px; border: 1px solid var(--teal-edge); border-radius: 999px; background: var(--teal-soft); color: var(--teal); font-weight: 600; font-size: 13px; cursor: pointer; }
+.mic:hover { background: var(--surface); }
+.mic.on { background: var(--teal); color: #fff; border-color: var(--teal); }
+.mic.on.speaking svg { animation: talk-dot 1s infinite ease-in-out; }
+.mic:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.mic .mic-label { white-space: nowrap; }
+.voice-problem { position: absolute; bottom: calc(100% + 6px); right: 0; width: 240px; font-size: 12px; color: var(--marker); background: var(--surface); border: 1px solid var(--marker); border-radius: var(--radius-control); padding: 6px 8px; }
+.open-again { align-self: flex-start; font-size: 12px; margin-top: 2px; }
+.pointed { outline: 2px solid var(--teal); outline-offset: 2px; transition: outline-color 0.4s; }
+@media (prefers-reduced-motion: reduce) { .mic.on.speaking svg { animation: none; } }

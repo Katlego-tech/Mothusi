@@ -93,7 +93,7 @@ describe("PKCE sign-in", () => {
     const url = await startSignIn("//evil.example/x");
     tokenEndpoint({ id_token: "id-1", expires_in: 3600 });
     const back = await completeSignIn(new URL(`${ENV.VITE_AUTH_REDIRECT}?code=c&state=${url.searchParams.get("state")}`));
-    expect(back).toBe("/new");
+    expect(back).toBe("/");
   });
 });
 

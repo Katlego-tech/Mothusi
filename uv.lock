@@ -369,6 +369,23 @@ wheels = [
 ]
 
 [[package]]
+name = "elevenlabs"
+version = "2.75.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pydantic" },
+    { name = "pydantic-core" },
+    { name = "requests" },
+    { name = "typing-extensions" },
+    { name = "websockets" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c6/d4/a1266c9f4f570de9afd050d5aed4fa67be583ab856175bfc3ee2dc1773a5/elevenlabs-2.75.0.tar.gz", hash = "sha256:156358da7060abcd212d1f863137931218061209d4fc4e3be0787ed72f1dc27b", size = 889084, upload-time = "2026-10-28T09:34:05.592Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7a/cb/f63a2375ea0e461f665ce2d912c55a12833f5db778042ed2a562a64c20b9/elevenlabs-2.75.0-py3-none-any.whl", hash = "sha256:28c4eefc4e5e1c9766906035e54a0c84449b7c4fd3b2e5157ba704b6f22089a4", size = 2329611, upload-time = "2026-10-28T09:34:03.211Z" },
+]
+
+[[package]]
 name = "et-xmlfile"
 version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -973,6 +990,239 @@ wheels = [
 ]
 
 [[package]]
+name = "mothusi"
+version = "0.1.0"
+source = { virtual = "." }
+
+[package.dev-dependencies]
+dev = [
+    { name = "elevenlabs" },
+    { name = "mothusi-contracts" },
+    { name = "mothusi-core" },
+    { name = "mothusi-delivery" },
+    { name = "mothusi-events" },
+    { name = "mothusi-intake" },
+    { name = "mothusi-knowledge" },
+    { name = "mothusi-llm" },
+    { name = "mothusi-outputs" },
+    { name = "mothusi-rules" },
+    { name = "pypdf" },
+    { name = "pyright" },
+    { name = "pytest" },
+    { name = "python-dotenv" },
+    { name = "ruff" },
+    { name = "types-openpyxl" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "elevenlabs", specifier = "==2.75.0" },
+    { name = "mothusi-contracts", editable = "packages/contracts" },
+    { name = "mothusi-core", editable = "services/core" },
+    { name = "mothusi-delivery", editable = "packages/delivery" },
+    { name = "mothusi-events", editable = "packages/events" },
+    { name = "mothusi-intake", editable = "packages/intake" },
+    { name = "mothusi-knowledge", editable = "services/knowledge" },
+    { name = "mothusi-llm", editable = "packages/llm" },
+    { name = "mothusi-outputs", editable = "packages/outputs" },
+    { name = "mothusi-rules", editable = "packages/rules" },
+    { name = "pypdf", specifier = "==7.0.1" },
+    { name = "pyright", specifier = "==1.1.414" },
+    { name = "pytest", specifier = "==9.2.0" },
+    { name = "python-dotenv", specifier = "==1.2.4" },
+    { name = "ruff", specifier = "==0.17.4" },
+    { name = "types-openpyxl", specifier = "==3.1.5.20261017" },
+]
+
+[[package]]
+name = "mothusi-contracts"
+version = "0.1.0"
+source = { editable = "packages/contracts" }
+dependencies = [
+    { name = "pydantic" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pydantic", specifier = "==2.14.3" }]
+
+[[package]]
+name = "mothusi-core"
+version = "0.1.0"
+source = { editable = "services/core" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "langgraph" },
+    { name = "langgraph-checkpoint-postgres" },
+    { name = "mothusi-contracts" },
+    { name = "mothusi-delivery" },
+    { name = "mothusi-events" },
+    { name = "mothusi-intake" },
+    { name = "mothusi-llm" },
+    { name = "mothusi-outputs" },
+    { name = "mothusi-rules" },
+    { name = "psycopg", extra = ["binary", "pool"] },
+    { name = "pyjwt", extra = ["crypto"] },
+    { name = "python-multipart" },
+    { name = "uvicorn" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", specifier = "==0.162.2" },
+    { name = "httpx", specifier = "==0.28.1" },
+    { name = "langgraph", specifier = "==1.2.20" },
+    { name = "langgraph-checkpoint-postgres", specifier = "==3.2.0" },
+    { name = "mothusi-contracts", editable = "packages/contracts" },
+    { name = "mothusi-delivery", editable = "packages/delivery" },
+    { name = "mothusi-events", editable = "packages/events" },
+    { name = "mothusi-intake", editable = "packages/intake" },
+    { name = "mothusi-llm", editable = "packages/llm" },
+    { name = "mothusi-outputs", editable = "packages/outputs" },
+    { name = "mothusi-rules", editable = "packages/rules" },
+    { name = "psycopg", extras = ["binary", "pool"], specifier = "==3.3.8" },
+    { name = "pyjwt", extras = ["crypto"], specifier = "==2.15.1" },
+    { name = "python-multipart", specifier = "==0.0.33" },
+    { name = "uvicorn", specifier = "==0.54.0" },
+]
+
+[[package]]
+name = "mothusi-delivery"
+version = "0.1.0"
+source = { editable = "packages/delivery" }
+dependencies = [
+    { name = "boto3" },
+    { name = "mothusi-contracts" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "boto3", specifier = "==1.43.127" },
+    { name = "mothusi-contracts", editable = "packages/contracts" },
+]
+
+[[package]]
+name = "mothusi-events"
+version = "0.1.0"
+source = { editable = "packages/events" }
+dependencies = [
+    { name = "mothusi-contracts" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "mothusi-contracts", editable = "packages/contracts" }]
+
+[[package]]
+name = "mothusi-intake"
+version = "0.1.0"
+source = { editable = "packages/intake" }
+dependencies = [
+    { name = "mothusi-contracts" },
+    { name = "opencv-python-headless" },
+    { name = "pypdf" },
+    { name = "pypdfium2" },
+    { name = "python-docx" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "mothusi-contracts", editable = "packages/contracts" },
+    { name = "opencv-python-headless", specifier = "==5.0.0.93" },
+    { name = "pypdf", specifier = "==7.0.1" },
+    { name = "pypdfium2", specifier = "==5.15.2" },
+    { name = "python-docx", specifier = "==1.2.0" },
+]
+
+[[package]]
+name = "mothusi-knowledge"
+version = "0.1.0"
+source = { editable = "services/knowledge" }
+dependencies = [
+    { name = "boto3" },
+    { name = "fastapi" },
+    { name = "mothusi-contracts" },
+    { name = "mothusi-rules" },
+    { name = "numpy" },
+    { name = "pgvector" },
+    { name = "psycopg", extra = ["binary"] },
+    { name = "sentence-transformers" },
+    { name = "torch", version = "2.14.1", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
+    { name = "torch", version = "2.14.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
+    { name = "transformers" },
+    { name = "uvicorn" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "boto3", specifier = "==1.43.127" },
+    { name = "fastapi", specifier = "==0.162.2" },
+    { name = "mothusi-contracts", editable = "packages/contracts" },
+    { name = "mothusi-rules", editable = "packages/rules" },
+    { name = "numpy", specifier = "==2.5.4" },
+    { name = "pgvector", specifier = "==0.5.1" },
+    { name = "psycopg", extras = ["binary"], specifier = "==3.3.8" },
+    { name = "sentence-transformers", specifier = "==6.2.0" },
+    { name = "torch", specifier = "==2.14.1", index = "https://download.pytorch.org/whl/cpu" },
+    { name = "transformers", specifier = "==5.21.0" },
+    { name = "uvicorn", specifier = "==0.54.0" },
+]
+
+[[package]]
+name = "mothusi-llm"
+version = "0.1.0"
+source = { editable = "packages/llm" }
+dependencies = [
+    { name = "anthropic" },
+    { name = "httpx" },
+    { name = "mothusi-contracts" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "anthropic", specifier = "==2.6.0" },
+    { name = "httpx", specifier = "==0.28.1" },
+    { name = "mothusi-contracts", editable = "packages/contracts" },
+]
+
+[[package]]
+name = "mothusi-outputs"
+version = "0.1.0"
+source = { editable = "packages/outputs" }
+dependencies = [
+    { name = "mothusi-contracts" },
+    { name = "mothusi-rules" },
+    { name = "openpyxl" },
+    { name = "reportlab" },
+    { name = "segno" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "mothusi-contracts", editable = "packages/contracts" },
+    { name = "mothusi-rules", editable = "packages/rules" },
+    { name = "openpyxl", specifier = "==3.1.5" },
+    { name = "reportlab", specifier = "==5.1.0" },
+    { name = "segno", specifier = "==1.6.6" },
+]
+
+[[package]]
+name = "mothusi-rules"
+version = "0.1.0"
+source = { editable = "packages/rules" }
+dependencies = [
+    { name = "mothusi-contracts" },
+    { name = "sympy" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "mothusi-contracts", editable = "packages/contracts" },
+    { name = "sympy", specifier = "==1.14.0" },
+]
+
+[[package]]
 name = "mpmath"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1513,6 +1763,15 @@ wheels = [
 ]
 
 [[package]]
+name = "python-dotenv"
+version = "1.2.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/74/26/2fbeedb218a787a5eea551c7532cac4e009f83d689dd2faa0d0353473f86/python_dotenv-1.2.4.tar.gz", hash = "sha256:f0d53e69935a851c0dcc78f3ab7aaccd8cabef0b92382b576b824212902873c0", size = 60824, upload-time = "2026-10-01T05:36:10Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/60/d1/38f3a3405989a89ac18390803e70c6ad7c7760da4f9b83cbeca0c44a0c72/python_dotenv-1.2.4-py3-none-any.whl", hash = "sha256:42269a8a5b3fd54ffa6f3d84b18abed50064717576b4ecf03dc4a55d8aa04fdc", size = 23266, upload-time = "2026-10-01T05:36:08.633Z" },
+]
+
+[[package]]
 name = "python-multipart"
 version = "0.0.33"
 source = { registry = "https://pypi.org/simple" }
@@ -1929,235 +2188,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/56/97/b4748951a683e369513691c8eea33d100298d556308dcb0ab66b132a67f0/threadpoolctl-3.8.0.tar.gz", hash = "sha256:01080674ad7ac6182429c918a79de92da789bb448acc02fc0b620b1abd6b6137", size = 39424, upload-time = "2026-11-05T11:08:51.112Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/54/1b/831f2de4840a25db1dd7b1afea433ccafe6bb10aca07e13264f2079462d0/threadpoolctl-3.8.0-py3-none-any.whl", hash = "sha256:f1b49c82704d50f13ffae019c727b0fa4f6791a58f48f06a09c45face1be66da", size = 32091, upload-time = "2026-11-05T11:08:49.773Z" },
-]
-
-[[package]]
-name = "mothusi"
-version = "0.1.0"
-source = { virtual = "." }
-
-[package.dev-dependencies]
-dev = [
-    { name = "pypdf" },
-    { name = "pyright" },
-    { name = "pytest" },
-    { name = "ruff" },
-    { name = "mothusi-contracts" },
-    { name = "mothusi-core" },
-    { name = "mothusi-delivery" },
-    { name = "mothusi-events" },
-    { name = "mothusi-intake" },
-    { name = "mothusi-knowledge" },
-    { name = "mothusi-llm" },
-    { name = "mothusi-outputs" },
-    { name = "mothusi-rules" },
-    { name = "types-openpyxl" },
-]
-
-[package.metadata]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "pypdf", specifier = "==7.0.1" },
-    { name = "pyright", specifier = "==1.1.414" },
-    { name = "pytest", specifier = "==9.2.0" },
-    { name = "ruff", specifier = "==0.17.4" },
-    { name = "mothusi-contracts", editable = "packages/contracts" },
-    { name = "mothusi-core", editable = "services/core" },
-    { name = "mothusi-delivery", editable = "packages/delivery" },
-    { name = "mothusi-events", editable = "packages/events" },
-    { name = "mothusi-intake", editable = "packages/intake" },
-    { name = "mothusi-knowledge", editable = "services/knowledge" },
-    { name = "mothusi-llm", editable = "packages/llm" },
-    { name = "mothusi-outputs", editable = "packages/outputs" },
-    { name = "mothusi-rules", editable = "packages/rules" },
-    { name = "types-openpyxl", specifier = "==3.1.5.20261017" },
-]
-
-[[package]]
-name = "mothusi-contracts"
-version = "0.1.0"
-source = { editable = "packages/contracts" }
-dependencies = [
-    { name = "pydantic" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "pydantic", specifier = "==2.14.3" }]
-
-[[package]]
-name = "mothusi-core"
-version = "0.1.0"
-source = { editable = "services/core" }
-dependencies = [
-    { name = "fastapi" },
-    { name = "httpx" },
-    { name = "langgraph" },
-    { name = "langgraph-checkpoint-postgres" },
-    { name = "psycopg", extra = ["binary", "pool"] },
-    { name = "pyjwt", extra = ["crypto"] },
-    { name = "python-multipart" },
-    { name = "mothusi-contracts" },
-    { name = "mothusi-delivery" },
-    { name = "mothusi-events" },
-    { name = "mothusi-intake" },
-    { name = "mothusi-llm" },
-    { name = "mothusi-outputs" },
-    { name = "mothusi-rules" },
-    { name = "uvicorn" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "fastapi", specifier = "==0.162.2" },
-    { name = "httpx", specifier = "==0.28.1" },
-    { name = "langgraph", specifier = "==1.2.20" },
-    { name = "langgraph-checkpoint-postgres", specifier = "==3.2.0" },
-    { name = "psycopg", extras = ["binary", "pool"], specifier = "==3.3.8" },
-    { name = "pyjwt", extras = ["crypto"], specifier = "==2.15.1" },
-    { name = "python-multipart", specifier = "==0.0.33" },
-    { name = "mothusi-contracts", editable = "packages/contracts" },
-    { name = "mothusi-delivery", editable = "packages/delivery" },
-    { name = "mothusi-events", editable = "packages/events" },
-    { name = "mothusi-intake", editable = "packages/intake" },
-    { name = "mothusi-llm", editable = "packages/llm" },
-    { name = "mothusi-outputs", editable = "packages/outputs" },
-    { name = "mothusi-rules", editable = "packages/rules" },
-    { name = "uvicorn", specifier = "==0.54.0" },
-]
-
-[[package]]
-name = "mothusi-delivery"
-version = "0.1.0"
-source = { editable = "packages/delivery" }
-dependencies = [
-    { name = "boto3" },
-    { name = "mothusi-contracts" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "boto3", specifier = "==1.43.127" },
-    { name = "mothusi-contracts", editable = "packages/contracts" },
-]
-
-[[package]]
-name = "mothusi-events"
-version = "0.1.0"
-source = { editable = "packages/events" }
-dependencies = [
-    { name = "mothusi-contracts" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "mothusi-contracts", editable = "packages/contracts" }]
-
-[[package]]
-name = "mothusi-intake"
-version = "0.1.0"
-source = { editable = "packages/intake" }
-dependencies = [
-    { name = "opencv-python-headless" },
-    { name = "pypdf" },
-    { name = "pypdfium2" },
-    { name = "python-docx" },
-    { name = "mothusi-contracts" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "opencv-python-headless", specifier = "==5.0.0.93" },
-    { name = "pypdf", specifier = "==7.0.1" },
-    { name = "pypdfium2", specifier = "==5.15.2" },
-    { name = "python-docx", specifier = "==1.2.0" },
-    { name = "mothusi-contracts", editable = "packages/contracts" },
-]
-
-[[package]]
-name = "mothusi-knowledge"
-version = "0.1.0"
-source = { editable = "services/knowledge" }
-dependencies = [
-    { name = "boto3" },
-    { name = "fastapi" },
-    { name = "numpy" },
-    { name = "pgvector" },
-    { name = "psycopg", extra = ["binary"] },
-    { name = "sentence-transformers" },
-    { name = "mothusi-contracts" },
-    { name = "mothusi-rules" },
-    { name = "torch", version = "2.14.1", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
-    { name = "torch", version = "2.14.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
-    { name = "transformers" },
-    { name = "uvicorn" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "boto3", specifier = "==1.43.127" },
-    { name = "fastapi", specifier = "==0.162.2" },
-    { name = "numpy", specifier = "==2.5.4" },
-    { name = "pgvector", specifier = "==0.5.1" },
-    { name = "psycopg", extras = ["binary"], specifier = "==3.3.8" },
-    { name = "sentence-transformers", specifier = "==6.2.0" },
-    { name = "mothusi-contracts", editable = "packages/contracts" },
-    { name = "mothusi-rules", editable = "packages/rules" },
-    { name = "torch", specifier = "==2.14.1", index = "https://download.pytorch.org/whl/cpu" },
-    { name = "transformers", specifier = "==5.21.0" },
-    { name = "uvicorn", specifier = "==0.54.0" },
-]
-
-[[package]]
-name = "mothusi-llm"
-version = "0.1.0"
-source = { editable = "packages/llm" }
-dependencies = [
-    { name = "anthropic" },
-    { name = "httpx" },
-    { name = "mothusi-contracts" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "anthropic", specifier = "==2.6.0" },
-    { name = "httpx", specifier = "==0.28.1" },
-    { name = "mothusi-contracts", editable = "packages/contracts" },
-]
-
-[[package]]
-name = "mothusi-outputs"
-version = "0.1.0"
-source = { editable = "packages/outputs" }
-dependencies = [
-    { name = "openpyxl" },
-    { name = "reportlab" },
-    { name = "segno" },
-    { name = "mothusi-contracts" },
-    { name = "mothusi-rules" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "openpyxl", specifier = "==3.1.5" },
-    { name = "reportlab", specifier = "==5.1.0" },
-    { name = "segno", specifier = "==1.6.6" },
-    { name = "mothusi-contracts", editable = "packages/contracts" },
-    { name = "mothusi-rules", editable = "packages/rules" },
-]
-
-[[package]]
-name = "mothusi-rules"
-version = "0.1.0"
-source = { editable = "packages/rules" }
-dependencies = [
-    { name = "sympy" },
-    { name = "mothusi-contracts" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "sympy", specifier = "==1.14.0" },
-    { name = "mothusi-contracts", editable = "packages/contracts" },
 ]
 
 [[package]]

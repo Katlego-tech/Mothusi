@@ -67,9 +67,9 @@ it("a retry from a refused callback returns to the console, not to the dead call
   await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
   await waitFor(() => expect(authorize).not.toBe(""));
   const kept = JSON.parse(sessionStorage.getItem("mothusi.signin") ?? "{}") as { returnTo: string };
-  expect(kept.returnTo).toBe("/new");
+  expect(kept.returnTo).toBe("/");
   vi.stubGlobal("fetch", vi.fn(async () => Response.json({ id_token: "id-2", expires_in: 3600 })));
   const state = new URL(authorize).searchParams.get("state") ?? "";
-  expect(await completeSignIn(new URL(`https://d.example/auth/callback?code=c2&state=${state}`))).toBe("/new");
+  expect(await completeSignIn(new URL(`https://d.example/auth/callback?code=c2&state=${state}`))).toBe("/");
   vi.unstubAllGlobals();
 });

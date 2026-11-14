@@ -1,7 +1,7 @@
 // The communication box's thread (conversation.md §1, §7): the teacher's messages, Mothusi's replies
 // and its updates, folded from the run's own events so a reload rebuilds the same conversation.
 // The feed stays the full log; this is the conversation about it.
-import type { MothusiEvent, NoteCard, Skill } from "../api/types";
+import type { MothusiEvent, NoteCard, Skill, UiAction } from "../api/types";
 
 export type ThreadItem =
   | {
@@ -28,6 +28,7 @@ export type ThreadItem =
       say: string;
       card: NoteCard | null;
       promise: string | null;
+      action?: UiAction | null;
     };
 
 const STAGE: Partial<Record<string, string>> = {
@@ -44,18 +45,13 @@ const STAGE: Partial<Record<string, string>> = {
 };
 
 /** One short sentence for an event worth telling the teacher about, or null. Wording lives here only. */
-export function updateFor(
-  event: MothusiEvent,
-  scripts: number,
-): { text: string; scriptId?: string } | null {
+export function updateFor(event: MothusiEvent, scripts: number): { text: string; scriptId?: string } | null {
   switch (event.kind) {
     case "state": {
       const to = event.payload.to;
       if (to === "marking")
         return {
-          text: scripts
-            ? `Marking ${scripts} scripts against your memo.`
-            : "Marking against your memo.",
+          text: scripts ? `Marking ${scripts} scripts against your memo.` : "Marking against your memo.",
         };
       const text = STAGE[to];
       return text ? { text } : null;
@@ -71,8 +67,7 @@ export function updateFor(
         return {
           text: `Memo item ${q.question_id} may be wrong. It needs your decision before marking starts.`,
         };
-      if (q.topic === "budget")
-        return { text: "The budget needs your decision before more marking." };
+      if (q.topic === "budget") return { text: "The run is taking longer than planned. Carry on? Your decision is waiting." };
       return { text: "Some pages need you to check how they were read." };
     }
     case "disagreement": {
@@ -83,15 +78,9 @@ export function updateFor(
       };
     }
     case "decision":
-      if (
-        event.payload.action === "moderation sample" ||
-        event.payload.action === "halt"
-      )
+      if (event.payload.action === "moderation sample" || event.payload.action === "halt")
         return {
-          text:
-            event.payload.reason.charAt(0).toUpperCase() +
-            event.payload.reason.slice(1) +
-            ".",
+          text: event.payload.reason.charAt(0).toUpperCase() + event.payload.reason.slice(1) + ".",
         };
       return null;
     case "delivered": {
@@ -112,8 +101,7 @@ export function updateFor(
 
 /** Scripts flagged back to back are one line, so a burst of flags doesn't bury the conversation. */
 export function flaggedText(ids: readonly string[]): string {
-  if (ids.length === 1)
-    return `${ids[0]} needs you. Marking carries on meanwhile.`;
+  if (ids.length === 1) return `${ids[0]} needs you. Marking carries on meanwhile.`;
   const named = ids.slice(0, 3).join(", ");
   const more = ids.length > 3 ? ` and ${ids.length - 3} more` : "";
   return `${ids.length} scripts need you: ${named}${more}. Marking carries on meanwhile.`;
@@ -121,8 +109,7 @@ export function flaggedText(ids: readonly string[]): string {
 
 export function threadOf(events: readonly MothusiEvent[]): ThreadItem[] {
   const created = events.find((e) => e.kind === "created");
-  const scripts =
-    created?.kind === "created" ? created.payload.script_ids.length : 0;
+  const scripts = created?.kind === "created" ? created.payload.script_ids.length : 0;
   const items: ThreadItem[] = [];
   for (const e of events) {
     if (e.kind === "message") {
@@ -144,14 +131,13 @@ export function threadOf(events: readonly MothusiEvent[]): ThreadItem[] {
         say: p.say,
         card: p.card,
         promise: p.promise,
+        action: p.action ?? null,
       });
     } else if (e.kind === "needs_teacher" && e.payload.topic === "script") {
       const id = e.payload.script_id;
       const last = items[items.length - 1];
       if (last?.kind === "update" && last.flagged) {
-        const flagged = last.flagged.includes(id)
-          ? last.flagged
-          : [...last.flagged, id];
+        const flagged = last.flagged.includes(id) ? last.flagged : [...last.flagged, id];
         items[items.length - 1] = {
           ...last,
           flagged,
@@ -177,11 +163,8 @@ export function threadOf(events: readonly MothusiEvent[]): ThreadItem[] {
 }
 
 /** The scripts whose note has been sent early, from `note_sent` events. */
-export function sentNotes(
-  events: readonly MothusiEvent[],
-): Map<string, string> {
+export function sentNotes(events: readonly MothusiEvent[]): Map<string, string> {
   const sent = new Map<string, string>();
-  for (const e of events)
-    if (e.kind === "note_sent") sent.set(e.payload.script_id, e.at);
+  for (const e of events) if (e.kind === "note_sent") sent.set(e.payload.script_id, e.at);
   return sent;
 }

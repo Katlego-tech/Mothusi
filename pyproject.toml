@@ -48,6 +48,8 @@ dev = [
   "mothusi-knowledge",
   "types-openpyxl==3.1.5.20261017",
   "pypdf==7.0.1",
+  "elevenlabs==2.75.0",
+  "python-dotenv==1.2.4",
 ]
 
 [tool.ruff]

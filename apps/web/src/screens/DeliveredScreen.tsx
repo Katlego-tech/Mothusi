@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "../api/client";
 import { TopBar } from "../components/chrome";
 import { EventLog } from "../components/log";
-import { clock, rand } from "../lib/utils";
+import { clock } from "../lib/utils";
 import type { RunView } from "../run/reducer";
 
 const WHAT: Record<string, string> = {
@@ -53,11 +53,6 @@ export function DeliveredScreen({ run }: { run: RunView }) {
               questions on the {s?.moderated ?? 0} blind scripts
               {s && s.questions_compared ? ` (${Math.round((s.questions_agreed / s.questions_compared) * 100)}%)` : ""}
             </span>
-          </div>
-          <div>
-            <span className="kpi-label">Cost a script</span>
-            <span className="kpi lead">{s ? (s.priced ? rand(s.per_script_zar) : "not metered") : "—"}</span>
-            <span className="kpi-note">{s?.priced ? `${rand(s.cost_zar)} in all` : "no sourced prices yet"}</span>
           </div>
           <div>
             <span className="kpi-label">Your steps</span>
@@ -136,7 +131,6 @@ export function DeliveredScreen({ run }: { run: RunView }) {
         <EventLog
           events={run.events.slice(-10)}
           start={run.startedAt}
-          priced={run.priced}
           title="What Mothusi did"
           note="the last ten events · the full log stays in events.jsonl"
         />

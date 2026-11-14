@@ -188,42 +188,40 @@ describe("the script decision", () => {
 });
 
 describe("the budget decision", () => {
-  it("shows spent and estimated costs and suggests a higher limit", () => {
-    show(budget);
-    expect(screen.getByRole("heading", { name: "Raise the spending limit to finish the last 1 scripts?" })).toBeInTheDocument();
-    expect(screen.getByText("Spent so far")).toBeInTheDocument();
-    expect(screen.getByText("Still to do")).toBeInTheDocument();
-    expect(screen.getByRole("textbox", { name: "Raise the limit to R" })).toHaveValue("25.00");
+  it("asks to carry on with the remaining scripts without showing money", () => {
+    const { container } = show(budget);
+    expect(screen.getByRole("heading", { name: "This set is taking longer than planned" })).toBeInTheDocument();
+    expect(screen.getByText("Carry on marking the last 1 scripts?")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Carry on" })).toBeEnabled();
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    expect(container).not.toHaveTextContent(/spent|cost|spending|limit|R\s?\d/i);
   });
 
-  it("posts the limit as entered", async () => {
+  it("posts the suggested higher limit when the teacher carries on", async () => {
     const fetch = respond();
     show(budget);
-    const input = screen.getByRole("textbox", { name: "Raise the limit to R" });
-    await userEvent.clear(input);
-    await userEvent.type(input, "30.50");
-    await userEvent.click(screen.getByRole("button", { name: "Raise it and continue" }));
+    await userEvent.click(screen.getByRole("button", { name: "Carry on" }));
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
-    expect(posted(fetch)).toEqual({ url: `/api/assessments/${id}/budget`, method: "POST", body: { raise_to_zar: "30.50" } });
+    expect(posted(fetch)).toEqual({ url: `/api/assessments/${id}/budget`, method: "POST", body: { raise_to_zar: "25.00" } });
   });
 
-  it("can stop locally and change its mind without sending a request", async () => {
+  it("can stay paused without sending a request when no scripts remain", () => {
     const fetch = respond();
     show({ ...budget, scripts_total: budget.scripts_settled });
-    expect(screen.getByRole("heading", { name: "Raise the spending limit to go on?" })).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Leave it; stop here" }));
-    expect(screen.getByText(/Stopped. Everything marked so far is kept/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "This set is taking longer than planned" })).toBeInTheDocument();
+    expect(screen.getByText("Carry on?")).toBeInTheDocument();
+    expect(screen.getByText("Or leave it paused; nothing is lost.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Carry on" })).toBeEnabled();
+    expect(screen.getAllByRole("button")).toHaveLength(1);
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Change my mind" }));
-    expect(screen.getByRole("button", { name: "Raise it and continue" })).toBeEnabled();
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("shows a budget refusal", async () => {
-    respond(422, { message: "The new limit must exceed spending" });
+  it("shows a refusal to carry on", async () => {
+    respond(422, { message: "This run cannot continue yet" });
     show(budget);
-    await userEvent.click(screen.getByRole("button", { name: "Raise it and continue" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("The new limit must exceed spending");
+    await userEvent.click(screen.getByRole("button", { name: "Carry on" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("This run cannot continue yet");
   });
 });
 
@@ -283,7 +281,7 @@ describe("the reading check", () => {
 describe("pending teacher requests", () => {
   it.each([
     { topic: "script", question: script, button: "Use attempt 2" },
-    { topic: "budget", question: budget, button: "Raise it and continue" },
+    { topic: "budget", question: budget, button: "Carry on" },
     { topic: "reading", question: reading, button: "Confirm these readings and mark" },
   ])("prevents duplicate $topic submissions", async ({ question, button }) => {
     vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(() => {})));

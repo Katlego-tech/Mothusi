@@ -5,7 +5,7 @@ import plantedLog from "../run/__fixtures__/planted-events.jsonl?raw";
 import userEvent from "@testing-library/user-event";
 import { fireEvent } from "@testing-library/react";
 import { EventLog } from "./log";
-import { clock, rand, stateName } from "../lib/utils";
+import { clock, stateName } from "../lib/utils";
 
 function required<T>(value: T | null | undefined, description: string): T {
   if (value === null || value === undefined) throw new Error(description);
@@ -17,11 +17,11 @@ const id = "gr10-maths-t1-planted";
 const finished = events.reduce(apply, emptyRun(id));
 
 
-const show = (log: MothusiEvent[], priced = true) => render(<EventLog events={log} start={finished.startedAt} priced={priced} />);
+const show = (log: MothusiEvent[]) => render(<EventLog events={log} start={finished.startedAt} />);
 
 describe("the event log", () => {
   it("shows an accessible empty log and its supplied footer", async () => {
-    render(<EventLog events={[]} start={null} priced={false} title="Run history" note="No events yet" footer={<p>Waiting for events</p>} />);
+    render(<EventLog events={[]} start={null} title="Run history" note="No events yet" footer={<p>Waiting for events</p>} />);
     expect(screen.getByRole("main")).toHaveAttribute("aria-live", "polite");
     expect(screen.getByRole("heading", { name: "Run history" })).toBeInTheDocument();
     expect(screen.getByText("No events yet")).toBeInTheDocument();
@@ -53,7 +53,7 @@ describe("the event log", () => {
     const { rerender } = show([brief]);
     expect(screen.getByText(brief.payload.task)).toBeInTheDocument();
     expect(screen.getByText(/brief .* · attempt/)).toBeInTheDocument();
-    rerender(<EventLog events={[brief, result, ...checks]} start={finished.startedAt} priced={true} />);
+    rerender(<EventLog events={[brief, result, ...checks]} start={finished.startedAt} />);
     expect(screen.queryByText(brief.payload.task)).not.toBeInTheDocument();
     expect(screen.getByText(`${result.payload.script_id} marked`)).toHaveTextContent(`${result.payload.awarded}`);
     for (const check of checks) if (check.kind === "check") expect(screen.getAllByText(check.payload.check.replace("_", " ")).length).toBeGreaterThan(0);
@@ -102,30 +102,27 @@ describe("the event log", () => {
     expect(screen.getByText(clock(elapsed))).toHaveAttribute("dateTime", result.at);
   });
 
-  it("shows a result's cost only when prices are sourced", () => {
+  it("never shows a result's cost, even when the stream carries one", () => {
     const result = events.find((e) => e.kind === "result");
     if (result?.kind !== "result") throw new Error("Missing result");
-    const priced = { ...result, payload: { ...result.payload, cost_zar: "1.25" } };
-    const { rerender } = show([priced]);
-    expect(screen.getByText(rand("1.25"))).toBeInTheDocument();
-    rerender(<EventLog events={[priced]} start={null} priced={false} />);
-    expect(screen.queryByText(rand("1.25"))).not.toBeInTheDocument();
-    expect(screen.getByText(clock(0))).toBeInTheDocument();
+    const costed = { ...result, payload: { ...result.payload, cost_zar: "1.25" } };
+    show([costed]);
+    expect(screen.queryByText(/R\s?1\.25/)).not.toBeInTheDocument();
   });
 
   it("follows new events until the teacher scrolls up, and resumes at the bottom", () => {
     const { rerender } = show(events.slice(0, 1));
     const log = screen.getByLabelText("The log, newest at the bottom");
     Object.defineProperties(log, { scrollHeight: { configurable: true, value: 1000 }, clientHeight: { configurable: true, value: 200 } });
-    rerender(<EventLog events={events.slice(0, 2)} start={null} priced={false} />);
+    rerender(<EventLog events={events.slice(0, 2)} start={null} />);
     expect(log.scrollTop).toBe(1000);
     log.scrollTop = 100;
     fireEvent.scroll(log);
-    rerender(<EventLog events={events.slice(0, 3)} start={null} priced={false} />);
+    rerender(<EventLog events={events.slice(0, 3)} start={null} />);
     expect(log.scrollTop).toBe(100);
     log.scrollTop = 800;
     fireEvent.scroll(log);
-    rerender(<EventLog events={events.slice(0, 4)} start={null} priced={false} />);
+    rerender(<EventLog events={events.slice(0, 4)} start={null} />);
     expect(log.scrollTop).toBe(1000);
   });
 });

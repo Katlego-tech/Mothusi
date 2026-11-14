@@ -3,7 +3,7 @@
 // correction drawn in red when a Brief has been sent back. Everything here is read from the
 // RunView and the event list; the component decides nothing.
 import type { AgentRole, AssessmentState, MothusiEvent } from "../api/types";
-import { clock, rand } from "../lib/utils";
+import { clock } from "../lib/utils";
 import type { CardRole, RunView } from "../run/reducer";
 
 export type Station = CardRole | "teacher";
@@ -133,10 +133,6 @@ export function GoalBand({ run }: { run: RunView }) {
         <div>
           <span className="kpi-label">Time</span>
           <span className="kpi">{clock(run.elapsedS)}</span>
-        </div>
-        <div>
-          <span className="kpi-label">Cost</span>
-          <span className="kpi">{run.priced ? rand(run.costZar) : "not metered"}</span>
         </div>
         <div>
           <span className="kpi-label">Your decisions</span>

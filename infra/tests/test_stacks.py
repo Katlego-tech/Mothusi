@@ -300,12 +300,18 @@ def front():
     )
 
 
-def service_template(services="core"):
+def service_template(services="core", *, voice=False):
     from mothusi_infra.service import MothusiService
 
     return Template.from_stack(
         MothusiService(
-            App(context={"services": services, "imageTag": "test"}),
+            App(
+                context={
+                    "services": services,
+                    "imageTag": "test",
+                    **({"voice": "true"} if voice else {}),
+                }
+            ),
             "MothusiService",
             stage=PRODUCTION,
             env=Environment(region="af-south-1"),
@@ -977,3 +983,19 @@ def test_the_local_watchdog_reads_the_cores_markers_and_only_reads():
     for verb in ("stop-", "start-", "update-", "delete-", "put-", "create-", "ops.sh"):
         assert f"aws_ ecs {verb}" not in script and f"aws_ ec2 {verb}" not in script
         assert f"aws_ rds {verb}" not in script
+
+
+@pytest.mark.parametrize("voice", [False, True])
+def test_voice_configuration_is_opt_in(voice):
+    t = service_template(voice=voice)
+    container = properties(t, "AWS::ECS::TaskDefinition")[0]["ContainerDefinitions"][0]
+    secrets = {s["Name"]: s["ValueFrom"] for s in container["Secrets"]}
+    env = {e["Name"]: e["Value"] for e in container["Environment"]}
+    assert ("ELEVENLABS_API_KEY" in secrets) is voice
+    assert ("ELEVENLABS_AGENT_ID" in env) is voice
+    if voice:
+        params = t.to_json()["Parameters"]
+        agent = env["ELEVENLABS_AGENT_ID"]["Ref"]
+        assert params[agent]["Default"] == "/thuto/elevenlabs-agent-id"
+        secret = secrets["ELEVENLABS_API_KEY"]["Ref"]
+        assert params[secret]["Default"] == "/thuto/secret/elevenlabs-arn"
