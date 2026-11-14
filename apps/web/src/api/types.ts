@@ -417,7 +417,7 @@ export interface Bundle {
   };
   mark_sheet: {
     learner: string;
-    pseudonym?: string;
+    pseudonym: string;
     raw: number;
     out_of: number;
     sba_points: string;
@@ -431,7 +431,7 @@ export interface Bundle {
   catch_up_plan_md: string;
   learner_notes: {
     learner: string;
-    pseudonym?: string; // conversation.md §14: lets the colleague open this learner's card
+    pseudonym: string; // conversation.md §14: lets the colleague open this learner's card
     outcome: string;
     mark_with_quote: string;
     next_task: string;

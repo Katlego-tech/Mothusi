@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from mothusi_core.main import Runs
 
 Skill = Literal[
+    "open",
     "run_status",
     "explain_mark",
     "send_feedback",
@@ -61,12 +62,21 @@ class Intent(Contract):
     refusal: Literal["sources", "contact", "export", "marks"] | None = None
 
 
+OpenTarget = Literal["script", "note", "stats", "approval", "desk", "new"]
+
+
+class UiAction(TypedDict):
+    open: OpenTarget
+    script_id: str | None
+
+
 class ReplyBody(TypedDict):
     message_id: str | None
     skill: Skill
     say: str
     card: dict[str, Any] | None
     promise: str | None
+    action: UiAction | None
 
 
 def match_rules(text: str) -> Intent | None:
@@ -84,6 +94,24 @@ def match_rules(text: str) -> Intent | None:
     if re.search(r"stuck|went wrong|hit a wall|failed checks|re-brief|budget spent", text):
         return Intent(skill="run_walls")
     sid_match = re.search(r"(?<![\w-])l-\d{3}(?![\w-])", text)
+    if re.search(r"\b(?:start|mark)\s+(?:a\s+)?(?:new\s+)?set\b", text):
+        return Intent(skill="open", view="new")
+    if re.search(r"\b(?:open|show|take me to|go to|go home)\b", text):
+        targets: tuple[tuple[OpenTarget, str], ...] = (
+            ("new", r"\bnew set\b"),
+            ("desk", r"\b(?:desk|home)\b"),
+            ("approval", r"\bapproval\b"),
+            ("note", r"\b(?:feedback|note)\b"),
+            ("script", r"\b(?:script|sheet|paper)\b"),
+            ("stats", r"\b(?:stats|statistics|item analysis|results)\b"),
+        )
+        for target, pattern in targets:
+            if re.search(pattern, text):
+                return Intent(
+                    skill="open",
+                    view=target,
+                    script_id=sid_match[0].upper() if sid_match else None,
+                )
     if re.search(
         r"stats|statistics|average|highest|lowest|spread|struggle|weakest|catch.up"
         r"|towards the year",
@@ -163,6 +191,7 @@ def deferred_reply(title: str, message_id: str | None = None) -> ReplyBody:
         "I'll attend to this as soon as that's done, and answer here.",
         "card": None,
         "promise": None,
+        "action": None,
     }
 
 
@@ -271,9 +300,14 @@ def _compose(
         "say": "",
         "card": None,
         "promise": None,
+        "action": None,
     }
+    if intent.skill == "open":
+        return open_reply(intent, state, reply)
     if intent.skill in {"run_report", "run_walls", "memo_item", "poa", "atp", "cannot"}:
         reply["say"] = grounded(intent, state, events, pack_path, packs_dir)
+        if intent.skill == "run_report" and state and state["state"] == "awaiting_approval":
+            reply["action"] = {"open": "stats", "script_id": None}
         return reply
     if state is None:
         reply["say"] = (
@@ -310,6 +344,7 @@ def _compose(
     elif sid is None or sid not in {s["script_id"] for s in state["scripts"]}:
         reply["say"] = f"There's no learner {sid} in this class."
     elif intent.skill == "explain_mark":
+        reply["action"] = {"open": "script", "script_id": sid}
         mark = next(
             (
                 m
@@ -373,6 +408,7 @@ def _compose(
             reply["say"] = (
                 f"{sid}'s note is ready. It's released only if you approve it on the card."
             )
+            reply["action"] = {"open": "note", "script_id": sid}
             reply["card"] = {
                 "script_id": sid,
                 "learner": sid,
@@ -381,6 +417,52 @@ def _compose(
                     for k in ("outcome", "mark_with_quote", "next_task", "self_assessment_prompt")
                 },
             }
+    return reply
+
+
+def open_reply(intent: Intent, state: RunState | None, reply: ReplyBody) -> ReplyBody:
+    """Only open targets that exist at this point in the run."""
+    target = intent.view
+    sid = intent.script_id
+    if target in {"desk", "new"}:
+        reply["say"] = "Opening your desk." if target == "desk" else "Starting a new set."
+        reply["action"] = {"open": "desk" if target == "desk" else "new", "script_id": None}
+    elif state is None:
+        reply["say"] = "Choose a run to open its scripts, notes, statistics or approval."
+    elif target == "stats":
+        reply["say"] = report(Intent(skill="run_report"), state)
+        if state["state"] == "awaiting_approval":
+            reply["action"] = {"open": "stats", "script_id": None}
+    elif target == "approval":
+        if state["state"] == "awaiting_approval":
+            reply["say"] = "Opening the approval."
+            reply["action"] = {"open": "approval", "script_id": None}
+        else:
+            reply["say"] = "Approval will be ready after marking, moderation and review."
+    elif target in {"script", "note"}:
+        if sid is None:
+            reply["say"] = "Which learner's script or note should I open? Use their L- number."
+        elif sid not in {s["script_id"] for s in state["scripts"]}:
+            reply["say"] = f"There's no learner {sid} in this class."
+        elif target == "note" and state["state"] == "awaiting_approval":
+            notes = cast(list[dict[str, Any]], (state.get("drafts") or {}).get("learner_notes", []))
+            if any(note["pseudonym"] == sid for note in notes):
+                reply["say"] = f"Opening {sid}'s note."
+                reply["action"] = {"open": "note", "script_id": sid}
+            else:
+                reply["say"] = f"{sid}'s note isn't written yet. I'll open the script instead."
+                reply["action"] = {"open": "script", "script_id": sid}
+        else:
+            reply["say"] = (
+                f"{sid}'s note isn't written yet. I'll open the script instead."
+                if target == "note"
+                else f"Opening {sid}'s script."
+            )
+            reply["action"] = {"open": "script", "script_id": sid}
+    else:
+        reply["say"] = (
+            "I can open a learner's script or note, statistics, approval, your desk or a new set."
+        )
     return reply
 
 
