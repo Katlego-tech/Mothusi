@@ -4,12 +4,12 @@ import asyncio
 import tomllib
 from copy import deepcopy
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import pytest
 from fastapi.testclient import TestClient
 
-from mothusi_contracts import EventKind
+from mothusi_contracts import EventKind, PassageKind
 from mothusi_core.colleague import Intent, Lesson, answer, compose, match_rules, respond
 from mothusi_core.main import create_app
 
@@ -109,7 +109,7 @@ def test_memo_and_walls(planted: tuple[Any, Any]) -> None:
     broken = deepcopy(state)
     broken.update(halted="budget exhausted", pending={"L-014": []})
     assert (
-        "budget exhausted"
+        "The run is taking longer than planned; your decision is waiting on the run."
         in compose(Intent(skill="run_walls"), broken, set(), set(), events=events)["say"]
     )
 
@@ -134,12 +134,13 @@ def test_poa_and_atp(planted: tuple[Any, Any]) -> None:
 
 
 def test_refusals_and_missing_curriculum() -> None:
-    for reason, expected in [
+    cases: list[tuple[Literal["sources", "contact", "export", "marks"], str]] = [
         ("sources", "Grade 10"),
         ("contact", "never contacts"),
         ("export", "not built"),
         ("marks", "Needs-you"),
-    ]:
+    ]
+    for reason, expected in cases:
         say = compose(Intent(skill="cannot", refusal=reason), None, set(), set())["say"]
         assert expected in say
         if reason == "sources":
@@ -164,7 +165,7 @@ def test_lesson_three_turns_and_endpoint(planted: tuple[Any, Any]) -> None:
                     score=1,
                     page=12,
                     text="Quoted curriculum text.",
-                    kind="caps",
+                    kind=PassageKind.CAPS,
                     subject="Mathematics",
                     grade=10,
                 ),
@@ -261,7 +262,7 @@ def test_curriculum_exact_passages_limit_and_failure() -> None:
                     passage_id=str(i),
                     source=f"DBE {i}",
                     source_key=str(i),
-                    kind="caps",
+                    kind=PassageKind.CAPS,
                     page=i + 1,
                     locator=f"p {i + 1}",
                     text="Exact words " * 25,
@@ -319,7 +320,8 @@ def test_walls_clean_waiting_and_recent_details(planted: tuple[Any, Any]) -> Non
     assert "detail-0" not in say and "detail-1" not in say
     assert all(f"detail-{i}" in say for i in range(2, 5))
     assert "sample widened" in say
-    assert f"R{float(state['spent_zar']):.2f}" in say
+    assert "budget" not in say.lower() and "spent" not in say.lower()
+    assert f"R{float(state['spent_zar']):.2f}" not in say
 
 
 def test_before_marking_memo_totals_and_check_agreement(planted: tuple[Any, Any]) -> None:
@@ -434,3 +436,51 @@ def test_runless_endpoint_reads_early_releases_without_writing(planted: tuple[An
 def test_unheld_curriculum_subject_is_refused() -> None:
     result = asyncio.run(answer("What does CAPS say about forces?", subject="Physical Sciences"))
     assert result["reply"]["skill"] == "cannot"
+
+
+@pytest.mark.parametrize("skill", ["run_status", "run_walls", "run_report"])
+def test_run_say_contains_no_money(planted: tuple[Any, Any], skill: str) -> None:
+    _, original = planted
+    state = deepcopy(original)
+    state.update(
+        question={"topic": "budget", "title": "R50 spent of R40 budget"},
+        halted="budget exhausted: R50 spent",
+        budget_zar="40",
+        spent_zar="50",
+    )
+    intent = Intent.model_validate({"skill": skill})
+    say = compose(intent, state, set(), set())["say"]
+    assert not any(word in say.lower() for word in ("budget", "spent", "cost", "rand"))
+    assert "R50" not in say and "R40" not in say
+    if skill != "run_report":
+        assert "The run is taking longer than planned; your decision is waiting on the run." in say
+
+
+def test_single_counts_in_say(planted: tuple[Any, Any]) -> None:
+    from mothusi_contracts import Event
+
+    p, original = planted
+    state = deepcopy(original)
+    state.update(
+        scripts=state["scripts"][:1],
+        marked=dict(list(state["marked"].items())[:1]),
+        converted=dict(list(state["converted"].items())[:1]),
+        disagreements=[{}],
+        pending={},
+        question=None,
+        halted=None,
+    )
+    events = [
+        Event(
+            seq=0,
+            at=p.clock(),
+            assessment_id="chat",
+            kind=EventKind.CHECK,
+            summary="failed",
+            payload={"passed": False},
+        )
+    ]
+    walls = compose(Intent(skill="run_walls"), state, set(), set(), events=events)["say"]
+    assert "1 failed check." in walls and "1 disagreement;" in walls
+    assert "1 scripts" not in compose(Intent(skill="run_status"), state, set(), set())["say"]
+    assert "1 script marked" in compose(Intent(skill="run_report"), state, set(), set())["say"]

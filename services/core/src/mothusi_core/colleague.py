@@ -185,7 +185,45 @@ async def understand(
         return Intent(skill="fallback")
 
 
+PAUSED_RUN = "The run is taking longer than planned; your decision is waiting on the run."
+
+
+def counted(value: object, noun: str) -> str:
+    return f"{value} {noun}{'' if Decimal(str(value)) == 1 else 's'}"
+
+
+def teacher_say(text: str) -> str:
+    """Event details can contain internal metering; keep it out of teacher replies."""
+    lines: list[str] = []
+    for line in text.splitlines():
+        safe = (
+            PAUSED_RUN
+            if re.search(r"\b(?:budget|cost|spent|rand|zar)\b|\bR\s*\d", line, re.I)
+            else line
+        )
+        if safe != PAUSED_RUN or safe not in lines:
+            lines.append(safe)
+    return "\n".join(lines)
+
+
 def compose(
+    intent: Intent,
+    state: RunState | None,
+    promises: set[str],
+    early_sent: set[str],
+    *,
+    events: Sequence[Event] = (),
+    pack_path: Path | None = None,
+    packs_dir: Path = PACKS,
+) -> ReplyBody:
+    reply = _compose(
+        intent, state, promises, early_sent, events=events, pack_path=pack_path, packs_dir=packs_dir
+    )
+    reply["say"] = teacher_say(reply["say"])
+    return reply
+
+
+def _compose(
     intent: Intent,
     state: RunState | None,
     promises: set[str],
@@ -226,10 +264,11 @@ def compose(
         waiting = len(state.get("pending", {}))
         reply["say"] = (
             f"{stage.replace('_', ' ').capitalize()}: {len(marked)} of {len(state['scripts'])} "
-            f"scripts marked, {waiting or 'none'} waiting for you. "
-            f"R{Decimal(state.get('spent_zar', '0')):.2f} of R{Decimal(state['budget_zar']):.2f} "
-            f"spent, {minutes} {'minute' if minutes == 1 else 'minutes'} in."
+            f"{'script' if len(state['scripts']) == 1 else 'scripts'} marked, "
+            f"{waiting or 'none'} waiting for you. {counted(minutes, 'minute')} in."
         )
+        if (state.get("question") or {}).get("topic") == "budget" or state.get("halted"):
+            reply["say"] += " " + teacher_say(str(state.get("halted") or "budget"))
     elif intent.skill == "fallback":
         reply["say"] = (
             "I can show run stats and problems, the memo, PoA and ATP, quote curriculum documents, "
@@ -498,7 +537,7 @@ def grounded(
         elif state is not None:
             rows = [r for r in rows if r["name"] == state["poa_task"]]
         lines = [
-            f"Term {r['term']}: {r['name']} ({r['kind']}), {r['max_marks']} marks, "
+            f"Term {r['term']}: {r['name']} ({r['kind']}), {counted(r['max_marks'], 'mark')}, "
             f"{r['weight_percent']}% of SBA."
             for r in rows
         ]
@@ -511,7 +550,8 @@ def grounded(
         rule = cast(dict[str, Any], pack["moderation"])
         lines.append(
             f"Moderation working rule: {rule['sample_percent']}%, at least "
-            f"{rule['min_scripts']} scripts, {rule['spread']}; widen when disagreements exceed "
+            f"{counted(rule['min_scripts'], 'script')}, {rule['spread']}; "
+            f"widen when disagreements exceed "
             f"{rule['widen_above_gap_percent']}%."
         )
         return "\n".join(lines)
@@ -551,13 +591,14 @@ def grounded(
             ]
             return (
                 f"{'Question ' + qid if qid else 'Whole test'}: "
-                f"{sum(i['max_marks'] for i in selected)} marks."
+                f"{counted(sum(i['max_marks'] for i in selected), 'mark')}."
                 if selected
                 else f"No memo question {qid}."
             )
         item = next((i for i in items if i["question_id"] == qid), None)
         return (
-            f"{qid}: {item['answer']}. Maximum {item['max_marks']} marks. Marking notes: "
+            f"{qid}: {item['answer']}. Maximum {counted(item['max_marks'], 'mark')}. "
+            f"Marking notes: "
             f"{item['marking_notes'] or 'none recorded'}."
             if item
             else f"No memo item {qid}."
@@ -569,8 +610,9 @@ def grounded(
         briefs = [e for e in events if e.kind == EventKind.DECISION and "re-brief" in e.summary]
         disputes = len(state.get("disagreements", []))
         lines = []
-        if state.get("halted"):
-            lines.append(f"Halted: {state['halted']}.")
+        halted = state.get("halted")
+        if halted:
+            lines.append(f"Halted: {halted}.")
         for e in events:
             if e.kind == EventKind.STATE and e.payload.get("to") == "halted":
                 lines.append(e.summary)
@@ -593,10 +635,11 @@ def grounded(
         question = state.get("question")
         if question:
             lines.append(f"Needs teacher: {question['title']}.")
-        lines.append(f"{len(failed)} failed checks.")
+        lines.append(f"{counted(len(failed), 'failed check')}.")
         lines.extend(str(e.payload.get("detail", e.summary)) for e in failed[-3:])
         lines.append(
-            f"{len(briefs)} re-briefs; {disputes} disagreements; moderation sample "
+            f"{counted(len(briefs), 're-brief')}; {counted(disputes, 'disagreement')}; "
+            f"moderation sample "
             f"{'widened' if state.get('widened') else 'not widened'}."
         )
         if not (
@@ -609,10 +652,6 @@ def grounded(
             or state.get("halted")
         ):
             lines.insert(0, "Nothing went wrong in the recorded run.")
-        lines.append(
-            f"Budget spent R{Decimal(state.get('spent_zar', '0')):.2f} of "
-            f"R{Decimal(state['budget_zar']):.2f}."
-        )
         return "\n".join(lines)
     return report(intent, state)
 
@@ -653,7 +692,8 @@ def report(intent: Intent, state: RunState) -> str:
                 ):
                     members.append(sid)
             lines.append(
-                f"{qid}: {row['pattern']}; {row['scripts']} scripts; " + ", ".join(members)
+                f"{qid}: {row['pattern']}; {counted(row['scripts'], 'script')}; "
+                + ", ".join(members)
             )
         lines.extend(
             f"Week {r['week']}: {r['topic']} — {r['activity']} ({r['atp_source']})" for r in plan
@@ -663,7 +703,8 @@ def report(intent: Intent, state: RunState) -> str:
     if intent.view == "year":
         row = converted.get(intent.script_id or "")
         return (
-            f"{intent.script_id}: {row['sba_points']} SBA points; {row['year_points']} points "
+            f"{intent.script_id}: {counted(row['sba_points'], 'SBA point')}; "
+            f"{counted(row['year_points'], 'point')} "
             f"towards the year."
             if row
             else "Year contributions will be ready after analysing; choose a learner in this run."
@@ -687,7 +728,7 @@ def report(intent: Intent, state: RunState) -> str:
     final = bool(converted)
     label = "Final" if final else "Provisional"
     lines = [
-        f"{label}: {len(totals)} scripts marked; class average "
+        f"{label}: {counted(len(totals), 'script')} marked; class average "
         f"{sum(totals) / len(totals):.2f}/{state['memo']['total_marks']}, highest "
         f"{max(totals)}, lowest {min(totals)}, spread {max(totals) - min(totals)}."
     ]
@@ -838,6 +879,7 @@ async def answer(
         result["lesson"] = lesson.model_dump(mode="json")
         if lesson.subject and atp_rows(lesson.subject, packs_dir) is None:
             reply.update(skill="cannot", say=refusal("sources", packs_dir))
+            reply["say"] = teacher_say(reply["say"])
             return result
         missing = next(
             (
@@ -855,6 +897,7 @@ async def answer(
         if missing:
             result["ask"] = missing
             reply["say"] = missing
+            reply["say"] = teacher_say(reply["say"])
             return result
         assert lesson.subject is not None
         rows = select_weeks(atp_rows(lesson.subject, packs_dir) or [], lesson.weeks, lesson.topic)
@@ -862,6 +905,7 @@ async def answer(
             result["lesson"] = {**lesson.model_dump(mode="json"), "weeks": None, "topic": None}
             result["ask"] = "Which week or topic from the ATP should I use?"
             reply["say"] = result["ask"]
+            reply["say"] = teacher_say(reply["say"])
             return result
         query = lesson.topic or "; ".join(dict.fromkeys(str(r["topic"]) for r in rows))
         research = await passages(
@@ -870,11 +914,13 @@ async def answer(
             knowledge if knowledge is not None else knowledge_from_environment(),
         )
         reply["say"] = (
-            f"{lesson.subject}: {lesson.lessons} lessons of {lesson.minutes} minutes.\n"
+            f"{lesson.subject}: {counted(lesson.lessons, 'lesson')} of "
+            f"{counted(lesson.minutes, 'minute')}.\n"
             + quote_weeks(rows)
             + "\n"
             + research
             + (f"\nClass notes: {lesson.notes}" if lesson.notes else "")
             + "\nDrafting the full plan from this is the next step I'll be able to take."
         )
+    reply["say"] = teacher_say(reply["say"])
     return result

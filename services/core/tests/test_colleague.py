@@ -95,7 +95,8 @@ def test_grounded_explanation_and_status(planted: tuple[Planner, Any]) -> None:
     ).isoformat()
     status = compose(Intent(skill="run_status"), state, set(), set())["say"]
     assert "Marking" in status and "6 of 6" in status and "5 minutes" in status
-    assert "R" in status and "40.00" in status
+    assert "R40" not in status and "40.00" not in status
+    assert "budget" not in status.lower() and "spent" not in status.lower()
 
 
 def test_every_send_feedback_row(planted: tuple[Planner, Any]) -> None:

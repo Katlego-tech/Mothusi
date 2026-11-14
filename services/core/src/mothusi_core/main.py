@@ -131,6 +131,26 @@ BUNDLE_STATES = {"awaiting_approval", "approved", "delivered"}
 PARSE_ERRORS = (ValueError, ValidationError, KeyError, UnicodeDecodeError, OSError, csv.Error)
 
 
+class DeskAssessment(BaseModel):
+    assessment_id: str
+    title: str
+    state: AssessmentState
+    waiting: bool
+    halted: str | None
+    started_at: str
+    scripts: int
+    subject: str
+    grade: int
+
+
+class DeskAtpWeek(BaseModel):
+    week: int
+    term: int
+    term_week: int
+    topic: str
+    source: str
+
+
 class Runs:
     """The background task per assessment, so a teacher answer never races a running node."""
 
@@ -343,7 +363,7 @@ def create_app(
     async def colleague_message(request: Request, body: ColleagueMessageBody) -> AnswerBody:
         r = runs(request)
         context = body.context
-        state = None
+        state: RunState | None = None
         events: tuple[Event, ...] = ()
         early_sent: set[str] = set()
         text = body.text
@@ -353,11 +373,9 @@ def create_app(
             state = await r.planner.snapshot(context.assessment_id)
             sent = await entries(r.planner, "early_sent", context.assessment_id)
             early_sent = set(sent)
-            state = {
-                **state,
-                "observed_at": r.planner.clock().isoformat(),
-                "early_sent_at": {sid: item["sent_at"] for sid, item in sent.items()},
-            }
+            state = state.copy()
+            state["observed_at"] = r.planner.clock().isoformat()
+            state["early_sent_at"] = {sid: item["sent_at"] for sid, item in sent.items()}
             text = pseudonymise_text(text, state["names"])
             events = tuple(r.planner.sink(context.assessment_id).read())
         path = None
@@ -487,6 +505,96 @@ def create_app(
                 }
             )
         return out
+
+    async def assessments(request: Request) -> list[DeskAssessment]:
+        r = runs(request)
+
+        def read() -> list[DeskAssessment]:
+            rows: list[tuple[datetime, DeskAssessment]] = []
+            for path in r.planner.data_dir.glob("*/events.jsonl"):
+                events = r.planner.sink(path.parent.name).read()
+                created = next((e for e in events if e.kind is EventKind.CREATED), None)
+                if created is None:
+                    continue
+                payload = created.payload
+                subject, grade = payload.get("subject"), payload.get("grade")
+                if not isinstance(subject, str) or not isinstance(grade, int):
+                    pack = load_pack(pack_files()[str(payload["pack_id"])])
+                    subject = subject if isinstance(subject, str) else pack.subject
+                    grade = grade if isinstance(grade, int) else pack.grade
+                state = AssessmentState.DRAFT
+                questions: list[Event] = []
+                halted: str | None = None
+                for event in events:
+                    data = event.payload
+                    destination = data.get("to")
+                    if event.kind is EventKind.STATE and isinstance(destination, str):
+                        next_state = AssessmentState(destination)
+                        if next_state != state:
+                            # Script flags survive stage progression until their own answer.
+                            questions = [q for q in questions if q.payload.get("script_id")]
+                        state = next_state
+                    elif event.kind is EventKind.NEEDS_TEACHER:
+                        questions.append(event)
+                    elif event.kind is EventKind.TEACHER:
+                        questions = [
+                            q
+                            for q in questions
+                            if not all(
+                                q.payload.get(key) == data.get(key)
+                                for key in (
+                                    ("topic", "script_id")
+                                    if q.payload.get("script_id")
+                                    else ("topic", "question_id")
+                                )
+                                if q.payload.get(key) is not None
+                            )
+                        ]
+                    elif event.kind is EventKind.DECISION and data.get("action") == "halt":
+                        halted = str(data.get("reason") or event.summary)
+                ids = payload.get("script_ids")
+                rows.append(
+                    (
+                        events[0].at,
+                        DeskAssessment(
+                            assessment_id=created.assessment_id,
+                            title=str(payload["title"]),
+                            state=state,
+                            waiting=bool(questions),
+                            halted=halted,
+                            started_at=events[0].at.isoformat(),
+                            scripts=len(ids) if isinstance(ids, list) else 0,
+                            subject=subject,
+                            grade=grade,
+                        ),
+                    )
+                )
+            return [row for _, row in sorted(rows, key=lambda pair: pair[0], reverse=True)]
+
+        return await asyncio.to_thread(read)
+
+    app.add_api_route("/assessments", assessments, methods=["GET"])
+
+    async def pack_atp(pack_id: str, subject: str) -> list[DeskAtpWeek]:
+        # Accept both a pack directory and the subject pack id returned by /packs.
+        pack_path = pack_files().get(pack_id)
+        directory = pack_path.parent if pack_path else packs_dir / pack_id
+        path = directory / "atp" / f"{subject.lower()}-gr10.toml"
+        if not path.resolve().is_relative_to(packs_dir.resolve()) or not path.is_file():
+            raise HTTPException(404, {"message": f"no ATP for {subject} in {pack_id}"})
+        weeks = await asyncio.to_thread(load_atp_weeks, path)
+        return [
+            DeskAtpWeek(
+                week=w.week,
+                term=(w.week - 1) // 11 + 1,
+                term_week=(w.week - 1) % 11 + 1,
+                topic=w.topic,
+                source=w.source,
+            )
+            for w in weeks
+        ]
+
+    app.add_api_route("/packs/{pack_id:path}/atp", pack_atp, methods=["GET"])
 
     drafts = MemoDrafts()
 
