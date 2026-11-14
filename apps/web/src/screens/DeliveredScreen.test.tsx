@@ -33,7 +33,7 @@ afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 
 describe("the delivered run", () => {
-  it("fetches the bundle and shows the real run summary with no actions", async () => {
+  it("fetches the bundle and shows the real run summary with only navigation actions", async () => {
     const fetch = respond();
     wrap(<DeliveredScreen run={finished} />);
     const numbers = screen.getByLabelText("The run in numbers");
@@ -44,7 +44,7 @@ describe("the delivered run", () => {
     expect(screen.getByRole("banner")).toHaveTextContent(finished.title);
     expect(screen.getByRole("banner")).toHaveTextContent(/approved by you at .* · delivered/);
     expect(required(fetch.mock.calls[0], "Missing fetch.mock.calls[0]")[0]).toBe(`/api/assessments/${id}/bundle`);
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button")).toEqual([screen.getByRole("button", { name: "Sign out" })]);
   });
 
   it("lists written documents and groups the learner notes", async () => {

@@ -3,41 +3,48 @@
 import { useEffect, useState } from "react";
 import { Navigate, Outlet, useNavigate } from "react-router";
 
+import signInImage from "../assets/sign-in.jpg";
 import { completeSignIn, signIn, useSession } from "./session";
 
 function SignInScreen({ notice }: { notice: string }) {
   const [going, setGoing] = useState(false);
   return (
-    <>
-      <header className="topbar">
-        <div className="wordmark">
-          Mothusi<span>.</span>
-        </div>
-      </header>
-      <main className="compose signin">
-        <h1>Sign in to Mothusi</h1>
-        <p className="muted">Mothusi is open to invited teachers. Sign in with the account your invitation set up.</p>
-        {notice && (
-          <p className="error" role="alert">
-            {notice}
+    <main className="signin">
+      <img className="signin-image" src={signInImage} alt="" />
+      <section className="signin-panel" aria-labelledby="signin-title">
+        <div className="signin-content">
+          <div className="wordmark">
+            Mothusi<span>.</span>
+          </div>
+          <p className="signin-description muted">
+            A colleague for the assessment cycle: it marks against your memo, moderates like your HOD, and hands everything back for your approval.
           </p>
-        )}
-        <div>
-          <button
-            type="button"
-            className="btn primary"
-            disabled={going}
-            onClick={() => {
-              setGoing(true);
-              void signIn();
-            }}
-          >
-            {going ? "Opening sign-in…" : "Sign in"}
-          </button>
+          <div className="signin-form">
+            <h1 id="signin-title">Sign in to Mothusi</h1>
+            <p className="muted">Mothusi is open to invited teachers. Sign in with the account your invitation set up.</p>
+            {notice && (
+              <p className="error" role="alert">
+                {notice}
+              </p>
+            )}
+            <div>
+              <button
+                type="button"
+                className="btn primary"
+                disabled={going}
+                onClick={() => {
+                  setGoing(true);
+                  void signIn();
+                }}
+              >
+                {going ? "Opening sign-in…" : "Sign in"}
+              </button>
+            </div>
+            <p className="small muted">Sign-in runs on Amazon Cognito in Cape Town, then brings you back to this page.</p>
+          </div>
         </div>
-        <p className="small muted">Sign-in runs on Amazon Cognito in Cape Town, then brings you back to this page.</p>
-      </main>
-    </>
+      </section>
+    </main>
   );
 }
 

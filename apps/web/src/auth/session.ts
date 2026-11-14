@@ -108,10 +108,12 @@ function keep(next: Tokens): void {
 
 async function refresh(config: AuthConfig): Promise<void> {
   if (!tokens) return;
+  const previous = tokens;
   try {
-    keep(await token(config, { grant_type: "refresh_token", refresh_token: tokens.refreshToken }));
+    const next = await token(config, { grant_type: "refresh_token", refresh_token: previous.refreshToken });
+    if (tokens === previous) keep(next);
   } catch {
-    onUnauthorized("Your session ended. Sign in again.");
+    if (tokens === previous) onUnauthorized("Your session ended. Sign in again.");
   }
 }
 
@@ -176,4 +178,34 @@ export function resetSession(): void {
   notice = "";
   clearTimeout(refreshTimer);
   changed();
+}
+
+/** Clear this tab's session and end the hosted UI session, so another teacher can sign in. */
+export function signOut(): void {
+  resetSession();
+  try {
+    sessionStorage.removeItem(PENDING);
+  } catch { /* storage may be disabled */ }
+  const config = authConfig();
+  if (!config) return navigation.assign("/");
+  const url = new URL(`${config.domain}/logout`);
+  url.search = new URLSearchParams({
+    client_id: config.clientId,
+    logout_uri: new URL("/", config.redirect).toString(),
+  }).toString();
+  navigation.assign(url.toString());
+}
+
+/** The signed-in subject scopes local conveniences; the token itself is never persisted. */
+export function teacherId(): string | null {
+  if (!authConfig()) return "local";
+  if (!tokens) return null;
+  try {
+    const payload = tokens.idToken.split(".")[1];
+    if (!payload) return null;
+    const claims = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/"))) as { sub?: unknown };
+    return typeof claims.sub === "string" ? `${authConfig()?.clientId}:${claims.sub}` : null;
+  } catch {
+    return null;
+  }
 }

@@ -42,6 +42,12 @@ it("asks for sign-in first on the AWS URL, and the button goes to the hosted UI"
   const assign = vi.spyOn(navigation, "assign").mockImplementation(() => undefined);
   app("/new");
   expect(screen.queryByText("Set the task")).not.toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "Sign in to Mothusi" })).toBeInTheDocument();
+  expect(screen.getByText("A colleague for the assessment cycle: it marks against your memo, moderates like your HOD, and hands everything back for your approval.")).toBeInTheDocument();
+  expect(screen.getByRole("presentation")).toHaveAttribute("src", expect.stringContaining("sign-in.jpg"));
+  expect(screen.getByRole("presentation")).toHaveAttribute("alt", "");
+  await userEvent.tab();
+  expect(screen.getByRole("button", { name: "Sign in" })).toHaveFocus();
   await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
   await waitFor(() => expect(assign).toHaveBeenCalledTimes(1));
   expect(assign.mock.calls[0]?.[0]).toMatch(/^https:\/\/c\.example\/oauth2\/authorize\?/);

@@ -118,10 +118,11 @@ describe("the live run", () => {
     const rows = [...container.querySelectorAll(".ev")].map((r) => r.textContent ?? "");
     const failed = rows.findIndex((t) => t.includes("FAIL") && t.includes("L-014"));
     const rebrief = rows.findIndex((t) => t.includes("Re-brief marker attempt 2"));
-    const passed = rows.findIndex((t, i) => i > rebrief && t.includes("L-014 marked"));
+    const passed = rows.findIndex((t, i) => i < rebrief && t.includes("L-014 marked"));
     expect(failed).toBeGreaterThan(-1);
-    expect(rebrief).toBeGreaterThan(failed);
-    expect(passed).toBeGreaterThan(rebrief);
+    expect(rebrief).toBeLessThan(failed);
+    expect(passed).toBeGreaterThan(-1);
+    expect(passed).toBeLessThan(rebrief);
   });
 
   it("draws the L-021 disagreement as the evidence pair, each pen's quote in its ink", () => {

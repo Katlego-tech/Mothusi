@@ -2,7 +2,7 @@
 import { act, renderHook } from "@testing-library/react";
 
 import { api } from "../api/client";
-import { authHeader, challengeFor, completeSignIn, navigation, resetSession, signIn, useSession } from "./session";
+import { authHeader, challengeFor, completeSignIn, navigation, resetSession, signIn, signOut, teacherId, useSession } from "./session";
 
 const ENV = {
   VITE_COGNITO_DOMAIN: "https://mothusi-1.auth.af-south-1.amazoncognito.com",
@@ -125,5 +125,44 @@ describe("the session in the console", () => {
     expect(sent[0]?.get("Authorization")).toBe("Bearer id-1");
     expect(result.current).toMatchObject({ state: "signed-out" });
     expect(authHeader()).toEqual({});
+  });
+});
+
+describe("sign out", () => {
+  it("clears tokens and pending sign-in, and uses Cognito logout", async () => {
+    signInOn();
+    const url = await startSignIn();
+    tokenEndpoint({ id_token: "id-1", refresh_token: "r", expires_in: 3600 });
+    await completeSignIn(new URL(`${ENV.VITE_AUTH_REDIRECT}?code=c&state=${url.searchParams.get("state")}`));
+    sessionStorage.setItem("mothusi.signin", "pending");
+    signOut();
+    expect(authHeader()).toEqual({});
+    expect(sessionStorage.getItem("mothusi.signin")).toBeNull();
+    const target = new URL(vi.mocked(navigation.assign).mock.calls.at(-1)?.[0] ?? "");
+    expect(target.origin + target.pathname).toBe(`${ENV.VITE_COGNITO_DOMAIN}/logout`);
+    expect(target.searchParams.get("client_id")).toBe("spa-client");
+    expect(target.searchParams.get("logout_uri")).toBe("https://d1.cloudfront.net/");
+  });
+  it("returns to the desk when sign-in is off", () => {
+    const assign = vi.spyOn(navigation, "assign").mockImplementation(() => {});
+    signOut();
+    expect(assign).toHaveBeenCalledWith("/");
+  });
+});
+
+describe("teacher identity for voice preferences", () => {
+  it("uses the Cognito subject and forgets it on sign out", async () => {
+    signInOn();
+    expect(teacherId()).toBeNull();
+    const url = await startSignIn();
+    const jwt = `header.${btoa(JSON.stringify({ sub: "teacher-a" }))}.signature`;
+    tokenEndpoint({ id_token: jwt, expires_in: 3600 });
+    await completeSignIn(new URL(`${ENV.VITE_AUTH_REDIRECT}?code=c&state=${url.searchParams.get("state")}`));
+    expect(teacherId()).toBe("spa-client:teacher-a");
+    signOut();
+    expect(teacherId()).toBeNull();
+  });
+  it("has a local preference scope when sign-in is off", () => {
+    expect(teacherId()).toBe("local");
   });
 });
