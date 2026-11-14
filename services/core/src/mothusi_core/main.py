@@ -33,10 +33,11 @@ from fastapi.responses import JSONResponse, Response, StreamingResponse
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.store.base import BaseStore
 from langgraph.store.memory import InMemoryStore
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from mothusi_contracts import (
     Answer,
+    AssessmentState,
     AtpWeek,
     ClassGroup,
     EventKind,
@@ -44,9 +45,11 @@ from mothusi_contracts import (
     Memo,
     PracticeTest,
     ReadingAnswer,
+    ResultStatus,
     Script,
 )
 from mothusi_core import health
+from mothusi_core.agents.executor import Approval, execute, executor_brief
 from mothusi_core.agents.setter import MEMO_DRAFT_LIMIT, memo_too_long
 from mothusi_core.auth import (
     AuthUnavailableError,
@@ -54,16 +57,20 @@ from mothusi_core.auth import (
     needs_token,
     verifier_from_environment,
 )
-from mothusi_core.delivery import store_from_environment
+from mothusi_core.colleague import Intent, compose, respond
+from mothusi_core.delivery import delivery_from_environment, store_from_environment
 from mothusi_core.events import follow, frame, with_pings
 from mothusi_core.graph import inbox
 from mothusi_core.graph.planner import (
     Planner,
+    _executor_bundle,
+    _messages,
     apply_readings,
     attempt_is_complete,
     check_memo_fits,
     new_run,
     pack_ref,
+    pseudonymise_text,
     teacher_email,
 )
 from mothusi_core.graph.state import RunState
@@ -130,6 +137,7 @@ class Runs:
         self.tasks: dict[str, asyncio.Task[Any]] = {}
         self._locks: dict[str, asyncio.Lock] = {}
         self._idle: set[str] = set()
+        self.replies: set[asyncio.Task[Any]] = set()
 
     def lock(self, assessment_id: str) -> asyncio.Lock:
         """Held from reading the pending question until the resume is launched, so two answers
@@ -277,7 +285,14 @@ def create_app(
         key_path = f"{claims.assessment_id}/bundle/note-pages/{claims.learner_pseudonym}.json"
 
         def fetch() -> bytes:  # S3 is blocking I/O: off the event loop
-            return store_from_environment(r.planner.data_dir).get(key_path)
+            store = store_from_environment(r.planner.data_dir)
+            try:
+                return store.get(key_path)
+            except KeyError:
+                return store.get(
+                    f"{claims.assessment_id}/early/{claims.learner_pseudonym}/"
+                    f"note-pages/{claims.learner_pseudonym}.json"
+                )
 
         try:
             page = NotePage.model_validate_json(await asyncio.to_thread(fetch))
@@ -321,6 +336,86 @@ def create_app(
     @app.exception_handler(HTTPException)
     async def _detail_as_body(request: Request, error: HTTPException) -> JSONResponse:  # pyright: ignore[reportUnusedFunction]
         return JSONResponse(error.detail, status_code=error.status_code)
+
+    @app.post("/assessments/{assessment_id}/messages", status_code=202)
+    async def message(request: Request, assessment_id: str, body: MessageBody) -> dict[str, str]:
+        r = runs(request)
+        if not r.known(assessment_id):
+            raise HTTPException(404, {"message": f"no assessment {assessment_id}"})
+        state = await r.planner.snapshot(assessment_id)
+        if state.get("state") in {"delivered", "halted"} or state.get("halted"):
+            raise conflict("the run is delivered; start a new run to ask about it")
+        sink = r.planner.sink(assessment_id)
+        n = sum(e.kind is EventKind.MESSAGE for e in sink.read()) + 1
+        message_id = f"m-{n}"
+        text = pseudonymise_text(body.text, state["names"])
+        sink.emit(EventKind.MESSAGE, text[:80], {"message_id": message_id, "text": text})
+        task = asyncio.create_task(respond(r.planner, assessment_id, message_id, body.text))
+        r.replies.add(task)
+        task.add_done_callback(r.replies.discard)
+        return {"message_id": message_id}
+
+    @app.post("/assessments/{assessment_id}/notes/{script_id}/send", status_code=202)
+    async def send_note(request: Request, assessment_id: str, script_id: str) -> dict[str, str]:
+        r = runs(request)
+        if not r.known(assessment_id):
+            raise HTTPException(404, {"message": f"no assessment {assessment_id}"})
+        async with r.lock(assessment_id):
+            p = r.planner
+            state = await p.snapshot(assessment_id)
+            if script_id not in {s["script_id"] for s in state["scripts"]}:
+                raise HTTPException(404, {"message": f"no learner {script_id} in this class"})
+            if state["state"] != "awaiting_approval":
+                raise conflict("the note is not settled; wait for awaiting_approval")
+            if await p.store.aget(("early_sent", assessment_id), script_id):
+                raise conflict("the note was already sent")
+            offered = any(
+                e.kind is EventKind.REPLY
+                and isinstance(e.payload.get("card"), dict)
+                and e.payload["card"].get("script_id") == script_id
+                for e in p.sink(assessment_id).read()
+            )
+            if not offered:
+                raise conflict("no reply has offered this card")
+            reply = compose(Intent(skill="send_feedback", script_id=script_id), state, set(), set())
+            if reply["card"] is None:
+                raise conflict(reply["say"])
+            bundle = _executor_bundle(p, state)
+            bundle = bundle.model_copy(
+                update={
+                    "root": str(p.data_dir / assessment_id / "early" / script_id),
+                    "learner_notes": tuple(
+                        n for n in bundle.learner_notes if n.note.pseudonym == script_id
+                    ),
+                }
+            )
+            approval = Approval(by="the teacher", at=p.clock())
+            brief = executor_brief(
+                assessment_id,
+                AssessmentState.APPROVED,
+                approval,
+                bundle,
+                _messages(p, state, bundle),
+            )
+            result = await asyncio.to_thread(
+                execute,
+                brief,
+                p.mailer(assessment_id),
+                delivery_from_environment(p.data_dir),
+                publish_prefix=f"{assessment_id}/early/{script_id}",
+            )
+            if result.status is not ResultStatus.DONE:
+                raise HTTPException(503, {"message": result.reason})
+            await p.store.aput(
+                ("early_sent", assessment_id), script_id, {"sent_at": p.clock().isoformat()}
+            )
+            payload = {
+                "script_id": script_id,
+                "sent": result.outputs["sent"],
+                "written": result.outputs["written"],
+            }
+            p.sink(assessment_id).emit(EventKind.NOTE_SENT, f"{script_id}'s note sent", payload)
+            return {"state": state["state"]}
 
     # ------------------------------------------------------------------ packs and creation
 
@@ -1354,6 +1449,15 @@ class ScriptAnswer(BaseModel):
 class ApprovalAnswer(BaseModel):
     decision: Literal["approve", "reject"]
     note: str | None = None
+
+
+class MessageBody(BaseModel):
+    text: str = Field(min_length=1, max_length=1000)
+
+    @field_validator("text", mode="before")
+    @classmethod
+    def strip_text(cls, value: Any) -> Any:
+        return value.strip() if isinstance(value, str) else value
 
 
 app = create_app()

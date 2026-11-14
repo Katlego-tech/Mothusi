@@ -20,6 +20,9 @@ class RunState(TypedDict):
     pack_path: str
     poa_task: str
     budget_zar: str
+    # Conversation-only context on a snapshot copy; never written by the graph.
+    observed_at: NotRequired[str]
+    early_sent_at: NotRequired[dict[str, str]]
     started_at: str
     memo: Json
     scripts: list[Json]

@@ -17,7 +17,7 @@ from mothusi_contracts.models import Contract
 
 
 class EventKind(StrEnum):
-    """The console's ten kinds (console-ui.md §6), and `teacher` for each answer given."""
+    """The console's fourteen kinds, including teacher actions and conversation events."""
 
     CREATED = "created"
     STATE = "state"
@@ -30,6 +30,9 @@ class EventKind(StrEnum):
     USAGE = "usage"
     DELIVERED = "delivered"
     TEACHER = "teacher"
+    MESSAGE = "message"
+    REPLY = "reply"
+    NOTE_SENT = "note_sent"
 
 
 class Event(Contract):

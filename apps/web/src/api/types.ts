@@ -39,7 +39,10 @@ export type EventKind =
   | "needs_teacher"
   | "usage"
   | "delivered"
-  | "teacher";
+  | "teacher"
+  | "message"
+  | "reply"
+  | "note_sent";
 
 export interface Mark {
   question_id: string;
@@ -279,7 +282,42 @@ export type MothusiEvent =
   | EventBase<"needs_teacher", NeedsTeacher>
   | EventBase<"usage", UsagePayload>
   | EventBase<"delivered", DeliveredPayload>
-  | EventBase<"teacher", Record<string, unknown>>;
+  | EventBase<"teacher", Record<string, unknown>>
+  | EventBase<"message", MessagePayload>
+  | EventBase<"reply", ReplyPayload>
+  | EventBase<"note_sent", NoteSentPayload>;
+
+// The conversation (conversation.md §6.1): the teacher writes, Mothusi replies while the run goes on.
+export interface MessagePayload {
+  message_id: string;
+  text: string;
+}
+
+export type Skill = "run_status" | "explain_mark" | "send_feedback" | "fallback";
+
+/** One learner's note offered for sending before the whole set (conversation.md §5). */
+export interface NoteCard {
+  script_id: string;
+  learner: string;
+  outcome: string;
+  mark_with_quote: string;
+  next_task: string;
+  self_assessment_prompt: string;
+}
+
+export interface ReplyPayload {
+  message_id: string | null;
+  skill: Skill;
+  say: string;
+  card: NoteCard | null;
+  promise: string | null;
+}
+
+export interface NoteSentPayload {
+  script_id: string;
+  sent: string[];
+  written: string[];
+}
 
 export interface PackTask {
   term: number;
