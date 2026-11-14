@@ -11,7 +11,8 @@ import { TopBar } from "../components/chrome";
 import { Button } from "../components/ui/button";
 import { Input, Textarea } from "../components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { clock, rand } from "../lib/utils";
+import { useOpenOnScreen } from "../lib/ui-actions";
+import { clock } from "../lib/utils";
 import type { RunView } from "../run/reducer";
 
 /** From "## Worked corrections" on: the part of the class sheet the item table does not show. */
@@ -58,11 +59,6 @@ export function StatStrip({ b, run }: { b: Bundle; run: RunView }) {
         <span className="kpi-label">Time</span>
         <span className="kpi">{clock(s.elapsed_s)}</span>
         <span className="kpi-note">upload to bundle</span>
-      </div>
-      <div>
-        <span className="kpi-label">Cost</span>
-        <span className="kpi">{s.priced ? rand(s.cost_zar) : "not metered"}</span>
-        <span className="kpi-note">{s.priced ? `${rand(s.per_script_zar)} a script` : "no sourced prices yet"}</span>
       </div>
       <div>
         <span className="kpi-label">Your steps</span>
@@ -125,7 +121,7 @@ function MarkSheet({ b }: { b: Bundle }) {
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.learner}>
+              <tr key={r.learner} id={r.pseudonym ? `learner-sheet-${r.pseudonym}` : undefined}>
                 <td className="learner">{r.learner}</td>
                 <td className="num lead">
                   {r.raw}
@@ -273,7 +269,7 @@ function LearnerNotes({ b }: { b: Bundle }) {
       </div>
       <div style={{ paddingBottom: "var(--card-pad)" }}>
         {b.learner_notes.map((n) => (
-          <dl className="note-card" key={n.learner} style={n.review.passed ? undefined : { background: "var(--marker-soft)" }}>
+          <dl className="note-card" key={n.learner} id={n.pseudonym ? `learner-notes-${n.pseudonym}` : undefined} style={n.review.passed ? undefined : { background: "var(--marker-soft)" }}>
             <dt>
               <b>{n.learner}</b>
             </dt>
@@ -370,6 +366,22 @@ export function ApprovalScreen({ run }: { run: RunView }) {
   // One cache entry per approval round: after a rejection the rewritten bundle never shows the
   // previous round's documents, even for a moment.
   const round = run.events.filter((e) => e.kind === "state" && e.payload.to === "awaiting_approval").length;
+  // conversation.md §14: the colleague opens a tab, and scrolls to a learner on it.
+  const [tab, setTab] = useState("sheet");
+  useOpenOnScreen((a) => {
+    const to = a.open === "note" ? "notes" : a.open === "stats" ? "items" : a.open === "script" ? "sheet" : null;
+    if (!to) return;
+    setTab(to);
+    if (a.script_id) {
+      const id = `learner-${to}-${a.script_id}`;
+      requestAnimationFrame(() => {
+        const el = document.getElementById(id);
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+        el?.classList.add("pointed");
+        setTimeout(() => el?.classList.remove("pointed"), 2400);
+      });
+    }
+  });
   const bundle = useQuery({
     queryKey: ["bundle", run.assessmentId, round],
     queryFn: () => api.bundle(run.assessmentId),
@@ -394,7 +406,7 @@ export function ApprovalScreen({ run }: { run: RunView }) {
         {b && (
           <>
             <StatStrip b={b} run={run} />
-            <Tabs defaultValue="sheet" className="panel">
+            <Tabs value={tab} onValueChange={setTab} className="panel">
               <TabsList aria-label="Documents in the bundle">
                 <TabsTrigger value="sheet">
                   Mark sheet <span className="small">{b.mark_sheet.length} learners</span>

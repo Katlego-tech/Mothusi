@@ -293,7 +293,27 @@ export interface MessagePayload {
   text: string;
 }
 
-export type Skill = "run_status" | "explain_mark" | "send_feedback" | "fallback";
+export type Skill =
+  | "run_status"
+  | "run_report"
+  | "run_walls"
+  | "explain_mark"
+  | "send_feedback"
+  | "memo_item"
+  | "poa"
+  | "atp"
+  | "curriculum"
+  | "lesson_plan"
+  | "cannot"
+  | "open"
+  | "deferred"
+  | "fallback";
+
+/** Something on the screen the colleague opens beside its reply (conversation.md §14). */
+export interface UiAction {
+  open: "script" | "note" | "stats" | "approval" | "desk" | "new";
+  script_id: string | null;
+}
 
 /** One learner's note offered for sending before the whole set (conversation.md §5). */
 export interface NoteCard {
@@ -311,6 +331,7 @@ export interface ReplyPayload {
   say: string;
   card: NoteCard | null;
   promise: string | null;
+  action?: UiAction | null;
 }
 
 export interface NoteSentPayload {
@@ -324,6 +345,28 @@ export interface PackTask {
   name: string;
   max_marks: number;
   weight_percent: string;
+}
+
+/** One run on the desk (desk.md §6): from its event log, never the bundle (no names). */
+export interface RunSummary {
+  assessment_id: string;
+  title: string;
+  state: AssessmentState;
+  waiting: boolean;
+  halted: string | null;
+  started_at: string;
+  scripts: number;
+  subject: string;
+  grade: number;
+}
+
+/** One teaching week of the ATP, with the DBE page it comes from (desk.md §6). */
+export interface AtpRow {
+  week: number;
+  term: number;
+  term_week: number;
+  topic: string;
+  source: string;
 }
 
 export interface Pack {
@@ -374,6 +417,7 @@ export interface Bundle {
   };
   mark_sheet: {
     learner: string;
+    pseudonym: string;
     raw: number;
     out_of: number;
     sba_points: string;
@@ -387,6 +431,7 @@ export interface Bundle {
   catch_up_plan_md: string;
   learner_notes: {
     learner: string;
+    pseudonym: string; // conversation.md §14: lets the colleague open this learner's card
     outcome: string;
     mark_with_quote: string;
     next_task: string;

@@ -1,11 +1,4 @@
-import type {
-  MessagePayload,
-  MothusiEvent,
-  NeedsTeacher,
-  NoteCard,
-  NoteSentPayload,
-  ReplyPayload,
-} from "../api/types";
+import type { MessagePayload, MothusiEvent, NeedsTeacher, NoteCard, NoteSentPayload, ReplyPayload } from "../api/types";
 import bundle from "./__fixtures__/planted-bundle.json";
 import plantedLog from "./__fixtures__/planted-events.jsonl?raw";
 import { apply, emptyRun } from "./reducer";
@@ -26,9 +19,7 @@ const base = {
   agent: null,
   summary: "Conversation",
 };
-function eventOf<K extends MothusiEvent["kind"]>(
-  kind: K,
-): Extract<MothusiEvent, { kind: K }> {
+function eventOf<K extends MothusiEvent["kind"]>(kind: K): Extract<MothusiEvent, { kind: K }> {
   const event = planted.find((e) => e.kind === kind);
   if (!event) throw new Error(`Missing planted ${kind}`);
   return event as Extract<MothusiEvent, { kind: K }>;
@@ -63,26 +54,19 @@ const conversation: MothusiEvent[] = [
   { ...base, seq: 151, kind: "reply", payload: reply },
   { ...base, seq: 152, kind: "note_sent", payload: sent },
 ];
-const fold = (events: MothusiEvent[]) =>
-  events.reduce(apply, emptyRun(assessmentId));
+const fold = (events: MothusiEvent[]) => events.reduce(apply, emptyRun(assessmentId));
 
 describe("updateFor", () => {
   it("announces marking with the planted script count", () => {
-    const event = required(
-      planted.find((e) => e.kind === "state" && e.payload.to === "marking"),
-    );
-    expect(
-      updateFor(event, eventOf("created").payload.script_ids.length),
-    ).toEqual({ text: "Marking 6 scripts against your memo." });
+    const event = required(planted.find((e) => e.kind === "state" && e.payload.to === "marking"));
+    expect(updateFor(event, eventOf("created").payload.script_ids.length)).toEqual({
+      text: "Marking 6 scripts against your memo.",
+    });
     expect(updateFor(event, 0)).toEqual({ text: "Marking against your memo." });
   });
 
   const dispute = eventOf("disagreement").payload;
-  const questions: [
-    string,
-    NeedsTeacher,
-    { text: string; scriptId?: string },
-  ][] = [
+  const questions: [string, NeedsTeacher, { text: string; scriptId?: string }][] = [
     [
       "memo",
       eventOf("needs_teacher").payload,
@@ -122,7 +106,7 @@ describe("updateFor", () => {
         spent: [],
         estimate: [],
       },
-      { text: "The budget needs your decision before more marking." },
+      { text: "The run is taking longer than planned. Carry on? Your decision is waiting." },
     ],
     [
       "reading",
@@ -130,14 +114,9 @@ describe("updateFor", () => {
       { text: "Some pages need you to check how they were read." },
     ],
   ];
-  it.each(questions)(
-    "words the %s needs_teacher update",
-    (_topic, payload, expected) => {
-      expect(
-        updateFor({ ...base, seq: 150, kind: "needs_teacher", payload }, 6),
-      ).toEqual(expected);
-    },
-  );
+  it.each(questions)("words the %s needs_teacher update", (_topic, payload, expected) => {
+    expect(updateFor({ ...base, seq: 150, kind: "needs_teacher", payload }, 6)).toEqual(expected);
+  });
 
   it("announces the disagreement with both marks and the script link", () => {
     expect(updateFor(eventOf("disagreement"), 6)).toEqual({
@@ -147,12 +126,7 @@ describe("updateFor", () => {
   });
 
   it("announces the moderation sample decision", () => {
-    const event = required(
-      planted.find(
-        (e) =>
-          e.kind === "decision" && e.payload.action === "moderation sample",
-      ),
-    );
+    const event = required(planted.find((e) => e.kind === "decision" && e.payload.action === "moderation sample"));
     expect(updateFor(event, 6)).toEqual({
       text: "6 scripts re-marked blind: L-014, L-001, L-007, L-021, L-010, L-003.",
     });
@@ -180,12 +154,9 @@ describe("updateFor", () => {
     });
   });
 
-  it.each(["brief", "result", "check", "usage"] as const)(
-    "omits %s from conversation updates",
-    (kind) => {
-      expect(updateFor(eventOf(kind), 6)).toBeNull();
-    },
-  );
+  it.each(["brief", "result", "check", "usage"] as const)("omits %s from conversation updates", (kind) => {
+    expect(updateFor(eventOf(kind), 6)).toBeNull();
+  });
 });
 
 describe("threadOf and sentNotes", () => {
@@ -193,9 +164,7 @@ describe("threadOf and sentNotes", () => {
     const events = [...planted, ...conversation];
     const run = fold(events);
     const thread = threadOf(run.events);
-    expect(thread.map((item) => item.seq)).toEqual(
-      thread.map((item) => item.seq).sort((a, b) => a - b),
-    );
+    expect(thread.map((item) => item.seq)).toEqual(thread.map((item) => item.seq).sort((a, b) => a - b));
     expect(thread).toContainEqual(
       expect.objectContaining({
         kind: "update",
@@ -219,6 +188,7 @@ describe("threadOf and sentNotes", () => {
         say: reply.say,
         card,
         promise: null,
+        action: null,
       },
       {
         kind: "update",
@@ -235,12 +205,8 @@ describe("threadOf and sentNotes", () => {
   it("derives sent script timestamps only from note_sent and rebuilds them on reload", () => {
     expect(sentNotes(fold(planted).events)).toEqual(new Map());
     const events = [...planted, ...conversation];
-    expect(sentNotes(fold(events).events)).toEqual(
-      new Map([[card.script_id, base.at]]),
-    );
-    expect(sentNotes(fold(events).events)).toEqual(
-      sentNotes(fold(events).events),
-    );
+    expect(sentNotes(fold(events).events)).toEqual(new Map([[card.script_id, base.at]]));
+    expect(sentNotes(fold(events).events)).toEqual(sentNotes(fold(events).events));
   });
 });
 
@@ -282,10 +248,10 @@ describe("a burst of flags", () => {
       kind: "message",
       payload: { message_id: "m-1", text: "How far are you?" },
     };
-    expect(
-      threadOf([flagged(0, "L-002"), between, flagged(2, "L-004")]).map(
-        (i) => i.kind,
-      ),
-    ).toEqual(["update", "message", "update"]);
+    expect(threadOf([flagged(0, "L-002"), between, flagged(2, "L-004")]).map((i) => i.kind)).toEqual([
+      "update",
+      "message",
+      "update",
+    ]);
   });
 });

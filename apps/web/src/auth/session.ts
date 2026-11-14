@@ -54,9 +54,9 @@ export async function challengeFor(verifier: string): Promise<string> {
 }
 
 /** A console page to come back to: same-site, and never the callback itself (a retry from a failed
- * callback would otherwise return to that dead callback). Anything else becomes /new. */
+ * callback would otherwise return to that dead callback). Anything else becomes the desk (/). */
 function consolePath(path: string): string {
-  return path.startsWith("/") && !path.startsWith("//") && !path.startsWith("/auth/") ? path : "/new";
+  return path.startsWith("/") && !path.startsWith("//") && !path.startsWith("/auth/") ? path : "/";
 }
 
 /** Redirect to the hosted UI. `returnTo` is where the console goes after the callback. */
@@ -118,7 +118,7 @@ async function refresh(config: AuthConfig): Promise<void> {
 /** Finish the hosted UI's redirect: check state, exchange the code. Returns the page to go back to. */
 export async function completeSignIn(url: URL): Promise<string> {
   const config = authConfig();
-  if (!config) return "/new";
+  if (!config) return "/";
   const raw = sessionStorage.getItem(PENDING);
   sessionStorage.removeItem(PENDING);
   const pending = raw ? (JSON.parse(raw) as { verifier: string; state: string; returnTo: string }) : null;

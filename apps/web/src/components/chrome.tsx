@@ -1,7 +1,7 @@
 // The top bar, the run header (ring + finding + meters), the agents strip and the state rail
 // (console-ui.md §7; 02-live-run.png).
 import type { AgentRole, AssessmentState } from "../api/types";
-import { clock, rand, stateName } from "../lib/utils";
+import { clock, stateName } from "../lib/utils";
 import type { CardRole, RunView } from "../run/reducer";
 
 const STEPS = ["Set the task", "Live run", "Approval"];
@@ -14,7 +14,7 @@ export function TopBar({
 }: {
   title: string;
   subtitle: string;
-  step: 0 | 1 | 2 | 3;
+  step?: 0 | 1 | 2 | 3; // left out on pages outside a run's steps (the desk)
   chip?: { text: string; kind?: "wait" | "done" } | undefined;
 }) {
   return (
@@ -26,13 +26,15 @@ export function TopBar({
         <strong>{title}</strong>
         <span className="muted">{subtitle}</span>
       </div>
-      <ol className="steps">
-        {STEPS.map((name, i) => (
-          <li key={name} className={i < step ? "done" : i === step ? "now" : undefined}>
-            {name}
-          </li>
-        ))}
-      </ol>
+      {step !== undefined && (
+        <ol className="steps">
+          {STEPS.map((name, i) => (
+            <li key={name} className={i < step ? "done" : i === step ? "now" : undefined}>
+              {name}
+            </li>
+          ))}
+        </ol>
+      )}
       {chip && <span className={`chip ${chip.kind ?? ""}`}>{chip.text}</span>}
     </header>
   );
@@ -56,7 +58,6 @@ export function Ring({ share, green = false }: { share: number; green?: boolean 
 
 export function RunHeader({ run }: { run: RunView }) {
   const n = run.cells.size;
-  const perScript = run.settled ? Number(run.costZar) / run.settled : 0;
   return (
     <div className="runhead">
       <div className="panel progress">
@@ -72,14 +73,6 @@ export function RunHeader({ run }: { run: RunView }) {
         <div>
           <span className="kpi-label">Time</span>
           <span className="kpi">{clock(run.elapsedS)}</span>
-        </div>
-        <div>
-          <span className="kpi-label">Cost so far</span>
-          <span className="kpi">{run.priced ? rand(run.costZar) : "not metered"}</span>
-        </div>
-        <div>
-          <span className="kpi-label">Per script</span>
-          <span className="kpi">{run.priced ? rand(perScript) : "—"}</span>
         </div>
         <div>
           <span className="kpi-label">Your steps</span>

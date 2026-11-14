@@ -4,17 +4,35 @@ import { lazy, Suspense } from "react";
 import { createBrowserRouter, Navigate, RouterProvider, useParams } from "react-router";
 
 import { useEventStream } from "./api/events";
+import { WithColleague } from "./components/colleague";
 import { SignInCallback, SignInGate } from "./auth/SignIn";
 import { RunScreen } from "./screens/RunScreen";
 import { PagesScreen } from "./screens/PagesScreen";
+import { DeskScreen } from "./screens/DeskScreen";
 import { SetTaskScreen } from "./screens/SetTaskScreen";
 
 // The bundle's documents (Markdown) are only read at approval: load those screens when needed.
-const ApprovalScreen = lazy(() => import("./screens/ApprovalScreen").then((m) => ({ default: m.ApprovalScreen })));
-const DeliveredScreen = lazy(() => import("./screens/DeliveredScreen").then((m) => ({ default: m.DeliveredScreen })));
+const ApprovalScreen = lazy(() =>
+  import("./screens/ApprovalScreen").then((m) => ({
+    default: m.ApprovalScreen,
+  })),
+);
+const DeliveredScreen = lazy(() =>
+  import("./screens/DeliveredScreen").then((m) => ({
+    default: m.DeliveredScreen,
+  })),
+);
 
 function Run({ id }: { id: string }) {
   const { run, connection } = useEventStream(id);
+  return (
+    <WithColleague run={run}>
+      <RunPage run={run} connection={connection} />
+    </WithColleague>
+  );
+}
+
+function RunPage({ run, connection }: ReturnType<typeof useEventStream>) {
   const loading = <p className="compose muted">Opening the bundle…</p>;
   // Until the first event (`created`) arrives the screen cannot be chosen: pages mode and a typed
   // run look different from the start. A stream that fails shows RunScreen's connection state.
@@ -52,10 +70,24 @@ const router = createBrowserRouter([
   {
     element: <SignInGate />, // Sign in first on the AWS URL (§12); a pass-through on the laptop
     children: [
-      { path: "/", element: <Navigate to="/new" replace /> },
-      { path: "/new", element: <SetTaskScreen /> },
+      {
+        path: "/",
+        element: (
+          <WithColleague>
+            <DeskScreen />
+          </WithColleague>
+        ),
+      },
+      {
+        path: "/new",
+        element: (
+          <WithColleague>
+            <SetTaskScreen />
+          </WithColleague>
+        ),
+      },
       { path: "/runs/:id", element: <RunRoute /> },
-      { path: "*", element: <Navigate to="/new" replace /> },
+      { path: "*", element: <Navigate to="/" replace /> },
     ],
   },
 ]);
