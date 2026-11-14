@@ -50,6 +50,12 @@ export function RunScreen({ run, connection }: { run: RunView; connection: Conne
   const weight = useTaskWeight(run);
   const waiting = run.pending !== null;
   const withSet = markingBegun(run);
+  // Fractional columns also fit beside the colleague box in a narrow desktop window.
+  const columns = waiting
+    ? "min-[901px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]!"
+    : withSet
+      ? "min-[901px]:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)]!"
+      : "min-[901px]:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]!";
   return (
     <>
       <TopBar
@@ -58,7 +64,7 @@ export function RunScreen({ run, connection }: { run: RunView; connection: Conne
         step={1}
         chip={{ text: waiting ? "waiting for you" : stateName(run.state), kind: waiting ? "wait" : undefined }}
       />
-      <div className="canvas">
+      <div className="canvas [&>.goal]:shrink-0 [&>.loop]:shrink-0">
         {connection === "reconnecting" && (
           <p className="notice warn" role="status">
             The live log lost its connection; reconnecting. Nothing is lost: the run continues and the log catches up.
@@ -71,13 +77,13 @@ export function RunScreen({ run, connection }: { run: RunView; connection: Conne
         )}
         <GoalBand run={run} />
         <LoopStrip run={run} />
-        <div className={`agentrun ${withSet ? "" : "no-set"} ${waiting ? "asking" : ""}`}>
+        <div className={`agentrun ${withSet ? "" : "no-set"} ${waiting ? "asking" : ""} max-[900px]:grid-cols-1! ${columns} min-[901px]:min-h-0 min-[901px]:flex-1 min-[901px]:items-stretch! min-[901px]:overflow-hidden min-[901px]:[&>.now]:overflow-auto min-[901px]:[&>.now]:min-w-0 min-[901px]:[&>.now]:min-h-0 ${waiting ? "min-[901px]:grid-rows-[minmax(0,1fr)_minmax(0,1fr)]" : ""}`}>
           <NowPanel run={run} questionKey={questionKey(run)} />
-          <div className="feed">
+          <div className="feed min-h-0 min-w-0 min-[901px]:overflow-hidden">
             <EventLog events={run.events} start={run.startedAt} title="The feed" />
           </div>
           {withSet && (
-            <div className="sidecol">
+            <div className="sidecol min-[901px]:order-0! min-[901px]:min-h-0 min-[901px]:overflow-y-auto [&>*]:shrink-0">
               <NeedsYouQueue run={run} />
               <Suspense fallback={<aside className="panel set compose muted">Opening the class set…</aside>}>
                 <ClassSet run={run} selected={selected} onSelect={(id) => setSelected(id === selected ? null : id)} />

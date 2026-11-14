@@ -3,6 +3,7 @@
 // the replies, folded from the run's events; a message is accepted at once (202) and never pauses the
 // run. Off a run (§11.2) the thread is this session's, and each message is answered directly.
 // The teacher can widen, narrow or fold the box; the voice control joins the input row later.
+import { voiceContext } from "./voice-context";
 import { useMutation } from "@tanstack/react-query";
 import {
   lazy,
@@ -237,7 +238,7 @@ function useDeskTalk(): Talk {
   };
 }
 
-export function TalkBox({ run }: { run?: RunView }) {
+export function TalkBox({ run, page = run ? `/runs/${run.assessmentId}` : "/" }: { run?: RunView; page?: string }) {
   const onRun = useRunTalk(run);
   const atDesk = useDeskTalk();
   const talk = onRun ?? atDesk;
@@ -475,7 +476,10 @@ export function TalkBox({ run }: { run?: RunView }) {
             />
             {!ended && (
               <Suspense fallback={null}>
-                <VoiceControl ask={talk.ask} />
+                <VoiceControl
+                  ask={talk.ask}
+                  context={voiceContext(page, run, thread.findLast((item) => item.kind === "reply")?.say ?? "")}
+                />
               </Suspense>
             )}
             <Button type="submit" variant="primary" disabled={ended || !text.trim()}>

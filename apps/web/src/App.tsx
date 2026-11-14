@@ -4,8 +4,10 @@ import { lazy, Suspense } from "react";
 import { createBrowserRouter, Navigate, RouterProvider, useParams } from "react-router";
 
 import { useEventStream } from "./api/events";
+import { TopBar } from "./components/chrome";
 import { WithColleague } from "./components/colleague";
 import { SignInCallback, SignInGate } from "./auth/SignIn";
+import { StreamScreen } from "./screens/StreamScreen";
 import { RunScreen } from "./screens/RunScreen";
 import { PagesScreen } from "./screens/PagesScreen";
 import { DeskScreen } from "./screens/DeskScreen";
@@ -33,14 +35,15 @@ function Run({ id }: { id: string }) {
 }
 
 function RunPage({ run, connection }: ReturnType<typeof useEventStream>) {
-  const loading = <p className="compose muted">Opening the bundle…</p>;
+  const loading = <><TopBar title={run.title || "Your assessment"} subtitle="Opening the bundle…" /><p className="compose muted">Opening the bundle…</p></>;
   // Until the first event (`created`) arrives the screen cannot be chosen: pages mode and a typed
   // run look different from the start. A stream that fails shows RunScreen's connection state.
   if (run.events.length === 0 && (connection === "connecting" || connection === "live"))
     return (
-      <p className="compose muted" role="status">
-        Opening the run…
-      </p>
+      <>
+        <TopBar title="Opening the run…" subtitle="" />
+        <p className="compose muted" role="status">Opening the run…</p>
+      </>
     );
   // Pages mode before reading starts: only the created event exists (console-ui.md §11.4).
   if (run.created?.mode === "pages" && run.state === "draft" && run.events.length <= 1 && !run.halted)
@@ -87,11 +90,12 @@ const router = createBrowserRouter([
         ),
       },
       { path: "/runs/:id", element: <RunRoute /> },
+      { path: "/runs/:id/stream", element: <StreamScreen /> },
       { path: "*", element: <Navigate to="/" replace /> },
     ],
   },
 ]);
 
 export function App() {
-  return <RouterProvider router={router} />;
+  return <div className="flex h-dvh flex-col overflow-hidden [&>.topbar]:shrink-0 [&>.compose]:min-h-0 [&>.compose]:overflow-y-auto"><RouterProvider router={router} /></div>;
 }

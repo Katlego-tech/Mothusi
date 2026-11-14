@@ -1,5 +1,8 @@
 // The top bar, the run header (ring + finding + meters), the agents strip and the state rail
 // (console-ui.md §7; 02-live-run.png).
+import { useParams, useInRouterContext, useLocation, Link } from "react-router";
+import { signOut } from "../auth/session";
+import { Button } from "./ui/button";
 import type { AgentRole, AssessmentState } from "../api/types";
 import { clock, stateName } from "../lib/utils";
 import type { CardRole, RunView } from "../run/reducer";
@@ -17,14 +20,17 @@ export function TopBar({
   step?: 0 | 1 | 2 | 3; // left out on pages outside a run's steps (the desk)
   chip?: { text: string; kind?: "wait" | "done" } | undefined;
 }) {
+  const { id } = useParams();
+  const inRouter = useInRouterContext();
+  const Anchor = inRouter ? Link : "a";
   return (
-    <header className="topbar">
+    <header className="topbar h-auto! flex-wrap! py-2! gap-y-2!">
       <div className="wordmark">
         Mothusi<span>.</span>
       </div>
-      <div className="run-title">
-        <strong>{title}</strong>
-        <span className="muted">{subtitle}</span>
+      <div className="run-title max-w-full">
+        <strong className="truncate">{title}</strong>
+        <span className="muted truncate">{subtitle}</span>
       </div>
       {step !== undefined && (
         <ol className="steps">
@@ -36,6 +42,12 @@ export function TopBar({
         </ol>
       )}
       {chip && <span className={`chip ${chip.kind ?? ""}`}>{chip.text}</span>}
+      <nav aria-label="Main navigation" className="flex w-full flex-wrap gap-2">
+        <Button asChild variant="quiet" size="small"><Anchor to="/" href="/">Your desk</Anchor></Button>
+        {inRouter && <NavigationForRun id={id} />}
+        <Button asChild variant="quiet" size="small"><Anchor to="/new" href="/new">Mark a set</Anchor></Button>
+        <Button variant="quiet" size="small" onClick={signOut}>Sign out</Button>
+      </nav>
     </header>
   );
 }
@@ -187,4 +199,14 @@ export function StateRail({ run }: { run: RunView }) {
       </ol>
     </aside>
   );
+}
+
+function NavigationForRun({ id }: { id?: string }) {
+  const { pathname } = useLocation();
+  if (!id) return null;
+  const base = `/runs/${encodeURIComponent(id)}`;
+  return <>
+    <Button asChild variant="quiet" size="small"><Link to={base} aria-current={pathname === base ? "page" : undefined}>Current run</Link></Button>
+    <Button asChild variant="quiet" size="small"><Link to={`${base}/stream`} aria-current={pathname === `${base}/stream` ? "page" : undefined}>Agent output</Link></Button>
+  </>;
 }

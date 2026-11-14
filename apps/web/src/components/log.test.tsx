@@ -27,7 +27,7 @@ describe("the event log", () => {
     expect(screen.getByText("No events yet")).toBeInTheDocument();
     expect(screen.getByText("Waiting for events")).toBeInTheDocument();
     await userEvent.tab();
-    expect(screen.getByLabelText("The log, newest at the bottom")).toHaveFocus();
+    expect(screen.getByLabelText("The log, newest at the top")).toHaveFocus();
   });
 
   it("shows the goal, state reasons, decisions, teacher answers and delivery", () => {
@@ -110,19 +110,26 @@ describe("the event log", () => {
     expect(screen.queryByText(/R\s?1\.25/)).not.toBeInTheDocument();
   });
 
-  it("follows new events until the teacher scrolls up, and resumes at the bottom", () => {
+  it("follows new events until the teacher scrolls down, and resumes at the top", () => {
     const { rerender } = show(events.slice(0, 1));
-    const log = screen.getByLabelText("The log, newest at the bottom");
+    const log = screen.getByLabelText("The log, newest at the top");
     Object.defineProperties(log, { scrollHeight: { configurable: true, value: 1000 }, clientHeight: { configurable: true, value: 200 } });
     rerender(<EventLog events={events.slice(0, 2)} start={null} />);
-    expect(log.scrollTop).toBe(1000);
+    expect(log.scrollTop).toBe(0);
     log.scrollTop = 100;
     fireEvent.scroll(log);
     rerender(<EventLog events={events.slice(0, 3)} start={null} />);
     expect(log.scrollTop).toBe(100);
-    log.scrollTop = 800;
+    log.scrollTop = 0;
     fireEvent.scroll(log);
     rerender(<EventLog events={events.slice(0, 4)} start={null} />);
-    expect(log.scrollTop).toBe(1000);
+    expect(log.scrollTop).toBe(0);
   });
+});
+
+it("renders newest rows first without mutating the event stream", () => {
+  const original = events.slice(0, 2);
+  const { container } = show(original);
+  expect([...container.querySelectorAll(".ev")].map((row) => Number(row.getAttribute("data-seq")))).toEqual(original.map((e) => e.seq).reverse());
+  expect(original.map((e) => e.seq)).toEqual(events.slice(0, 2).map((e) => e.seq));
 });

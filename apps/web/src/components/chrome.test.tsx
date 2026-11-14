@@ -1,4 +1,7 @@
-import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router";
+import { navigation } from "../auth/session";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import type { MothusiEvent } from "../api/types";
 import { apply, emptyRun } from "../run/reducer";
 import plantedLog from "../run/__fixtures__/planted-events.jsonl?raw";
@@ -102,4 +105,68 @@ describe("the state rail over a real run", () => {
     expect(screen.getByRole("listitem", { current: "step" })).toHaveTextContent(stateName(state));
     if (state === "rejected") expect(screen.getByText(stateName("rejected"))).toBeInTheDocument();
   });
+});
+
+describe("persistent navigation", () => {
+  it.each(["/", "/new", "/runs/a1"])("offers desk, new set and sign out on %s", (path) => {
+    const assign = vi.spyOn(navigation, "assign").mockImplementation(() => {});
+    render(<MemoryRouter initialEntries={[path]}><Routes><Route path="*" element={<TopBar title="Teacher" subtitle="" />} /></Routes></MemoryRouter>);
+    expect(screen.getByRole("link", { name: "Your desk" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Mark a set" })).toHaveAttribute("href", "/new");
+    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    expect(assign).toHaveBeenCalledWith("/");
+    assign.mockRestore();
+  });
+  it("links to the current run, including at approval", () => {
+    render(<MemoryRouter initialEntries={["/runs/a1"]}><Routes><Route path="/runs/:id" element={<TopBar title="Term 1 test" subtitle="" step={2} />} /></Routes></MemoryRouter>);
+    expect(screen.getByRole("link", { name: "Current run" })).toHaveAttribute("href", "/runs/a1");
+    expect(screen.getByRole("link", { name: "Current run" })).toHaveAttribute("aria-current", "page");
+  });
+});
+
+it("keeps navigation links and sign-out in keyboard order", async () => {
+  const user = userEvent.setup();
+  const assign = vi.spyOn(navigation, "assign").mockImplementation(() => {});
+  render(<MemoryRouter initialEntries={["/runs/a1"]}><Routes>
+    <Route path="/runs/:id" element={<TopBar title="Test" subtitle="" />} />
+    <Route path="/" element={<p>Desk destination</p>} />
+    <Route path="/new" element={<p>New set destination</p>} />
+  </Routes></MemoryRouter>);
+  await user.tab();
+  expect(screen.getByRole("link", { name: "Your desk" })).toHaveFocus();
+  await user.tab();
+  expect(screen.getByRole("link", { name: "Current run" })).toHaveFocus();
+  await user.keyboard("{Enter}");
+  expect(screen.getByRole("banner")).toBeInTheDocument();
+  await user.tab();
+  expect(screen.getByRole("link", { name: "Agent output" })).toHaveFocus();
+  await user.tab();
+  expect(screen.getByRole("link", { name: "Mark a set" })).toHaveFocus();
+  await user.tab();
+  expect(screen.getByRole("button", { name: "Sign out" })).toHaveFocus();
+  await user.keyboard("{Enter}");
+  expect(assign).toHaveBeenCalledWith("/");
+  assign.mockRestore();
+});
+
+function NavigationPage() {
+  const { pathname } = useLocation();
+  return <><TopBar title="Term 1 test" subtitle="" /><output aria-label="Current page">{pathname}</output></>;
+}
+
+it.each([
+  ["Your desk", "/"],
+  ["Current run", "/runs/a1"],
+  ["Agent output", "/runs/a1/stream"],
+  ["Mark a set", "/new"],
+])("navigates through %s without leaving the app", async (name, destination) => {
+  const user = userEvent.setup();
+  render(<MemoryRouter initialEntries={["/runs/a1"]}><Routes>
+    <Route path="/" element={<NavigationPage />} />
+    <Route path="/new" element={<NavigationPage />} />
+    <Route path="/runs/:id" element={<NavigationPage />} />
+    <Route path="/runs/:id/stream" element={<NavigationPage />} />
+  </Routes></MemoryRouter>);
+  await user.click(screen.getByRole("link", { name }));
+  expect(screen.getByLabelText("Current page")).toHaveTextContent(destination ?? "");
 });

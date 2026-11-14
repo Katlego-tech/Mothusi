@@ -195,7 +195,7 @@ export function EventLog({
   events,
   start,
   title = "What Mothusi is doing",
-  note = "newest at the bottom · follows live",
+  note = "newest at the top · follows live",
   footer,
 }: {
   events: MothusiEvent[];
@@ -213,30 +213,30 @@ export function EventLog({
     return () => clearTimeout(timer);
   }, [lastSeq, settled]);
   // The body scrolls inside the panel and follows the newest row while the reader is at the
-  // bottom; scrolling up to read stops the following until they scroll back down.
+  // top; scrolling down to read stops following until they return to the top.
   const body = useRef<HTMLDivElement>(null);
   const stick = useRef(true);
   useEffect(() => {
     const el = body.current;
-    if (el && stick.current) el.scrollTop = el.scrollHeight;
+    if (el && stick.current) el.scrollTop = 0;
   }, [lastSeq]);
   return (
-    <main className="panel log" aria-live="polite">
-      <div className="panel-head">
+    <main className="panel log min-h-0 h-full max-h-[65dvh] min-[901px]:max-h-none overflow-hidden" aria-live="polite">
+      <div className="panel-head shrink-0">
         <h2>{title}</h2>
         <span className="small muted">{note}</span>
       </div>
       <div
-        className="log-body"
+        className="log-body min-h-0! max-h-none! flex-1 overflow-y-auto overscroll-contain"
         ref={body}
         tabIndex={0}
-        aria-label="The log, newest at the bottom"
+        aria-label="The log, newest at the top"
         onScroll={(e) => {
           const el = e.currentTarget;
-          stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 48;
+          stick.current = el.scrollTop < 48;
         }}
       >
-      {rows(events).map((row) => {
+      {rows(events).reverse().map((row) => {
         const { who, ink } = whoOf(row);
         const fresh = settled !== null && row.event.seq > settled;
         return (

@@ -409,8 +409,25 @@ td.learner { font-weight: 500; }
 @media (max-width: 640px) { .reading { grid-template-columns: 1fr; } }
 
 /* Sign in (console-ui.md §12; 13-sign-in.png) */
-.signin { max-width: 520px; padding-top: 96px; }
+.signin {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr); height: 100dvh; width: 100%; flex: none;
+  background: var(--ground);
+}
+.signin-image { display: block; width: 100%; height: 100%; min-height: 0; object-fit: cover; }
+.signin-panel { display: flex; min-width: 0; min-height: 0; overflow-y: auto; padding: clamp(24px, 5vw, 80px); }
+.signin-content { width: 100%; max-width: 440px; margin: auto; }
+.signin .wordmark { font-size: 32px; line-height: 40px; }
+.signin-description { margin-top: var(--gap); font-size: var(--fs-section); line-height: 26px; }
+.signin-form { display: flex; flex-direction: column; gap: var(--gap); margin-top: 40px; }
 .signin h1 { font-size: 28px; line-height: 36px; }
+.signin .btn { min-height: 44px; padding-inline: 32px; }
+.signin .error { overflow-wrap: anywhere; }
+@media (width < 900px) {
+  .signin { grid-template-columns: minmax(0, 1fr); grid-template-rows: min(24dvh, 200px) minmax(0, 1fr); }
+  .signin-panel { padding: var(--pad); }
+  .signin-form { margin-top: var(--pad); }
+}
 
 /* Memo drafted from a PDF or Word file (intake.md §12; 14-memo-draft.png) */
 .memo-draft { display: grid; gap: 12px; padding: 16px 20px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
