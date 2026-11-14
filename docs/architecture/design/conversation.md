@@ -239,3 +239,79 @@ promise?}`; a card's sent state comes from `note_sent`. Updates are made by one 
 
 - [ ] GPU contention: during marking, a model-routed message waits behind marking calls. The rules
   cover the demo's sentences; measure model-routed latency in the next eval.
+
+## 11. What teachers will ask: the request catalogue
+
+Katlego, 2026-11-14 05:00: the colleague is **available on every page, with or without a run**. It
+answers questions, returns stats for the current run, says **where the run hit a wall**, and
+prepares new work (a lesson plan from the ATP) by handing it to sub-agents and asking follow-up
+questions. Its capabilities rest on its **sources of truth**:
+
+- the **ATP**: `packs/dbe-caps/atp/<subject>-gr10.toml`, one row per teaching week, each cited to its DBE page;
+- the **PoA**: `packs/dbe-caps/<subject>-gr10.toml` `[[poa]]`, from Circular S8 of 2023, Annexure §26;
+- the **memo**: the run's memo;
+- the run's own state and events;
+- and, for wording beyond a topic name, the page-cited curriculum passages from the knowledge service.
+
+Where none of these covers a request, the colleague says it can't do it and names what is missing.
+It never improvises.
+
+Status: **can** = built or in the easy-wins slice below · **after X** = answerable once the run has
+passed stage X, and before then the reply says when · **next** = designed, after the freeze ·
+**can't** = an honest refusal with the reason.
+
+| # | The teacher asks | Source | Skill | Status |
+|---|---|---|---|---|
+| **A** | **This run** | | | |
+| A1 | "How far are you?" | run state | `run_status` | can (built) |
+| A2 | "Give me the stats for this run": average, highest and lowest, spread, per-question average | first marks, then final marks (code) | `run_report` | can: provisional during marking, final after moderation |
+| A3 | "Where did you get stuck?" / "What went wrong?" | events: halts, flags and their reasons, failed checks, re-briefs, disagreements, a widened sample, budget | `run_walls` | can |
+| A4 | "Why did L-014 get 3 on 2.1?" | marks: evidence quote and memo line | `explain_mark` | can (built) |
+| A5 | "Which questions did the class struggle with?" | `item_stats` | `run_report` (items) | after analysing; provisional per-question averages before |
+| A6 | "Who needs catch-up?" | `catch_up_plan` | `run_report` (catch-up) | after writing |
+| A7 | "Send L-001 their feedback" | the note and its review | `send_feedback` | can (built; release from the card) |
+| A8 | "Change L-014's mark to 5" / "Approve the set" | — | `cannot` | can't here: marks change only through Needs-you or approval, and approval only on its screen |
+| A9 | "Mark L-001 next" | — | — | next |
+| **B** | **The memo** | | | |
+| B1 | "What does the memo give for 2.3?" | memo item: answer, marks, notes | `memo_item` | can |
+| B2 | "Did you find anything wrong in my memo?" | the Setter's memo-check results | `memo_item` (check) | can after memo check |
+| B3 | "How many marks is question 3 / the whole test?" | memo totals (code) | `memo_item` | can |
+| **C** | **The PoA** | | | |
+| C1 | "How much does this test count?" | `[[poa]]` weight and its source | `poa` | can |
+| C2 | "What is the PoA for term 2?" | `[[poa]]` by term | `poa` | can |
+| C3 | "What does L-001's mark count towards the year?" | `converted` | `run_report` | after analysing |
+| C4 | "How many scripts must be moderated?" | pack `moderation` | `poa` | can |
+| **D** | **The ATP** | | | |
+| D1 | "What should I teach in term 2 week 3?" | ATP row (code), cited | `atp` | can |
+| D2 | "When is trigonometry taught?" | ATP rows matching the topic | `atp` | can |
+| D3 | "What does CAPS say about functions?" | knowledge search, with pages | `curriculum` | can when the knowledge service is reachable; otherwise says so |
+| **E** | **New work (sub-agents)** | | | |
+| E1 | "Prepare a lesson plan for week 6" | ATP + CAPS passages | `lesson_plan`: Clarify → Research → Writer → Reviewer → teacher | **Clarify and Research can**; Writer and Reviewer next |
+| E2 | "Set a practice test from the ATP" | ATP (ADR 0004) | — | next |
+| E3 | "Make a worksheet / homework" | ATP + CAPS | the `lesson_plan` pipeline | next |
+| **F** | **Outside the sources** | | | |
+| F1 | Another grade or subject | — | `cannot` | can't: "I only hold the Grade 10 Mathematics and Accounting ATPs." |
+| F2 | "Email the parents" / contact a learner | — | `cannot` | can't: Mothusi never contacts learners or parents |
+| F3 | Report cards, SA-SAMS export | — | `cannot` | can't: not built |
+| F4 | Anything else | — | `fallback` | lists what it can do |
+
+### 11.1 The lesson plan's first two steps (E1, in the easy-wins slice)
+
+**Clarify.** Mothusi asks only for what is missing, one question at a time:
+
+- the subject: Mathematics or Accounting;
+- the term and week, or a topic (resolved to ATP weeks in code);
+- how many lessons, and how long each is;
+- anything about the class (optional).
+
+**Research.** Code looks up the ATP rows; the knowledge service returns CAPS and ATP passages for
+the topic. The reply lists the week, the topic and each passage with its source and page. That is
+the brief the Writer will receive. Until the Writer ships, the reply ends: "Drafting the full plan
+from this is the next step I'll be able to take."
+
+### 11.2 Without a run (every page)
+
+`POST /colleague/messages {text, context: {pack_id?, subject?, assessment_id?}}` returns
+`200 {reply: ReplyBody, ask?: str}`. It is synchronous, because there is no run to stream. The
+thread lives in the browser for that session. On a run's page the box keeps using the run's thread
+(§6), and run-less questions asked there (B, C, D, E, F) go through the same skills.
