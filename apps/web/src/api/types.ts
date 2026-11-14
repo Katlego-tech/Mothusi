@@ -1,4 +1,4 @@
-// The wire shapes of docs/design/console-ui.md §6, as the core service sends them.
+// The wire shapes of docs/architecture/design/console-ui.md §6, as the core service sends them.
 // Money is a decimal string in rand; times are ISO 8601.
 
 export type AssessmentState =

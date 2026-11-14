@@ -1,4 +1,4 @@
-"""The event log's one record type. Design: docs/design/event-log.md §3.
+"""The event log's one record type. Design: docs/architecture/design/event-log.md §3.
 
 One Event per Brief, Result, check, decision, state change and teacher action. The console streams
 them; the moderation record is read back from them; nothing in Mothusi is decided off the record.

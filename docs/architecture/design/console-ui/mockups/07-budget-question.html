@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mothusi · the spending limit</title>
+<link rel="stylesheet" href="console.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="wordmark">Mothusi<span>.</span></div>
+  <div class="run-title">
+    <strong>Grade 10 Mathematics · Term 1 Test</strong>
+    <span class="muted">32 scripts · DBE CAPS Mathematics Grade 10 · 50 marks, 14% of the SBA mark</span>
+  </div>
+  <ol class="steps"><li class="done">Set the task</li><li class="now">Live run</li><li>Approval</li></ol>
+  <span class="chip wait">waiting for you</span>
+</header>
+
+<div class="canvas">
+  <div class="runhead">
+    <div class="panel progress">
+      <svg class="ring" viewBox="0 0 56 56" aria-hidden="true"><circle class="track" cx="28" cy="28" r="24"/><circle class="fill" cx="28" cy="28" r="24" stroke-dasharray="127.2 150.8"/></svg>
+      <div>
+        <h1>27 of 32 scripts marked</h1>
+        <p><b>The run has reached your limit of R 40.00.</b> It stopped at the end of a batch; the 27 marked scripts are kept whatever you decide.</p>
+      </div>
+    </div>
+    <div class="panel strip">
+      <div><span class="kpi-label">Time</span><span class="kpi">05:02</span></div>
+      <div><span class="kpi-label">Spent</span><span class="kpi">R 40.12</span></div>
+      <div><span class="kpi-label">Per script</span><span class="kpi">R 1.49</span></div>
+      <div><span class="kpi-label">Your steps</span><span class="kpi">1</span></div>
+    </div>
+  </div>
+
+  <div class="panel agents" aria-label="Who is doing what">
+    <div><span class="who">Intake</span><span class="what"><b>Done.</b> 32 scripts, 278 answers</span></div>
+    <div><span class="who">Setter</span><span class="what"><b>Done.</b> Item 2.3 flagged; you chose x = −4</span></div>
+    <div><span class="who marker">Marker</span><span class="what"><b>Paused</b> after L-027 · 31 briefs, 4 retries</span></div>
+    <div><span class="who code">Code</span><span class="what"><b>62 checks</b> · 4 failed, all resolved · 0 open</span></div>
+    <div><span class="who planner live">Planner</span><span class="what"><b>Halted at the batch boundary</b>; asked you</span></div>
+    <div class="idle"><span class="who">Waiting</span><span class="what">Moderator · Analyst · Support · Writer · Reviewer · Executor</span></div>
+  </div>
+
+  <div class="run">
+    <aside class="rail">
+      <h2>Where it is</h2>
+      <ol class="states">
+        <li class="done">draft</li>
+        <li class="done">memo check</li>
+        <li class="now">marking</li>
+        <li>moderating</li>
+        <li class="branch">re-marking</li>
+        <li>analysing</li>
+        <li>writing</li>
+        <li>reviewing</li>
+        <li>awaiting approval</li>
+        <li>approved</li>
+        <li>delivered</li>
+      </ol>
+    </aside>
+
+    <main class="panel log" aria-live="polite">
+      <div class="panel-head"><h2>What Mothusi is doing</h2><span class="small muted">newest at the bottom · follows live</span></div>
+
+      <div class="ev"><time>04:58</time><span class="who marker">Marker</span>
+        <div class="body"><span class="marks">L-027 marked <span class="ink red">22</span><span class="of">of 50</span></span>
+        <span class="tags"><span class="tag pass">totals</span><span class="tag pass">bounds</span><span class="tag pass">evidence</span><span class="cost">R 1.62 · the provider fell back to the slower model for this batch</span></span></div></div>
+      <div class="ev"><time>05:01</time><span class="who code">Code</span>
+        <div class="body"><span>Batch 7 of 8 done: 27 scripts marked, every check passed</span><span class="detail">spend so far R 40.12 against your limit of R 40.00</span></div></div>
+      <div class="ev state"><time>05:02</time><span class="who planner">Planner</span><div class="body">the spending limit is reached; marking halts at the batch boundary and waits for you</div></div>
+
+      <section class="ask" aria-labelledby="ask-title">
+        <div class="ask-head">
+          <h3 id="ask-title">Raise the spending limit to finish the last 5 scripts?</h3>
+          <span class="small muted">Needs your decision · 27 marked scripts are kept either way</span>
+        </div>
+        <div class="papers">
+          <figure class="paper">
+            <div class="paper-head"><span><b>Spent so far</b></span><span>27 of 32 scripts</span></div>
+            <div class="lines">
+              <div class="line"><span>Intake and the Setter</span><span class="mk grey">R 0.62</span></div>
+              <div class="line"><span>Marking, 27 scripts (4 retries)</span><span class="mk grey">R 39.50</span></div>
+              <div class="line"><span>Total</span><span class="mk grey"><b>R 40.12</b></span></div>
+            </div>
+            <div class="paper-foot"><span class="muted">your limit</span><span>R 40.00</span></div>
+          </figure>
+          <figure class="paper script">
+            <div class="paper-head"><span><b>Still to do</b></span><span>at the current rate</span></div>
+            <div class="lines">
+              <div class="line"><span>Marking, 5 scripts</span><span class="mk grey">about R 7.40</span></div>
+              <div class="line"><span>Blind moderation, 6 scripts</span><span class="mk grey">about R 6.50</span></div>
+              <div class="line"><span>Analysis, writing, review</span><span class="mk grey">about R 3.20</span></div>
+            </div>
+            <div class="paper-foot"><span class="muted">a limit of R 60.00 should see it through</span></div>
+          </figure>
+        </div>
+        <div class="choices">
+          <span class="row">Raise the limit to <input class="input num" value="R 60.00" aria-label="New spending limit"></span>
+          <button class="btn primary">Raise it and continue</button>
+          <button class="btn">Leave it; stop here</button>
+          <span class="note">Stopping keeps the 27 marked scripts; you can export them from the log.</span>
+        </div>
+      </section>
+    </main>
+
+    <aside class="panel set">
+      <div class="panel-head"><h2>The class set</h2><span class="small muted">27 of 32 marked</span></div>
+      <div class="grid">
+        <div class="cell"><span class="id">L-001</span><span class="ink red">34</span></div>
+        <div class="cell"><span class="id">L-002</span><span class="ink red">18</span></div>
+        <div class="cell"><span class="id">L-003</span><span class="ink red">39</span></div>
+        <div class="cell"><span class="id">L-004</span><span class="ink red">17</span></div>
+        <div class="cell"><span class="id">L-005</span><span class="ink red">18</span></div>
+        <div class="cell"><span class="id">L-006</span><span class="ink red">20</span></div>
+        <div class="cell"><span class="id">L-007</span><span class="ink red">37</span></div>
+        <div class="cell"><span class="id">L-008</span><span class="ink red">17</span></div>
+        <div class="cell"><span class="id">L-009</span><span class="ink red">46</span></div>
+        <div class="cell"><span class="id">L-010</span><span class="ink red">27</span></div>
+        <div class="cell"><span class="id">L-011</span><span class="ink red">16</span></div>
+        <div class="cell"><span class="id">L-012</span><span class="ink red">19</span></div>
+        <div class="cell"><span class="id">L-013</span><span class="ink red">41</span></div>
+        <div class="cell"><span class="id">L-014</span><span class="ink red">31</span></div>
+        <div class="cell"><span class="id">L-015</span><span class="ink red">18</span></div>
+        <div class="cell"><span class="id">L-016</span><span class="ink red">29</span></div>
+        <div class="cell"><span class="id">L-017</span><span class="ink red">19</span></div>
+        <div class="cell"><span class="id">L-018</span><span class="ink red">41</span></div>
+        <div class="cell"><span class="id">L-019</span><span class="ink red">17</span></div>
+        <div class="cell"><span class="id">L-020</span><span class="ink red">21</span></div>
+        <div class="cell"><span class="id">L-021</span><span class="ink red">29</span></div>
+        <div class="cell"><span class="id">L-022</span><span class="ink red">17</span></div>
+        <div class="cell"><span class="id">L-023</span><span class="ink red">39</span></div>
+        <div class="cell"><span class="id">L-024</span><span class="ink red">17</span></div>
+        <div class="cell"><span class="id">L-025</span><span class="ink red">28</span></div>
+        <div class="cell"><span class="id">L-026</span><span class="ink red">16</span></div>
+        <div class="cell"><span class="id">L-027</span><span class="ink red">22</span></div>
+        <div class="cell pending"><span class="id">L-028</span></div><div class="cell pending"><span class="id">L-029</span></div><div class="cell pending"><span class="id">L-030</span></div><div class="cell pending"><span class="id">L-031</span></div>
+        <div class="cell pending"><span class="id">L-032</span></div>
+      </div>
+      <div class="key">
+        <span><span class="ink red">27</span> Marker's total</span>
+        <span><span class="swatch" style="border-style:dashed"></span> waiting for your decision</span>
+      </div>
+    </aside>
+  </div>
+</div>
+</body>
+</html>

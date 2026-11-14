@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mothusi · memo check</title>
+<link rel="stylesheet" href="console.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="wordmark">Mothusi<span>.</span></div>
+  <div class="run-title">
+    <strong>Grade 10 Mathematics · Term 1 Test</strong>
+    <span class="muted">32 scripts · DBE CAPS Mathematics Grade 10 · 50 marks, 14% of the SBA mark</span>
+  </div>
+  <ol class="steps"><li class="done">Set the task</li><li class="now">Live run</li><li>Approval</li></ol>
+  <span class="chip wait">waiting for you</span>
+</header>
+
+<div class="canvas">
+  <div class="runhead">
+    <div class="panel progress">
+      <svg class="ring" viewBox="0 0 56 56" aria-hidden="true"><circle class="track" cx="28" cy="28" r="24"/><circle class="fill" cx="28" cy="28" r="24" stroke-dasharray="0 150.8"/></svg>
+      <div>
+        <h1>0 of 32 scripts marked</h1>
+        <p><b>Memo item 2.3 may be wrong.</b> Nothing is marked until you decide; one correction here instead of thirty-two later.</p>
+      </div>
+    </div>
+    <div class="panel strip">
+      <div><span class="kpi-label">Time</span><span class="kpi">00:58</span></div>
+      <div><span class="kpi-label">Cost so far</span><span class="kpi">R 0.62</span></div>
+      <div><span class="kpi-label">Your steps</span><span class="kpi">0</span></div>
+    </div>
+  </div>
+
+  <div class="panel agents" aria-label="Who is doing what">
+    <div><span class="who">Intake</span><span class="what"><b>Done.</b> 32 scripts, 278 answers; names replaced by L-001 to L-032</span></div>
+    <div><span class="who">Setter</span><span class="what"><b>Sat the test.</b> 9 answers compared; 1 differs from the memo</span></div>
+    <div><span class="who code">Code</span><span class="what"><b>2 checks</b> · 1 passed · 1 failed (memo 2.3)</span></div>
+    <div><span class="who planner live">Planner</span><span class="what"><b>Waiting for you</b> before marking starts</span></div>
+    <div class="idle"><span class="who">Waiting</span><span class="what">Marker · Moderator · Analyst · Support · Writer · Reviewer · Executor</span></div>
+  </div>
+
+  <div class="run">
+    <aside class="rail">
+      <h2>Where it is</h2>
+      <ol class="states">
+        <li class="done">draft</li>
+        <li class="now">memo check</li>
+        <li>marking</li>
+        <li>moderating</li>
+        <li class="branch">re-marking</li>
+        <li>analysing</li>
+        <li>writing</li>
+        <li>reviewing</li>
+        <li>awaiting approval</li>
+        <li>approved</li>
+        <li>delivered</li>
+      </ol>
+    </aside>
+
+    <main class="panel log" aria-live="polite">
+      <div class="panel-head"><h2>What Mothusi is doing</h2><span class="small muted">newest at the bottom · follows live</span></div>
+
+      <div class="ev"><time>00:04</time><span class="who">Intake</span>
+        <div class="body"><span>Read the memo and 32 scripts</span><span class="detail">learners replaced by L-001 to L-032; the names stay with you</span></div></div>
+
+      <div class="ev"><time>00:05</time><span class="who code">Code</span>
+        <div class="body"><span><span class="tag pass">PASS</span> Cognitive levels match CAPS</span><span class="detail">24 / 36 / 28 / 12 against CAPS 20 / 35 / 30 / 15, tolerance 5 points</span></div></div>
+
+      <div class="ev"><time>00:06</time><span class="who">Setter</span>
+        <div class="body"><span>Sit the test from the question paper and compare with the memo</span><span class="detail">brief b-0004 · the memo's answers are not in the brief</span></div></div>
+
+      <div class="ev check-fail"><time>00:57</time><span class="who code">Code</span>
+        <div class="body"><span><span class="tag fail">FAIL</span> Memo item 2.3: the Setter's answer is not equivalent to the memo's</span><span class="detail">x = −4 against x = −2; 2.1, 2.2 and the six other items agree</span></div></div>
+
+      <div class="ev state"><time>00:57</time><span class="who planner">Planner</span><div class="body">one memo answer disagrees; marking waits for you</div></div>
+
+      <section class="ask" aria-labelledby="ask-title">
+        <div class="ask-head">
+          <h3 id="ask-title">Memo item 2.3 may be wrong</h3>
+          <span class="small muted">Needs your decision · nothing is marked yet</span>
+        </div>
+        <div class="papers">
+          <figure class="paper">
+            <div class="paper-head"><span><b>Your memo</b> · item 2.3</span><span>4 marks</span></div>
+            <p class="paper-q">Solve for x: 2<sup>x+1</sup> = 1/8</p>
+            <div class="lines">
+              <div class="line"><span>1/8 = 2<sup>−3</sup></span><span class="mk grey">2</span></div>
+              <div class="line"><span>x + 1 = −3</span><span class="mk grey">1</span></div>
+              <div class="line"><span>Answer: <mark class="quote">x = −2</mark></span><span class="mk grey">1</span></div>
+            </div>
+            <div class="paper-foot"><span class="muted">routine procedures · ATP week 6</span></div>
+          </figure>
+          <figure class="paper script">
+            <div class="paper-head"><span><b>The Setter's working</b></span><span>brief b-0004</span></div>
+            <p class="paper-q">Sat the question without seeing the memo's answer</p>
+            <div class="lines">
+              <div class="line"><span>1/8 = 2<sup>−3</sup>, so 2<sup>x+1</sup> = 2<sup>−3</sup></span></div>
+              <div class="line"><span>x + 1 = −3</span></div>
+              <div class="line"><span><mark class="quote green">x = −4</mark></span></div>
+            </div>
+            <div class="paper-foot"><span class="muted">Code: equivalent("x = −4", "x = −2") is false; 2<sup>−4+1</sup> = 1/8 holds</span></div>
+          </figure>
+        </div>
+        <div class="choices">
+          <button class="btn primary">Use x = −4 and mark</button>
+          <button class="btn">Keep the memo's x = −2</button>
+          <button class="btn">Write a different answer</button>
+          <span class="note">Your choice is written into the log and the moderation report.</span>
+        </div>
+      </section>
+    </main>
+
+    <aside class="panel set">
+      <div class="panel-head"><h2>The class set</h2><span class="small muted">0 of 32 marked</span></div>
+      <div class="grid">
+        <div class="cell pending"><span class="id">L-001</span></div><div class="cell pending"><span class="id">L-002</span></div><div class="cell pending"><span class="id">L-003</span></div><div class="cell pending"><span class="id">L-004</span></div>
+        <div class="cell pending"><span class="id">L-005</span></div><div class="cell pending"><span class="id">L-006</span></div><div class="cell pending"><span class="id">L-007</span></div><div class="cell pending"><span class="id">L-008</span></div>
+        <div class="cell pending"><span class="id">L-009</span></div><div class="cell pending"><span class="id">L-010</span></div><div class="cell pending"><span class="id">L-011</span></div><div class="cell pending"><span class="id">L-012</span></div>
+        <div class="cell pending"><span class="id">L-013</span></div><div class="cell pending"><span class="id">L-014</span></div><div class="cell pending"><span class="id">L-015</span></div><div class="cell pending"><span class="id">L-016</span></div>
+        <div class="cell pending"><span class="id">L-017</span></div><div class="cell pending"><span class="id">L-018</span></div><div class="cell pending"><span class="id">L-019</span></div><div class="cell pending"><span class="id">L-020</span></div>
+        <div class="cell pending"><span class="id">L-021</span></div><div class="cell pending"><span class="id">L-022</span></div><div class="cell pending"><span class="id">L-023</span></div><div class="cell pending"><span class="id">L-024</span></div>
+        <div class="cell pending"><span class="id">L-025</span></div><div class="cell pending"><span class="id">L-026</span></div><div class="cell pending"><span class="id">L-027</span></div><div class="cell pending"><span class="id">L-028</span></div>
+        <div class="cell pending"><span class="id">L-029</span></div><div class="cell pending"><span class="id">L-030</span></div><div class="cell pending"><span class="id">L-031</span></div><div class="cell pending"><span class="id">L-032</span></div>
+      </div>
+      <div class="key"><span><span class="swatch" style="border-style:dashed"></span> waiting for the memo</span></div>
+    </aside>
+  </div>
+</div>
+<script src="demo.js"></script>
+</body>
+</html>

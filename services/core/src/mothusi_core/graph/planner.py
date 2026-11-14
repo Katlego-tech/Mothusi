@@ -1,6 +1,7 @@
 """The Planner: one LangGraph StateGraph that runs an assessment through §5's states.
 
-Design: docs/design/marking-pipeline.md §4, §5, §6.1, §6.2. One work node per state; every state
+Design: docs/architecture/design/marking-pipeline.md §4, §5, §6.1, §6.2. One work node per state;
+every state
 change goes through `router.check_transition` and is logged as a `state` event. Teacher questions
 are `interrupt` calls in their own small `ask_*` nodes, so resuming never re-runs a model call. The
 Executor is called from the `approved` node only, through `executor_brief`, which refuses any

@@ -1,4 +1,5 @@
-"""The interface the Executor sends through. Design: docs/design/outputs-and-delivery.md §6.
+"""The interface the Executor sends through. Design:
+docs/architecture/design/outputs-and-delivery.md §6.
 
 Implementations: MaildirMailer (writes RFC 5322 files for the demo). A real SMTP sender is
 another implementation, for after the event. The Executor never imports an implementation directly.

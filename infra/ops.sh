@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deployment runbook: docs/design/deployment-aws.md §5.2 and §6.6.
+# Deployment runbook: docs/architecture/design/deployment-aws.md §5.2 and §6.6.
 set -euo pipefail
 set -E
 

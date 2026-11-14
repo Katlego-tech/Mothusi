@@ -1,6 +1,7 @@
 """Level-A checks on a marked script: the totals add up and every mark is in range.
 
-Design: docs/design/rules-engine.md §3 (check_totals, check_bounds). Pure functions over the
+Design: docs/architecture/design/rules-engine.md §3 (check_totals, check_bounds). Pure functions
+over the
 contracts; they never change a mark, they only say whether one is wrong and why.
 """
 

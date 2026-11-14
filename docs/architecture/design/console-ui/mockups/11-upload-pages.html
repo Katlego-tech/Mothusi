@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mothusi · print the sheets, upload the pages</title>
+<link rel="stylesheet" href="console.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="wordmark">Mothusi<span>.</span></div>
+  <div class="run-title">
+    <strong>New assessment</strong>
+    <span class="muted">A colleague for the assessment cycle</span>
+  </div>
+  <ol class="steps"><li class="now">Set the task</li><li>Live run</li><li>Approval</li></ol>
+</header>
+
+<main class="compose pages">
+  <h1>Print the sheets, then bring back the pages</h1>
+  <p class="muted">Each learner writes on their own sheet. The code in its corner tells Mothusi whose page it is, so no name is read from the page.</p>
+  <section class="pagestep">
+    <h2>Print the answer sheets</h2>
+    <p class="small">One sheet per learner, with their name printed at the top and a box for every question on the memo. The name band is cut off before anything reads the page.</p>
+    <button type="button" class="btn">Download the sheets again</button>
+  </section>
+  <section class="pagestep">
+    <h2>Upload the written pages</h2>
+    <p class="small">Phone photos (PNG or JPEG) or scanned PDFs, in any order and any number of files. Keep all four corner squares in the photo.</p>
+    <span class="btn">Choose photos or PDFs</span>
+    <ul class="uploads">
+      <li class="uploaded"><span class="name">class-10b-scan-1.pdf</span><span class="small muted">PDF</span><span class="small status">uploaded</span><button type="button" class="btn quiet small">Remove</button></li>
+      <li class="uploaded"><span class="name">class-10b-scan-2.pdf</span><span class="small muted">PDF</span><span class="small status">uploaded</span><button type="button" class="btn quiet small">Remove</button></li>
+      <li class="uploaded"><span class="name">IMG_4471.jpg</span><span class="small muted">photo</span><span class="small status">uploaded</span><button type="button" class="btn quiet small">Remove</button></li>
+      <li class="refused"><span class="name">IMG_4472.heic</span><span class="small muted">photo</span><span class="small status">IMG_4472.heic: send a PNG or JPEG photo, or a PDF</span><button type="button" class="btn quiet small">Remove</button></li>
+    </ul>
+  </section>
+  <section class="pagestep">
+    <h2>Read the pages</h2>
+    <p class="small">Mothusi straightens each page, reads every answer box on the model host in Cape Town, and asks you about any line it is unsure of before marking starts.</p>
+    <button type="button" class="btn primary">Read 3 files and start</button>
+  </section>
+</main>
+</body>
+</html>

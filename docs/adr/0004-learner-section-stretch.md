@@ -1,7 +1,7 @@
 # ADR 0004 — Learner section (stretch): practice tests from the ATP, and an exhibition hall
 
-**Status:** Accepted as stretch · **Date:** 2026-11-10 · **Decided by:** Katlego Tlhapiso · **Builds
-on:** the scope document’s "Stretch" section (2026-11-08)
+**Status:** Accepted as stretch · **Date:** 2026-11-13 · **Decided by:** Katlego Tlhapiso · **Builds
+on:** the scope document’s "Stretch" section (2026-11-13)
 
 ## Decision
 
@@ -23,7 +23,7 @@ on:** the scope document’s "Stretch" section (2026-11-08)
 
 ## Open
 
-- [x] **Non-negotiable I — decided by Katlego, 2026-11-10:** "practice tests may show results as their
+- [x] **Non-negotiable I — decided by Katlego, 2026-11-13:** "practice tests may show results as their
   purpose is to help the learner improve". The teacher's one approval of a practice test and its memo
   covers every attempt's result. Learners see only the code-checked mark, the evidence quote and the
   memo's worked answer, never free model prose. Recorded in implementation non-negotiable 1, the product

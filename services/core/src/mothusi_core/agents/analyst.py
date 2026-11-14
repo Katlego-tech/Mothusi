@@ -1,6 +1,7 @@
 """The Analyst: names the misconception behind each item the class must be re-taught.
 
-Design: docs/design/marking-pipeline.md §4 step 21 and §6.1; the `analyst` contract. The model
+Design: docs/architecture/design/marking-pipeline.md §4 step 21 and §6.1; the `analyst` contract.
+The model
 reads the answers that lost marks on each `re-teach` item and names the pattern, quoting the
 learners' own work. Code decides the rest: exactly one misconception per `re-teach` item, every
 quote verbatim from a script that lost marks there, and how many scripts show it.

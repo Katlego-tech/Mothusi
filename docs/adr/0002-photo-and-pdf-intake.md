@@ -1,13 +1,13 @@
 # ADR 0002 — Photographed, scanned and PDF scripts on the golden path, read in Cape Town
 
-**Status:** Accepted · **Date:** 2026-11-10 · **Decided by:** Katlego Tlhapiso · **Supersedes:** the scope document's
-"Handwriting recognition on the golden path" out-of-scope line, and the aside of commit `577ac2c`
+**Status:** Accepted · **Date:** 2026-11-13 · **Decided by:** Katlego Tlhapiso · **Supersedes:** the scope document's
+"Handwriting recognition on the golden path" out-of-scope line
 
 ## Context
 
-On 2026-11-08 Katlego ruled that a tool someone must feed with typed scripts is useless to a teacher.
-Intake read only memo TOML and a scripts CSV. Reading handwriting with a vision model was in the
-arsenal's proposal (§9.2) and was cut without sign-off (dropped-technologies rows 4 and 5).
+On 2026-11-13 Katlego ruled that a tool someone must feed with typed scripts is useless to a teacher.
+Mothusi adopts handwriting reading with a vision model on the golden path, alongside memo TOML and
+scripts CSV intake.
 
 ## Decision
 

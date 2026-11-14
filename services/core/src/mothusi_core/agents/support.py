@@ -1,6 +1,7 @@
 """Support: places re-teaching for each misconception in a week the ATP still has left.
 
-Design: docs/design/marking-pipeline.md §4 step 22 and §6.1; the `support` contract. The model
+Design: docs/architecture/design/marking-pipeline.md §4 step 22 and §6.1; the `support` contract.
+The model
 chooses the week, topic and activity; `check_catch_up` (rules) refuses a week already taught or a
 source not copied from that week, and code requires every misconception to get some catch-up work.
 """

@@ -1,4 +1,4 @@
-"""The transitions of docs/design/marking-pipeline.md §5, and nothing else.
+"""The transitions of docs/architecture/design/marking-pipeline.md §5, and nothing else.
 
 Every node of the Planner graph changes state only through `transition`, which refuses an edge §5
 does not draw. In particular nothing reaches `delivered` except from `approved`, and nothing

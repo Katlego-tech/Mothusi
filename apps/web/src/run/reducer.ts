@@ -1,4 +1,4 @@
-// RunView and apply (docs/design/console-ui.md §3): the whole screen folded from the event stream.
+// RunView and apply (docs/architecture/design/console-ui.md §3): the whole screen folded from the event stream.
 // Pure: apply(view, event) returns a new view, or the same one for an event already seen, so a
 // reload or a reconnect replay rebuilds exactly the same screen.
 import type {

@@ -1,4 +1,4 @@
-"""The API of docs/design/console-ui.md §6 over the Planner, on the scripted provider.
+"""The API of docs/architecture/design/console-ui.md §6 over the Planner, on the scripted provider.
 
 The golden path over HTTP (create, the memo question, approval, the SSE log to `delivered`) and
 the refusals the console relies on: 422 with intake's own sentence, 409 when nothing is pending.

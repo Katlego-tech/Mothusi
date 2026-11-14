@@ -1,6 +1,7 @@
 """The Setter: sits the test itself and compares its answers with the memo, before any marking.
 
-Design: docs/design/marking-pipeline.md §4 steps 4-7; the `setter` contract. The model answers the
+Design: docs/architecture/design/marking-pipeline.md §4 steps 4-7; the `setter` contract. The model
+answers the
 paper; code decides agreement with `equivalent` (rules-engine.md §3 numeric.py). An item the code
 cannot compare is reported as such, never silently passed. A non-empty issues list stops the run at
 `memo_check` until the teacher confirms or amends the memo.
